@@ -150,7 +150,55 @@ document.addEventListener("keydown", event => {
     }
 })
 
+document.addEventListener("mousedown", event =>{
+    if(mode == 1 && jumping == false && buttonUp==true)
+    {
+        clearInterval(jumpInterval);
+        posy = maxPosy;
+        velocity = jumpVelocity;
+        jumpInterval = setInterval(PlayerJump,1);
+        jumping = true;
+        buttonUp = false;
+    }
+
+    if (mode == 1 && jumping == true && buttonUp == true)
+    {
+        velocity -= 0.3;
+        buttonUp = false;
+    }
+
+    if(mode == 0)
+    {
+        var x;
+        for(var i=0; i<enemies.length; i++)
+        {
+            x = enemies.pop(i);
+            x.remove();
+        }
+        for(var i=0; i<enemies.length; i++)
+        {
+            x = enemies.pop(i);
+            x.remove();
+        }
+        jumping = false;
+        posy = maxPosy;
+        PlayerJump();
+        score = -1;
+        UpdateScore();
+        mode = 1;
+        enemyMoveAmount = 3;
+        centerText.innerHTML = "";
+        runInterval = setInterval(PlayerRun,200);
+        enemiesUpdateInterval = setInterval(Update,10);
+        scoreUpdateInterval = setInterval(UpdateScore,1000);
+    }
+})
+
 
 document.addEventListener("keyup", event => {
+    buttonUp = true;
+})
+
+document.addEventListener("mouseup", event => {
     buttonUp = true;
 })
