@@ -258,6 +258,13 @@ function setup() {
     //Misc
     GridSizeInputElement.value = "1";
     NewParicleChargeInputElement.value = "1";
+
+
+    particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(35), worldToScreen(15)));
+    particles.push(new Particle(-1*Math.pow(10,-9),particleSize, worldToScreen(45), worldToScreen(25)));
+    particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(35), worldToScreen(25)));
+
+
 }
 function Update() {
     TEST.innerHTML = changingParticleCharge;
@@ -728,7 +735,7 @@ const P5EquipotentialSketch = p => {
         var x = null;
         var y = null;
         
-        p.fill(200,20,20);
+        //p.fill(200,20,20);
         for(var i=0; i<width-5;i+=2)
         {
             for (var j=0; j<height-5; j+=2)
@@ -736,12 +743,12 @@ const P5EquipotentialSketch = p => {
                 v = CalcLite(i,j);
                 if (v > wantedVolt-error && v < wantedVolt + error)
                 {
-                    p.circle(i,j,5);
-                    /*
+                    //p.circle(i,j,5);
+                    
                     x = i;
                     y = j;
                     break;
-                    */
+                    
                     //j += 4;
                     //p.rect()
                 }
@@ -751,97 +758,60 @@ const P5EquipotentialSketch = p => {
             }
         }
         
-        /*
-        var i=0;
-        var radius = 2;
+        var sx = x;
+        var sy = y;
+        
+        var i=0; //just to make sure we don't go around too many times
+        var radius = 10; //how far do we jump each time?
+        var nx = 0; //"NEW" x
+        var ny = 0; //"New" y
+        var s;
+        var t;
 
-        while(i < 1000)
+        p.stroke(255,0,0);
+
+        while(i < 500)
         {
             i += 1;
-            p.circle(Math.round(x),Math.round(y),5);
-            var s = CalcMedium(x,y);
-            var angle = s[1];
-            
-            x -= Math.cos(angle)*radius;
-            y += Math.sin(angle)*radius;
-
             s = CalcMedium(x,y);
-            angle = s[1];
-            while(s[0] < wantedVolt)
+            angle = s[1] + Math.PI/2;
+            
+            t = 0;
+            while (CalcLite(x+ radius*Math.sin(angle),y+radius*Math.cos(angle)) < wantedVolt)
             {
-                //angle+Math.PI
-                x -= Math.cos(angle-Math.PI)*radius;
-                y += Math.sin(angle-Math.PI)*radius;
-                s[0] = CalcLite(x,y);
-            }
-            while(s[0] > wantedVolt)
-            {
-                //angle+Math.PI
-                x -= Math.cos(angle+Math.PI)*radius;
-                y += Math.sin(angle+Math.PI)*radius;
-                s[0] = CalcLite(x,y);
-            }
-
-            //p1 = CalcMedium(x+radius,y);
-            //p2 = CalcMedium(x,y+radius);
-            //p3 = CalcMedium(x-radius, y);
-            //p4 = CalcMedium(x,y-radius);
-
-            //p[1]
-            //console.log(p1[1]);
-
-
-
-
-        }*/
-
-
-        /*
-        for(var j=0;j<particles.length;j++)
-        {
-
-            particle = particles[j];
-            var posx = particle.posx;
-            var posy = particle.posy;
-            var curVolt = 10000000000;
-            var pVolt = 1000000000000000;
-            var wantedVolt = 5;
-            var dx = 1;
-            var dy = 0;
-            for (var i=0; i<18; i++) {
-                dx = 5*Math.cos(i*Math.PI/9);
-                dy = 5*Math.sin(i*Math.PI/9);
-
-                while(true)
+                t += 1;
+                angle += 0.01;
+                if (t > 100)
                 {
-                    if (particle.charge > 0 && wantedVolt >= curVolt)
-                    {
-                        TEST.innerHTML = "BREAKING";
-                        break;
-                    }
-                    
-                    posx += dx;
-                    posy += dy;
-                    curVolt = CalcLite(posx,posy);
-
-                    if (posx > 50000)
-                    {
-                        TEST.innerHTML = "RETURNING";
-                        return;
-                    }
-                    pVolt = curVolt;
+                    break;
                 }
-                
-
-                p.fill(200,200,200);
-                p.circle(posx,posy,10);
-                posx = particle.posx;
-                posy = particle.posy;
-                curVolt = 100000000000000;
-
             }
+            t=0;
+            while (CalcLite(x+ radius*Math.sin(angle),y+radius*Math.cos(angle)) > wantedVolt)
+            {
+                t += 1;
+                angle -= 0.01;
+                if (t > 100)
+                {
+                    break;
+                }
+            }
+            nx = x+radius*Math.sin(angle);
+            ny = y+radius*Math.cos(angle);
+            if (x < width && nx < width && x > 0 && nx > 0 && y < height && ny < height && y > 0 && ny > 0)
+            {
+                p.line(x,y, x+ radius*Math.sin(angle), y+radius*Math.cos(angle));
+            }
+            x = nx;
+            y = ny;
+
+            /*
+            if (Math.abs(sx-x) < radius/4 && Math.abs(sy-y) < radius/4)
+            {
+                TEST.innerHTML = "BREAKING";
+                break;
+            }*/
         }
-        */
 
     };
 };
