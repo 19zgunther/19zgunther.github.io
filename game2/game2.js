@@ -48,6 +48,7 @@ const k = 9*Math.pow(10,9); //phsyics constant
 var avgArrowBrightness = 0;
 var selectedParticleRingThickness = 5;
 var needUpdate = true;
+var firstSetup = true;
 
 var GraphCanvas = null;
 var ArrowCanvas = null;
@@ -280,13 +281,12 @@ function setup() {
     GridSizeInputElement.value = "1";
     NewParicleChargeInputElement.value = "1";
 
-
-    particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(35), worldToScreen(15)));
-    particles.push(new Particle(-1*Math.pow(10,-9),particleSize, worldToScreen(45), worldToScreen(25)));
-    particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(35), worldToScreen(25)));
-    equipotentials = [-10,-5,0,5,10];
-    //equipotentials = [0];
-
+    if (firstSetup == true) {
+        particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(35), worldToScreen(15)));
+        particles.push(new Particle(-1*Math.pow(10,-9),particleSize, worldToScreen(45), worldToScreen(25)));
+        particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(35), worldToScreen(25)));
+        firstSetup = false;
+    }
 }
 function Update() {
     updateCounter += 1;
