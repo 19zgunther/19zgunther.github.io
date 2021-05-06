@@ -36,10 +36,10 @@ var gridUnits = 1;      //0.01 = cm, 1=m, 1000 = km per grid line
 var minNumberMinorGridLines = 50;
 var majorGridLineOpacity = 150;     //out of 255
 var minorGridLineOpacity = 70;      //out of 255
-var enableEquipotentials = true;   //This is the boolean variable determining if we compute&draw the equipotential lines or not
+var enableEquipotentials = false;   //This is the boolean variable determining if we compute&draw the equipotential lines or not
 var equipotentialsInputString = "";
-var enableChargeLabels = false;
-var enableForceVectors = false;
+var enableChargeLabels = true;
+var enableForceVectors = true;
 
 //Objects
 var particles = [];     //an array of particle objects
@@ -316,7 +316,7 @@ function Update() {
     {
         updateCounter = 0;
     }
-    if (updateCounter < 2)
+    if (updateCounter < 3)
     {
         updateCounter += 1;
 
@@ -355,7 +355,6 @@ function Update() {
                 closestDist = dist;
             }
         }
-        TEST.innerHTML = closestDist;
         if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height)
         {
             if (closestDist > 30)
@@ -558,7 +557,40 @@ function CalcAngle(posx, posy)
     angle = Math.PI*3/2-Math.atan2(toty,totx);
     return angle;
 }
+function CalcForceVector(particle)
+{
+    var force = 0;
+    var q;      //will hold particle charge
+    var dx = 0;     //will hold difference in x position
+    var dy = 0;     //will hold difference in y position
+    var dist = 0;   //distance
+    var mag = 0;    //magnitude
+    var totx = 0;
+    var toty = 0;
+    var angle = 0;
+    var volt = 0;
+    var potentialEnergy = 0;
+    for (var j=0; j<particles.length; j++)
+    {
+        if (particles[j] == particle) {continue;}
+        
+        q = particles[j].charge;
+        dx = (particles[j].posx-particle.posx)*gridUnits/gridSize;
+        dy = (particles[j].posy-particle.posy)*gridUnits/gridSize;
+        dist = Math.sqrt(dx*dx+dy*dy);
+        mag = (k*q)/(dist*dist);
+        
+        totx += mag*dx/dist;
+        toty += mag*dy/dist;
 
+        volt += k*q/dist;
+    }
+    angle = Math.PI*3/2-Math.atan2(toty,totx);
+    if (particle.charge < 0) { angle += Math.PI; }
+    force = Math.sqrt(toty*toty+totx*totx)*particle.charge;
+    potentialEnergy = particle.charge * volt;
+    return [force,angle,potentialEnergy];
+}
 
 
 class Particle {
@@ -567,12 +599,16 @@ class Particle {
         this.posx = posx;
         this.posy = posy;
         this.charge = charge;
+        this.force = 0;
+        this.angle = 0;
+        this.potentialEnergy = 0;
         this.size = size;
         this.text = document.createElement("div");
         this.text.setAttribute("class", "SensorText");
         simulatorElement.append(this.text);
         this.text.style = "left:"+this.posx+"px; top:"+this.posy+"px;";
         this.text.innerHTML = this.charge*1000000000 + "nC";
+    
     }
     Update()
     {
@@ -580,7 +616,7 @@ class Particle {
         {
             this.text.hidden = false;
             this.text.style = "left:"+this.posx+"px; top:"+this.posy+"px;";
-            this.text.innerHTML = this.charge*1000000000 + "nC";
+            this.text.innerHTML = this.charge*1000000000 + "nC<br></br>PE: " + this.potentialEnergy.toPrecision(3) + "J<br></br>F: "+this.force.toPrecision(3)+"N";
         } else {
             this.text.hidden = true;
         }
@@ -808,42 +844,50 @@ const P5ParticleSketch = p => {
             p.circle(particles[i].posx, particles[i].posy, particles[i].size);
         }
 
-        if (enableForceVectors == true)
-        {
-            for (var i=0; i<particles.length; i++)
-            {
-                var force = 0;
-                var q;      //will hold particle charge
-                var dx = 0;     //will hold difference in x position
-                var dy = 0;     //will hold difference in y position
-                var dist = 0;   //distance
-                var mag = 0;    //magnitude
-                var totx = 0;
-                var toty = 0;
-                var angle = 0;
-                var volt = 0;
-                var potentialEnergy = 0;
-                for (var j=0; j<particles.length; j++)
-                {
-                    if (i == j) {continue;}
-                    
-                    q = particles[j].charge;
-                    dx = (particles[j].posx-particles[i].posx)*gridUnits/gridSize;
-                    dy = (particles[j].posy-particles[i].posy)*gridUnits/gridSize;
-                    dist = Math.sqrt(dx*dx+dy*dy);
-                    mag = (k*q)/(dist*dist);
-                    
-                    totx += mag*dx/dist;
-                    toty += mag*dy/dist;
+        
+        var out;
+        var force;
+        var angle;
+        var potentialEnergy;
+        var x,y;
+        var P0 = [2];
+        var P1 = [2];
+        var P2 = [2];
+        var P3 = [2];
 
-                    volt += k*q/dist;
-                }
-                angle = Math.PI*3/2-Math.atan2(toty,totx);
-                force = Math.sqrt(toty*toty+totx*totx)*particles[i].charge;
-                TEST.innerHTML = force;
-                potentialEnergy = particles[i].charge * volt;
+        for (var i=0; i<particles.length; i++)
+        {
+            x = particles[i].posx;
+            y = particles[i].posy;
+
+            out = CalcForceVector(particles[i]);
+            force = out[0];
+            angle = out[1];
+            potentialEnergy = out[2];
+
+            particles[i].force = force;
+            particles[i].angle = angle;
+            particles[i].potentialEnergy = potentialEnergy;
+
+            p.stroke(255,255,255);
+            
+            if (force != 0 && enableForceVectors == true) {
+                P0[0] = x-Math.sin(angle)*arrowSize;
+                P0[1] = y-Math.cos(angle)*arrowSize;
+                P1[0] = x+Math.sin(angle)*arrowSize;
+                P1[1] = y+Math.cos(angle)*arrowSize;
+                P2[0] = x-Math.cos(angle)*arrowSize/2;
+                P2[1] = y-Math.sin(-angle)*arrowSize/2;
+                P3[0] = x+Math.cos(angle)*arrowSize/2;
+                P3[1] = y+Math.sin(-angle)*arrowSize/2;
+
+                p.line(P0[0], P0[1], P1[0],P1[1]);
+                p.line(P2[0], P2[1], P1[0],P1[1]);
+                p.line(P3[0], P3[1], P1[0],P1[1]);
             }
+
         }
+        
 
     };
 };
@@ -896,9 +940,11 @@ const P5EquipotentialSketch = p => {
         var currentBestAngleStep;
         var x, y = 0;
         var nextX, nextY = 0;
+        var startX, startY = 0;
         var currentVolt = 0;
         var targetVolt = 0;
         var safetyBrake = 0; 
+
         
         for (var i=0; i<particles.length; i++) //for each particle
         {
@@ -984,6 +1030,18 @@ const P5EquipotentialSketch = p => {
                     {
                         angleRotator += Math.PI; //we update this each time to make so different particles draw in opposite directions. fixes 0v equipotential line.
                         currentBestAngleStep = -currentBestAngleStep;
+                    }
+
+                    if (startX-2<x && startX+2>x && startY-2<y && startY+2>y)
+                    {
+                        TEST.innerHTML = runs;
+                        break;
+                    }
+
+                    if (runs == 10)
+                    {
+                        startX = x;
+                        startY = y;
                     }
 
                     x = nextX;  //now fully commit to this new point, and continue the for loop.

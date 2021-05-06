@@ -36,7 +36,7 @@
                 <input id="NewParticleChargeInput" class = "InputText" type = "text" onclick = NewParticleChargeClick()> nC </input>
                 
                 <div id="NewSensorButton" class = "Button" onclick = CreateNewSensor() style = "background-color: rgba(255,230,0,0.6);">New Sensor</div>
-                <div id="ShowEquipotentialsButton" class = "Button" onclick =  ShowEquipotentialButtonClick() style = "background: linear-gradient(90deg, rgb(255,50,50),rgb(50,50,255));">Hide Equipotential Lines</div>
+                <div id="ShowEquipotentialsButton" class = "Button" onclick =  ShowEquipotentialButtonClick() style = "background: linear-gradient(90deg, rgb(255,50,50),rgb(50,50,255));">Show Equipotential Lines</div>
                 <div id="EquipotentialsInputText"> Equipotentials: 
                     <input id="EquipotentialsInput" class = "InputText" onclick=EquipotentialsInputClick() type = "text" value = "-10,0,10" style = "display:inline; width:170px;"></input>
                 </div>
@@ -46,11 +46,11 @@
                 <div class = "TextHeading">Settings: </div>
                 <div id="ShowChargeValuesText">
                     Show Charge Values
-                    <input id = "ShowChargeValuesCheckbox" type="checkbox" class = "InputCheck" onclick = ShowChargeLabelCheckboxClick()></input>
+                    <input id = "ShowChargeValuesCheckbox" type="checkbox" checked = "true" class = "InputCheck" onclick = ShowChargeLabelCheckboxClick()></input>
                 </div>
                 <div id="ShowForceVectorText">
                     Show Force Vectors
-                    <input id = "ShowForceVectorsCheckbox" type="checkbox" class = "InputCheck" onclick = ShowForceVectorCheckboxClick()></input>
+                    <input id = "ShowForceVectorsCheckbox" type="checkbox" checked = "true" class = "InputCheck" onclick = ShowForceVectorCheckboxClick()></input>
                 </div>
                 
                 <div id="GridSizeText" class = "Text"> Major Grid Size:

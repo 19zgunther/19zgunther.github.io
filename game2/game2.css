@@ -39,7 +39,6 @@ canvas {
 .Box{
     position:relative;
     display:block;
-    /*margin:5px;*/
     width:300px;
     height:auto;
     top:5%;
@@ -141,8 +140,9 @@ canvas {
 
 .SensorText{
     position:absolute;
-    margin:1px;
-    background-color: rgba(0,0,0,0.8);
+    margin:5px;
+    padding: 5px;
+    background-color: rgba(0,0,0,0.99);
     text-align:center;
     border:rgba(200,200,200,0.5);
     border-color:rgba(200,200,200,0.5);
@@ -151,11 +151,9 @@ canvas {
     border-style: solid;
     opacity:0.7;
     user-select: none;
+    font-size: smaller;
+    line-height:8px;
 }
-
-
-
-
 
 
 
