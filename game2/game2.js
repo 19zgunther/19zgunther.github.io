@@ -608,7 +608,6 @@ class Particle {
         simulatorElement.append(this.text);
         this.text.style = "left:"+this.posx+"px; top:"+this.posy+"px;";
         this.text.innerHTML = this.charge*1000000000 + "nC";
-    
     }
     Update()
     {
@@ -616,7 +615,14 @@ class Particle {
         {
             this.text.hidden = false;
             this.text.style = "left:"+this.posx+"px; top:"+this.posy+"px;";
-            this.text.innerHTML = this.charge*1000000000 + "nC<br></br>PE: " + this.potentialEnergy.toPrecision(3) + "J<br></br>F: "+this.force.toPrecision(3)+"N";
+            this.text.innerHTML = this.charge*1000000000 + "nC<br>";
+            this.text.innerHTML += "PE= " + this.potentialEnergy.toPrecision(3) + "<br>";
+            this.text.innerHTML += "F= <" +(this.force*Math.sin(this.angle)).toPrecision(3) + ",  " + (this.force *-Math.cos(this.angle)).toPrecision(3)+"><br>";
+            
+            this.text.innerHTML += "|F|=" + this.force.toPrecision(3);
+            //this.text.innerHTML += "<"+(this.force*Math.sin(this.angle)).toPrecision(3) + ",  " + (this.force *-Math.cos(this.angle)).toPrecision(3)+">";
+        
+            //this.text.innerHTML = this.charge*1000000000 + "nC<br>PE: " + this.potentialEnergy.toPrecision(3) + "J<br>F: "+this.force.toPrecision(3)+"N";
         } else {
             this.text.hidden = true;
         }
@@ -651,7 +657,8 @@ class Sensor {
         //this.text.setAttribute("left",this.posx+"px");
         //this.text.setAttribute("top", )
         this.text.style = "left:"+this.posx+"px; top:"+this.posy+"px;";
-        this.text.innerHTML = Math.round(this.mag*10)/10 + " V/m</br>" + Math.round(this.volt*10)/10 + " V";
+        this.text.innerHTML = "E= <" +(this.mag*Math.sin(this.angle)).toPrecision(3) + ",  " + (this.mag*-Math.cos(this.angle)).toPrecision(3)+"><br>";
+        this.text.innerHTML += "|E|= " +Math.round(this.mag*10)/10 + " V/m<br>" + Math.round(this.volt*10)/10 + " V<br>";
 
         this.line1[0] = this.posx- Math.sin(this.angle)*this.size;
         this.line1[1] = this.posy- Math.cos(this.angle)*this.size;
