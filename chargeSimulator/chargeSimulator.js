@@ -304,9 +304,11 @@ function setup() {
     NewParicleChargeInputElement.value = "1";
 
     if (firstSetup == true) {
-        particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(45), worldToScreen(15)));
-        particles.push(new Particle(-1*Math.pow(10,-9),particleSize, worldToScreen(55), worldToScreen(25)));
-        particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(45), worldToScreen(25)));
+        if (width > worldToScreen(45)) {
+            particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(45), worldToScreen(15)));
+            particles.push(new Particle(-1*Math.pow(10,-9),particleSize, worldToScreen(55), worldToScreen(25)));
+            particles.push(new Particle(1*Math.pow(10,-9),particleSize, worldToScreen(45), worldToScreen(25)));
+        }
         firstSetup = false;
     }
 
