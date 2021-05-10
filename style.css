@@ -66,8 +66,7 @@
     display:flex;
     position:sticky;
     left: 50%; 
-    min-height:200px;
-    max-width:500px;
+    width: 80%;
     opacity: 0;
     transition: opacity 1s 0s ease-out;
 }
@@ -86,19 +85,4 @@
     background-repeat: no-repeat;
     background-size: cover;
 
-}
-
-.parallax-slow {
-
-    /* Full height */
-    height: 20%;
-    z-index: 0;
-  
-    /* Create the parallax scrolling effect */
-    background-color: rgb(10,10,10);
-    background-attachment: scroll;
-    position:sticky;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
 }
