@@ -10,16 +10,12 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="Background">
-        <div id="Header">
-            <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('index.html')" style="left:25px">Home</div>
-            <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('resume.html')" style="left:175px">Resume</div>
-            <div id="game1Button" class = "HeaderButton" onclick= "ChangePage('game1/game1.html')" style="left:325px">Game1</div>
-            <div id="game2Button" class = "HeaderButton" onclick= "ChangePage('game2/game2.html')" style="left:475px">Game2</div>
-            <div id="logicSimButton" class = "HeaderButton" onclick= "ChangePage('logicSim/logicSim.html')" style="left:625px">LogicSimulator</div>
-        </div>
-        <embed id = "resumePDF" src="ResumePDF.pdf" class = "PDF"/>
+    <div id="Header">
+        <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('index.html')">Home</div>
+        <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('resume.html')" >Resume</div>
+        <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
     </div>
+    <embed id = "resumePDF" src="ResumePDF.pdf" style="width:100%; height:85%;"/>
 </body>
 
 <script src="script.js"></script>

@@ -3,36 +3,86 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gunther</title>
+    <title>Zack Gunther</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div id="Background">
-        <div id="Header">
-            <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('index.html')" style="left:25px">Home</div>
-            <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('resume.html')" style="left:175px">Resume</div>
-            <div id="game1Button" class = "HeaderButton" onclick= "ChangePage('game1/game1.html')" style="left:325px">Game1</div>
-            <div id="game2Button" class = "HeaderButton" onclick= "ChangePage('game2/game2.html')" style="left:475px">Game2</div>
-            <div id="logicSimButton" class = "HeaderButton" onclick= "ChangePage('logicSim/logicSim.html')" style="left:625px">LogicSimulator</div>
-        </div>
-        <div>\n</div>
-        <div class = "Paragraph">
-            Hello and welcome to my website! This is a webpage I am working on to learn more about HTML, CSS, JavaScript, and websites as a whole.
-        </div>
-        <div> \n </div>
-        <div class = "Paragraph">
-            About me: I am (almost) a junior studying Computer Systems Engineering and Computer Science at Rensselaer Polytechnic Institute.
-            Since I was four or five I have been interested in the engineering field. 
-            Since then, my interests have matured from steam locomotives to analog and digital circuit design... I have to go to class now and will finish this later :-(
-        </div>
-        <div> \n</div>
-        <div class="Paragraph">
-            Dev Note:
-            To be honest, I don't really know what I'm doing. 
-            I have spent waaaaaayyyy too much time messing around with colors when I should be studying for physics II. 
-            I have a test on Wednesday... and it's Tuesday...
+<body style = "background-color: rgba(0,0,0,0);">
+    <div id="Header">
+        <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('index.html')">Home</div>
+        <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('resume.html')" >Resume</div>
+        <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
+    </div>
+
+    <div class = "parallax" style = "display:flex; justify-content: center; height:fit-content; background-image: url('backgroundIMG3.JPG');">
+        <div style = "max-width: 1000px;">
+            <div class = "Title" style = "font-size: 1000%;">
+                Welcome!
+            </div>
+            <div class = "Paragraph">
+                Hello and welcome to my website! This is a webpage I am working on to learn more about HTML, CSS, JavaScript, and websites as a whole.
+                <br>
+            </div>
+            <br>
         </div>
     </div>
+
+    
+    <div style = "background-color: rgb(20,20,20); display:flex; justify-content: center;">
+        <div style = "display:flex; flex-direction: row-reverse; max-width: 1000px;">
+            <div style = "justify-content: center;">
+                <img id = "myIMG" style = "max-width:100px; max-height:100px;" src="me2.jpeg" alt="Zack Gunther (...Me!)" class = "image">
+            </div>
+            <div>
+                <div class = "Title">
+                    About Me
+                </div>
+                <div class = "Paragraph"> I am (almost) a junior studying Computer Systems Engineering and Computer Science at Rensselaer Polytechnic Institute.
+                    Since I was four or five I have been interested in the engineering field. 
+                    Since then, my interests have matured from steam locomotives to analog and digital circuit design... I have to go to class now and will finish this later :-(
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class = "parallax" style = " height:400px; background-image: url('ChargeSimIMG.JPG');">
+    </div>
+
+    <div style = "background-color: rgb(20,20,20); display:flex; justify-content: center;">
+        <div style = "display:flex; flex-direction: row; max-width: 1000px;">
+            <div class = "Title">
+                Charged Particle Simulator
+            </div>
+            <div style = "justify-content: center; vertical-align:middle; margin-top:auto; margin-bottom: auto;">
+        
+                <div class = "Paragraph" style = "margin-top:auto; margin-bottom: auto;"> 
+                    While taking Physics II, I realized all of the simulators my school used
+                    were created and hosted by other colleges. I felt and still feel that RPI, being a 
+                    technical institution, should have it's own suite of simulators available for students and the general public.
+                    This was the motivation behind working on this project, with the long-run goal
+                    being gifting the simulator to the RPI physics department.
+                    <br><br>
+                    Please go to the "Charge Simulator" page to check it out!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class = "parallax" style = " height:400px; background-image: url('backgroundIMG3.jpg');">
+        <br><br><br><br> <br><br><br><br> <br><br><br><br> <br><br><br><br>
+        <div class = "Title" style = "text-align: center; margin:0%; height:auto; vertical-align: middle;">
+            More projects coming soon! 
+        </div>
+    </div>
+
+    <div style = "background-color: rgb(20,20,20); display:flex; justify-content: center;">
+        <div style = "display:flex; flex-direction: row; max-width: 1000px;">
+            <div class = "Text" style = "padding:20px;">
+                Thank you for visiting!
+            </div>
+        </div>
+    </div>
+
+
 </body>
 
 <script src="script.js"></script>

@@ -1,79 +1,104 @@
 *{
     margin:0%;
+    font-family:monospace;
+    font-size: large;
+    color: rgba(230,230,230);
 }
 
 #Background{
     height:100%;
     width:100%;
-    min-width:700px;
-    min-height:700px;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    background: 
-        linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(50,50,50,0.6) 100%),
-        linear-gradient(90deg, rgba(0, 0, 255, 0.959) 0%, rgba(255, 0, 0, 0.986) 100%);
+    position: relative;
+    background-color:rgb(10,10,10);
     z-index: 0;
 }
 
 #Header {
-    height:75px;
+    position:sticky;
+    display:flex; 
+    flex-direction:row;
+    height:100px;
     width:100%;
-    position: relative;
+    max-width:100%;
     margin: 0px 0px 0px 0px;
-    top: 0;
-    left: 0;
-    background-color:rgb(10, 10, 10);
-    background: linear-gradient(180deg, rgba(20, 20, 20, 1)0%,rgba(30,30,30,1) 50%, rgba(10,20,40,1) 100%);
-    z-index: 100;
-    border-radius: 2px;
+    background-color:rgb(20, 20, 20);
+    z-index: 100000;
+    border-radius: 0px;
 }
 
 .HeaderButton {
-    height: 0;
-    width:fit-content;
-    top:50%;
-    left:50px;
-    position: absolute;
-    display: flex;
-    text-align:center;
+    cursor: pointer;
+    display:flex;
+    font-size: 200%;
+    font:bold;
+    padding:20px;
+    margin:10px;
+    border-radius:20px;
     justify-content: center;
     align-items: center;
-    background-color:rgba(0,0,0,0);
-    font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
-    font-size:200%;
-    color:rgb(226, 226, 226);
-    content: "default";
-    cursor: pointer;
-    text-shadow: rgb(71, 71, 71) 1px 1px 2px;
+    transition: color 0.3s 0s ease-out;
 }
 
 .HeaderButton:hover {
-    color:rgb(83, 83, 83);
+    color:rgb(120, 100, 120);
 }
 
 .Paragraph{
-    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     height:fit-content;
-    width:80%;
+    padding:10px 10px 10px 10px;
     position:relative;
-    font-size: medium;
-    top:1%;
-    left: calc(10% - 10px);
+    display:flex;
     color:rgb(226, 226, 226);
-    background-color:rgba(255, 255, 255, 0.1);
-    border-color:rgba(0,0,0,0);
-    border-radius:5px;
-    border-style:solid;
-    border-width: 10px;
+    background-color:rgba(255, 255, 255, 0);
+    opacity:1;
+}
+.Title{
+    padding:1px 1px 1px 10px;
+    font-size: 500%;
+    color:rgb(226, 226, 226);
+    background-color:rgba(255, 255, 255, 0);
+    opacity:1;
 }
 
-.PDF{
-    position:relative;
-    width:80%;
-    height:88%;
-    left:10%;
-    top:1%;
-    box-shadow: 1px 1px 10px;
-    border-radius: 5px;
+
+.image{
+    margin:10px;
+    display:flex;
+    position:sticky;
+    left: 50%; 
+    min-height:200px;
+    max-width:500px;
+    opacity: 0;
+    transition: opacity 1s 0s ease-out;
+}
+
+.parallax {
+
+    /* Full height */
+    height: 20%;
+    z-index: 0;
+  
+    /* Create the parallax scrolling effect */
+    background-color: rgb(10,10,10);
+    background-attachment: fixed;
+    position:sticky;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+
+}
+
+.parallax-slow {
+
+    /* Full height */
+    height: 20%;
+    z-index: 0;
+  
+    /* Create the parallax scrolling effect */
+    background-color: rgb(10,10,10);
+    background-attachment: scroll;
+    position:sticky;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
