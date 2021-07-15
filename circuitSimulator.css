@@ -1,0 +1,152 @@
+canvas {
+    margin:0;
+    padding:0;
+    height:0px;
+    left:0px;
+    top: 0px;
+    position:absolute;
+    background-color: rgba(0, 0, 0, 0);
+    display:block;
+    z-index: -1000;
+}
+#simulator {
+    position:relative;
+    max-width:100%;
+    max-height:80%;
+    margin:auto;
+    /*background-color: rgba(0, 0, 0, 1);*/
+}
+
+
+
+
+.Box{
+    margin:5px;
+    position:relative;
+    display:block;
+    width:fit-content;
+    height:auto;
+    top:5%;
+    right:0%;
+    border-color:rgb(200, 200, 200);
+    border-style: solid;
+    border-width:3px;
+    border-radius:20px;
+    z-index: 10;
+    /*background-color:rgb(0,0,0,0.5);*/
+    opacity: 0.85;
+    user-select: none;
+}
+.Box:hover{
+    opacity: 1;
+}
+
+
+.InputSlider{
+    margin:10px;
+    padding:0%;
+    display:inline;
+    stroke:red;
+    opacity:0.7;
+    background: red;
+}
+.InputSlider:hover{
+    opacity:1;
+}
+
+
+.InputText{
+    margin: 0px 5px 0px 5px;
+    padding: auto;
+    position:relative;
+    width:50px;
+    height:auto;
+    color:rgb(200, 200, 200);
+    background-color: rgba(0,0,0,0.5);
+    border-color:rgba(255, 255, 255, 1);
+    border-style:solid;
+    border-width:2px;
+    border-radius:5px;
+    text-align:right;
+    opacity: 0.8;
+}
+.InputText:hover{
+    opacity: 1;
+}
+
+
+.InputCheck{
+    background-color: rgb(255,255,255);
+    color: rgb(200,200,200);
+    padding-left:10px;
+    opacity: 0.8;
+}
+.InputCheck:hover{
+    opacity:1;
+}
+
+
+.Text{
+    padding: 1px 5px 1px 5px;
+    color:rgb(200, 200, 200);
+    z-index: 100000;
+    position: relative;
+}
+.TextHeading{
+    padding: 1px 5px 1px 5px;
+    color:rgb(200, 200, 200);
+    z-index: 100000;
+    position: relative;
+    font-size:x-large;
+    font-weight:bolder;
+    size:10px;
+}
+
+.Button{
+    position:relative;
+    /*padding: 10px 10px 10px 10px;*/
+    margin: 4px 4px 4px 4px;
+    text-align:center;
+    background-color:rgba(200,50,50);
+    border:rgb(200,200,200);
+    border-color:rgb(200,200,200);
+    border-radius: inherit;
+    border-width: inherit;
+    border-style: inherit;
+    opacity: 0.8;
+}
+.Button:hover{
+    cursor: pointer;
+    opacity: 1;
+}
+
+
+
+
+.SensorText{
+    position:absolute;
+    margin:5px;
+    padding: 5px;
+    background-color: rgba(0,0,0,0.99);
+    text-align:center;
+    border:rgba(200,200,200,0.5);
+    border-color:rgba(200,200,200,0.5);
+    border-radius:5px;
+    border-width:1px;
+    border-style: solid;
+    opacity:0.7;
+    user-select: none;
+    font-size: x-small;
+    line-height: 0.9;
+
+}
+
+
+
+
+
+
+
+
+
+
