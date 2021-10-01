@@ -12,6 +12,8 @@ class Node {
         this.forwardingVoltage = 0;
 
         this.visited = false;
+        this.currentOut = 0;
+        this.numCurrentsOut = 0;
     }
     Delete() {
         //IDK maybe in the future i'll need to do something here
