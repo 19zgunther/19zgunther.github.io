@@ -12,10 +12,14 @@ class Component {
         this.endNode = null;
 
         this.resistance = 1000;
-        this.capacitance = 0.01;
+        this.capacitance = 0.000001;
         this.voltage = 5;
         this.current = 0.001;
-        this.inductance = 0.01;
+        this.inductance = 0.001;
+        
+        this.voltageData = new Array(1000);
+        this.currentData = new Array(1000);
+        this.dataStart = 0;
     }
     Delete() {
         //IDK maybe in the future i'll need to do something here
@@ -105,4 +109,6 @@ class Component {
         }
     }
 }
+
+
 
