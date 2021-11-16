@@ -5,6 +5,7 @@ var DrawModeElement = document.getElementById("drawMode");
 var ValueInputTextElement = document.getElementById("valueInputText");
 var SelectedComponentElement = document.getElementById("selectedComponent");
 var MovingComponentPointElement = document.getElementById("movingComponentPoint");
+var SimulationSpeedSliderElement = document.getElementById("simulationSpeedSlider");
 
 //Settings and such
 var canvas;
@@ -23,7 +24,7 @@ var nodes = [];
 
 //MISC variables
 var updateInterval = setInterval(Update,50);
-var calUpdateInterval = setInterval(Calculate,5);
+var calcUpdateInterval = setInterval(Calculate,5);
 var drawMode = "";
 var movingComponentPoint = ""; //can be "start" (move startPos),"end" (move endPos), "mid" (move entire component aka both points equally) or "" (do not move anything)
 var vectorMouseToStart = new Point(0,0); //These two Vector variables are only used when we are in 'movingComponentPoint = "mid" '  mode.
@@ -64,8 +65,8 @@ function mousePressed() {
                                         and the endPos follows around the cursor until the mouse button is released  */
         selectedComponent.type = drawMode; /*and of course, how could I forget, we need to let the new component know what type of component it is 
                                             (wire, resistor, capacitor, voltagSource, or currentSource)*/
-        var MYNEWPLOT = new Plot(selectedComponent);
-        plotManager.addPlot(MYNEWPLOT);
+        //var MYNEWPLOT = new Plot(selectedComponent);
+        //plotManager.addPlot(MYNEWPLOT);
 
         if (selectedComponent.type == "capacitor" || selectedComponent.type == "inductor")
         {
@@ -172,6 +173,18 @@ function keyPressed() {
         drawMode = "voltageSource2n";
     } else if (key == "i") {
         drawMode = "currentSource";
+    } else if (key == '>') {
+        var plots = plotManager.GetPlots();
+        for (var i=0; i<plots.length; i++)
+        {
+            plots[i].timeScale = plots[i].timeScale*2;
+        }
+    } else if (key == '<') {
+        var plots = plotManager.GetPlots();
+        for (var i=0; i<plots.length; i++)
+        {
+            plots[i].timeScale = plots[i].timeScale/2;
+        }
     }
     DrawModeElement.innerHTML = "Draw Mode: " + drawMode;
 }
@@ -194,6 +207,7 @@ function setup() {
     //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
     LoadCircuit("resistor 0 1 300 200 440 200 voltageSource2n 1 5 180 300 180 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 wire 5 _ 180 300 300 300 inductor 6 0.001 300 300 300 200 capacitor 4 0.000001 440 300 440 200 resistor 7 10 300 200 180 200");
     plotManager = new PlotManager(width, height);
+    simulationSpeedSliderChanged();
 }
 window.onresize = function(event){
     width = window.innerWidth*19/20;
@@ -202,6 +216,43 @@ window.onresize = function(event){
     plotManager.screenWidth = width;
     plotManager.screenHeight = height;
 }
+
+function simulationSpeedSliderChanged()
+{
+    //Range from 1 to 1000
+    var val = Number(SimulationSpeedSliderElement.value);
+    //console.log(val);
+    val = (31 - val);
+    val = val*val;
+    val = Math.max(val, 1);
+    val = Math.min(val, 1000);
+    //now val = value between 1 and 1000
+    
+    //remove old update interval and add new one!
+    console.log("Calc Interval = "+val+"ms");
+    clearInterval(calcUpdateInterval);
+    calcUpdateInterval = setInterval(Calculate, val );
+}
+
+function AddPlotButtonClick()
+{
+    if (selectedComponent != null)
+    {
+        //var MYNEWPLOT = new Plot(selectedComponent);
+        //plotManager.AddPlot(MYNEWPLOT);
+        plotManager.AddPlotOfComponent(selectedComponent);
+    }
+}
+
+function RemovePlotButtonClick()
+{
+    if (selectedComponent != null)
+    {
+        plotManager.RemovePlotOfComponent(selectedComponent);
+    }
+}
+
+
 
 
 
@@ -322,6 +373,7 @@ function LoadCircuit(dataString) {
 function Calculate() {
     currentTime += timeStep;
 
+    /*
     for (var i=0; i<components.length; i++)
     {
         components[i].voltageData[components[i].dataStart] = components[i].voltage;
@@ -331,6 +383,11 @@ function Calculate() {
         {
             components[i].dataStart = 0;
         }
+    }*/
+    for (var i=0; i<components.length; i++)
+    {
+        components[i].RecordData();
+        //console.log(components[i].voltageData);
     }
     
     

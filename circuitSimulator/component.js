@@ -17,8 +17,8 @@ class Component {
         this.current = 0.001;
         this.inductance = 0.001;
         
-        this.voltageData = new Array(1000);
-        this.currentData = new Array(1000);
+        this.voltageData = new Array(5000);
+        this.currentData = new Array(5000);
         this.dataStart = 0;
     }
     Delete() {
@@ -107,6 +107,14 @@ class Component {
         {
             return this.current;
         }
+    }
+
+    RecordData()
+    {
+        this.voltageData.shift(); //remove the first element in the array ( [0,1,2,3,4,5]  ->  [1,2,3,4,5])
+        this.currentData.shift();
+        this.voltageData.push(this.voltage); //push a new value onto the back
+        this.currentData.push(this.current);
     }
 }
 

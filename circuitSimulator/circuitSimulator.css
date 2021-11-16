@@ -145,6 +145,60 @@ canvas {
 
 
 
+.ui_button{
+    position:relative;
+    display:flex;
+    margin:5px;
+    padding:5px;
+    height: fit-content;
+    width: fit-content;
+    background-color:grey;
+} 
+.ui_button:hover{
+    background-color: rgb(186, 186, 186);
+    cursor:pointer;
+}
+
+
+
+
+
+
+
+
+
+.slider {
+    -webkit-appearance: none;
+    background: #656565;
+    outline: none;
+    opacity: 0.7;
+    height: 10px;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    border-radius:25px;
+  }
+  
+  .slider:hover {
+    opacity: 1;
+  }
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width:30px;
+    height: 20px;
+    border-radius:10px;
+    background: #ffffff;
+    cursor: pointer;
+  }
+  
+  .slider::-moz-range-thumb {
+    width:30px;
+    height: 20px;
+    border-radius:10px;
+    background: #ffffff;
+    cursor: pointer;
+  }
 
 
 

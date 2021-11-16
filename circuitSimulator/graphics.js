@@ -316,36 +316,36 @@ function UpdateDisplay() {
 }
 
 
-function DrawPlot(comp, pos, voltageScale, currentScale, maxHeight, maxWidth, AutoScale) {
+function DrawPlot_OLD(comp, pos, yAxisStep, currentScale, maxHeight, maxWidth, AutoScale = true, timeScale = 1) {
     if (comp == null || pos == null)
     {
         return;
     }
 
+
+    var voltageScale;
     if (AutoScale == true) {
         var maxV = 0;
         var maxC = 0;
         var index = 0;
         for (var i=0; i<Math.min(comp.voltageData.length, maxWidth); i++) {
-            index = comp.dataStart-i;
+            index = comp.voltageData.length-i;
             if (index < 0) { index -+ comp.voltageData.length;}
             if (Math.abs(comp.voltageData[index]) > maxV) {
                 maxV = Math.abs(comp.voltageData[index]);
             }
         }
         for (var i=0; i<Math.min(comp.voltageData.length, maxWidth); i++) {
-            index = comp.dataStart-i;
+            index = comp.currentData.length-i;
             if (index < 0) { index -+ comp.currentData.length;}
             if (Math.abs(comp.currentData[index]) > maxC) {
                 maxC = Math.abs(comp.currentData[index]);
             }
         }
 
-        voltageScale = Math.ceil((maxHeight/2 - 5)/maxV);
-        currentScale = Math.ceil((maxHeight/2 - 5)/maxC);
+        voltageScale = Math.ceil((maxHeight/2 - 20)/maxV);
+        currentScale = Math.ceil((maxHeight/2 - 20)/maxC);
         var t = Math.ceil(Number(-numLines*gridLineStep/voltageScale).toPrecision(2));
-        //voltageScale = 
-
     }
 
     var gridLineStep = 25;
@@ -372,6 +372,7 @@ function DrawPlot(comp, pos, voltageScale, currentScale, maxHeight, maxWidth, Au
 
 
     //draw voltage
+    /*
     var x1 = comp.dataStart;
     var x2 = x1 - 1;
     stroke(0,255,0);
@@ -391,9 +392,18 @@ function DrawPlot(comp, pos, voltageScale, currentScale, maxHeight, maxWidth, Au
         {
             break;
         }
+    }*/
+    stroke(0,255,0);
+    var x = comp.voltageData.length-1;
+    for (var i=0; i<maxWidth; i++)
+    {
+        line(pos.x-i+maxWidth,  pos.y-voltageScale*comp.voltageData[round(x)],  pos.x-i+maxWidth-1,  pos.y-voltageScale*comp.voltageData[round(x-timeScale)]);
+        x -= timeScale;
     }
+    //line(pos.x+maxWidth, 0, pos.x, 1000);
 
     //draw current
+    /*
     x1 = comp.dataStart;
     x2 = x1 - 1;
     stroke(255,255,0);
@@ -412,6 +422,13 @@ function DrawPlot(comp, pos, voltageScale, currentScale, maxHeight, maxWidth, Au
         {
             break;
         }
+    }*/
+    stroke(255,255,0);
+    var x = comp.currentData.length-1;
+    for (var i=0; i<maxWidth; i++)
+    {
+        line(pos.x-i+maxWidth,  pos.y-currentScale*comp.currentData[round(x)],  pos.x-i+maxWidth-1,  pos.y-currentScale*comp.currentData[round(x-timeScale)]);
+        x -= timeScale;
     }
 
     
@@ -449,6 +466,204 @@ function DrawPlot(comp, pos, voltageScale, currentScale, maxHeight, maxWidth, Au
     noFill();
     rect(pos.x, pos.y-maxHeight/2, maxWidth, maxHeight);
 }
+
+
+function DrawPlot(plot, pos, width, height, yAxisGridScale, timeScale, autoYScaleEnable)
+{
+    if (plot.component == null || pos == null)
+    {
+        return;
+    }
+    strokeWeight(1);
+    stroke(100);
+    textSize(10);
+    line(pos.x, pos.y, pos.x+width, pos.y);
+    line(pos.x, pos.y, pos.x, pos.y+height);
+    line(pos.x+width, pos.y+height, pos.x+width, pos.y);
+    line(pos.x+width, pos.y+height, pos.x, pos.y+height);
+
+    
+    var gridLineSpacing = 20;
+    var voltageScale = gridLineSpacing / yAxisGridScale;
+
+
+
+    //draw horizontal grids and labels
+    for (var i=-numLines+1; i<numLines; i++)
+    {
+        console.log("HERE2");
+        stroke(100-abs(i*10));
+        line(pos.x, pos.y+i*gridLineStep, pos.x+maxWidth, pos.y+i*gridLineStep);
+        stroke(0,0,0);
+        fill(0,200,0);
+        text(Number(-i*plot.yAxisGridScale).toPrecision(4), pos.x,pos.y+i*gridLineStep+textYOffset);
+        stroke(0,0,0);
+        fill(200,200,0);
+        text(Number(-i*plot.yAxisGridScale).toPrecision(4), pos.x+currentTextXOffset ,pos.y+i*gridLineStep+textYOffset);
+    }
+
+
+    var vData = plot.component.voltageData;
+    var cData = plot.component.currentData;
+
+    var xPos = pos.x + width;
+    var centerY = pos.y + height/2;
+    var vDataY1;
+    var vDataY2;
+    var vMaxVal = 0;
+    var cDataY1;
+    var cDataY2;
+    var cMaxVal = 0;
+    for (var i=1; i<width; i++)
+    {
+        if ( i < vData.length-1)
+        {
+            vDataY1 = vData[vData.length-i]*voltageScale;
+            vDataY2 = vData[vData.length-i-1]*voltageScale;
+            if (isNaN(vDataY2) == true || isNaN(vDataY1) == true)
+            {
+                continue;
+            }
+            vMaxVal = max(vMaxVal, abs(vDataY1));
+            line( xPos, centerY + vDataY1,  xPos-1, centerY + vDataY2 );
+            /*
+            if (abs(vDataY1) < height/2 && abs(vDataY2) < height/2)
+            {
+                
+            }*/
+        }
+
+        if ( i < cData.length-1)
+        {
+            cDataY1 = cData[cData.length-i]*currentScale;
+            cDataY2 = cData[cData.length-i-1]*currentScale;
+            if (isNaN(cDataY2) == true || isNaN(cDataY1) == true)
+            {
+                continue;
+            }
+            cMaxVal = max(cMaxVal, abs(cDataY1));
+            line( xPos, centerY + cDataY1,  xPos-1, centerY + cDataY2 );
+        }
+        xPos -= 1;
+    }
+
+    if (vMaxVal > height/2 - 10)
+    {
+        plot.IncreaseVoltageYScale();
+    } else if (vMaxVal < height/4)
+    {
+        plot.DecreaseVoltageYScale();
+    }
+
+
+
+    return;
+    var voltageScale = 1;
+    if (plot.AutoScale == true) {
+        var maxV = 0;
+        var maxC = 0;
+        var index = 0;
+        for (var i=0; i<Math.min(comp.voltageData.length, maxWidth); i++) {
+            index = comp.voltageData.length-i;
+            if (index < 0) { index -+ comp.voltageData.length;}
+            if (Math.abs(comp.voltageData[index]) > maxV) {
+                maxV = Math.abs(comp.voltageData[index]);
+            }
+        }
+        for (var i=0; i<Math.min(comp.voltageData.length, maxWidth); i++) {
+            index = comp.currentData.length-i;
+            if (index < 0) { index -+ comp.currentData.length;}
+            if (Math.abs(comp.currentData[index]) > maxC) {
+                maxC = Math.abs(comp.currentData[index]);
+            }
+        }
+
+        voltageScale = Math.ceil((maxHeight/2 - 20)/maxV);
+        currentScale = Math.ceil((maxHeight/2 - 20)/maxC);
+        var t = Math.ceil(Number(-numLines*gridLineStep/voltageScale).toPrecision(2));
+    }
+
+
+    var gridLineStep = 20;
+    var currentTextXOffset = 35;
+    var textYOffset = 0;
+    var numLines = Math.ceil((maxHeight/gridLineStep)/2);
+
+    strokeWeight(1);
+    textSize(10);
+
+    //draw horizontal grids and labels
+    for (var i=-numLines+1; i<numLines; i++)
+    {
+        console.log("HERE2");
+        stroke(100-abs(i*10));
+        line(pos.x, pos.y+i*gridLineStep, pos.x+maxWidth, pos.y+i*gridLineStep);
+        stroke(0,0,0);
+        fill(0,200,0);
+        text(Number(-i*plot.yAxisGridScale).toPrecision(4), pos.x,pos.y+i*gridLineStep+textYOffset);
+        stroke(0,0,0);
+        fill(200,200,0);
+        text(Number(-i*plot.yAxisGridScale).toPrecision(4), pos.x+currentTextXOffset ,pos.y+i*gridLineStep+textYOffset);
+    }
+
+
+
+    //draw voltage
+    
+    stroke(0,255,0);
+    var x = comp.voltageData.length-1;
+    for (var i=0; i<maxWidth; i++)
+    {
+        line(pos.x-i+maxWidth,  pos.y-voltageScale*comp.voltageData[round(x)],  pos.x-i+maxWidth-1,  pos.y-voltageScale*comp.voltageData[round(x-timeScale)]);
+        x -= timeScale;
+    }
+    //line(pos.x+maxWidth, 0, pos.x, 1000);
+
+    //draw current
+    stroke(255,255,0);
+    var x = comp.currentData.length-1;
+    for (var i=0; i<maxWidth; i++)
+    {
+        line(pos.x-i+maxWidth,  pos.y-currentScale*comp.currentData[round(x)],  pos.x-i+maxWidth-1,  pos.y-currentScale*comp.currentData[round(x-timeScale)]);
+        x -= timeScale;
+    }
+
+    
+
+    //draw mouse vertical line
+    if (mouseX > pos.x && mouseX < pos.x+maxWidth && mouseY > pos.y-maxHeight/2 && mouseY < pos.y+maxHeight/2)
+    {
+        var x = Math.floor(pos.x + maxWidth - mouseX);
+        var index = comp.dataStart - x;
+        if (index < 0) { index += comp.voltageData.length; }
+        
+        //getting the pixel vertical position of the voltage and current lines at [index] (where the mouse is on the plot)
+        var voltagePosY = pos.y-voltageScale*comp.voltageData[index];
+        var currentPosY = pos.y-currentScale*comp.currentData[index];
+
+        if (Math.abs(voltagePosY-mouseY) < Math.abs(currentPosY-mouseY)) //if the voltage line is closer to the mouse...
+        {
+            stroke(0,200,0);
+            fill(0,200,0);
+            line(mouseX, pos.y-maxHeight/2, mouseX, pos.y+maxHeight/2);
+            stroke(0,0,0);
+            text(Number(comp.voltageData[index]).toPrecision(5), mouseX, mouseY);
+        } else { //if the current line is closer....
+            stroke(200,200,0);
+            fill(200,200,0);
+            line(mouseX, pos.y-maxHeight/2, mouseX, pos.y+maxHeight/2);
+            stroke(0,0,0);
+            text(Number(comp.currentData[index]).toPrecision(5), mouseX, mouseY);
+        }
+    }
+
+
+
+    stroke(255);
+    noFill();
+    rect(pos.x, pos.y-maxHeight/2, maxWidth, maxHeight);
+}
+
 
 function DrawSlider(pos, width, thickness, val) {
     //position is the upper left corner of the object
