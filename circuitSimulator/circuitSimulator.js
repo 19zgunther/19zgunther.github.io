@@ -146,12 +146,7 @@ function keyPressed() {
     } else if (keyCode == CONTROL) {
         controlIsDown = true;
     } else if (key == "p") { //PRINT
-        var s = "";
-        for(var i=0; i<components.length; i++)
-        {
-            s += components[i].GetString();
-        }
-        console.log(s);
+        PrintCircuit();
     } else if (key == "L") { //LOAD
         //LoadCircuit("voltageSource2n 0 5 220 300 220 200 resistor 1 1000 220 200 320 200 resistor 2 1000 320 200 320 300 voltageSource2n 3 5 320 200 420 200 resistor 4 1000 420 200 420 300 wire 5 _ 420 300 320 300 wire 6 _ 320 300 220 300");
         //LoadCircuit("voltageSource2n 0 5 140 300 140 200 resistor 1 1000 220 200 320 200 resistor 2 1000 320 200 320 300 wire 6 _ 320 300 140 300 resistor 8 1000 620 200 620 300 wire 9 _ 620 300 320 300 voltageSource2n 3 5 560 200 620 200 resistor 10 1000 480 200 560 200 voltageSource2n 11 5 320 200 480 200 resistor 4 1000 220 200 140 200");
@@ -308,43 +303,75 @@ function Update() {
 }
 
 
+
+function PrintCircuit() {
+    var s = "";
+    for(var i=0; i<components.length; i++)
+    {
+        s += components[i].GetString();
+    }
+    console.log(s);
+    return s;
+}
+
+
+
+/*This function takes a string and generates the components.
+*   It is used at start to load the initial circuit, and whenever we want to load a saved circuit
+*   See PrintCircuit() and component.GetString() to see more about the format: "TYPE NAME VALUE START.X START.Y END.X END.Y". 
+*/
 function LoadCircuit(dataString) {
-    /* inputs data in the form "Component-Type Name/ID Component-Specific-Value startPos.x startPos.y endPos.x endPos.y" */
-    var dataArray = dataString.split(" ");
+    /* inputs data in the form "TYPE NAME VALUE startPos.x startPos.y endPos.x endPos.y" */
+    //Start by splitting the dataString by spaces
+    var dataArray = dataString.split(" "); 
     components = [];
     nodes = [];
     selectedComponent = null;
 
-    if (dataArray.length % 7 != 0) 
+    if (dataArray.length % 7 != 0)  //We know the dataArray should be a multiple of 7 in length because of the format (see desc. above)
     {
         console.error("Error: Cannot load data in Load function because the number of terms in the input string is incorrect (not mod 7 = 0)");
         return;
     }
+    
     var numComponents = dataArray.length/7;
     var c;
     var compVal;
     for (var i=0; i<numComponents; i++)
     {
-        c = new Component();
-        c.type = dataArray[i*7+0];
-        c.name = Number(dataArray[i*7+1]);
+        c = new Component(); //Create a new component
+        c.type = dataArray[i*7+0];              //Set it's type (ex. "wire" or "resistor")
+        c.name = Number(dataArray[i*7+1]);      //Name is an identifying characteristic we need for other stuff (I have forgotten)
         compVal = Number(dataArray[i*7+2]);
-        if (c.type == "resistor") { c.resistance = compVal; }
-        else if (c.type == "capacitor") { c.capacitance = compVal; }
+        if (c.type == "resistor") { c.resistance = compVal; }           //Now, set it's component-specific value (resistors have resistance, capacitors have capacitance, etc)
+        else if (c.type == "capacitor") { c.capacitance = compVal; }    
         else if (c.type == "inductor") { c.inductor = compVal; }
         else if (c.type == "voltageSource2n") { c.voltage = compVal; }
         else if (c.type == "voltageSource1n") { c.voltage = compVal; }
         else if (c.type == "currentSource") { c.current = compVal; }
-        c.startPos = new Point(Number(dataArray[i*7+3]),Number(dataArray[i*7+4]));
+        c.startPos = new Point(Number(dataArray[i*7+3]),Number(dataArray[i*7+4])); //Set the start and end points of the component
         c.endPos = new Point(Number(dataArray[i*7+5]),Number(dataArray[i*7+6]));
-        components.push(c);
+        components.push(c); //Add the component to the master list of components
     }
+    
+    CenterCircuit(); //Center the circuit to 
+}
 
+//Centers the circuit to the center of the screen
+function CenterCircuit()
+{
     //now, lets center the circuit to the best of our ability!
-    var maxPoint = new Point(0,0);
-    var minPoint = new Point(10000,10000);
+    var maxPoint = new Point(0,0); //arbitrary small point (upper left corner of screen)
+    var minPoint = new Point(10000,10000); //arbitrary large point (lower right in screen)
     for (var i=0; i<components.length; i++)
     {
+        maxPoint.x = Math.max( components[i].startPos.x, components[i].endPos.x, maxPoint.x );
+        minPoint.x = Math.min( components[i].startPos.x, components[i].endPos.x, minPoint.x );
+        
+        maxPoint.y = Math.max( components[i].startPos.y, components[i].endPos.y, maxPoint.y );
+        minPoint.y = Math.min( components[i].startPos.y, components[i].endPos.y, minPoint.y );
+        
+        /*
         if (components[i].startPos.x > maxPoint.x) { maxPoint.x = components[i].startPos.x; }
         if (components[i].endPos.x > maxPoint.x) { maxPoint.x = components[i].endPos.x; }
         if (components[i].startPos.x < minPoint.x) { minPoint.x = components[i].startPos.x; }
@@ -353,8 +380,9 @@ function LoadCircuit(dataString) {
         if (components[i].startPos.y > maxPoint.y) { maxPoint.y = components[i].startPos.y; }
         if (components[i].endPos.y > maxPoint.y) { maxPoint.y = components[i].endPos.y; }
         if (components[i].startPos.y < minPoint.y) { minPoint.y = components[i].startPos.y; }
-        if (components[i].endPos.y < minPoint.y) { minPoint.y = components[i].endPos.y; }
+        if (components[i].endPos.y < minPoint.y) { minPoint.y = components[i].endPos.y; }*/
     }
+    
     var curCenter = worldRoundToGrid(new Point((maxPoint.x+minPoint.x)/2, (maxPoint.y+minPoint.y)/2));
     var wantedCenter = worldRoundToGrid(new Point(width/2, height/2));
     var diff = new Point(curCenter.x-wantedCenter.x, curCenter.y-wantedCenter.y);
@@ -365,7 +393,6 @@ function LoadCircuit(dataString) {
         components[i].startPos.y -= diff.y;
         components[i].endPos.y -= diff.y;
     }
-
 }
 
 
