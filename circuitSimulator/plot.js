@@ -1,21 +1,22 @@
 
-const PlotYAxisIntervals = [1000,500,100,50,25,20,15,10,8,5,4,3,2,1,0.5,0.25,0.2,0.1,0.05,0.025,0.02,0.01,0.005,0.0025,0.002,0.001,0.0005,0.00025,0.0002,0.0001];
+const PlotYAxisIntervals = [10000000000,5000000000,100000000,50000000,10000000,5000000,1000000,500000,100000,50000,10000,5000,1000,500,100,50,25,20,15,10,8,5,4,3,2,1,0.5,0.25,0.2,0.1,0.05,0.025,0.02,0.01,0.005,0.0025,0.002,0.001,0.0005,0.00025,0.0002,0.0001,0.00005,0.00001,0.000005,0.000001];
 
 class Plot {
     constructor(comp){
         this.component = comp;
+        this.horizontalModifier = 1;
         //this.voltageScale = 5;
         //this.currentScale = 5;
         //this.timeScale = 1;
         this.autoYScaleEnable = false;
-        this.voltageYAxisGridScaleIndex = 13; //index of PlotYAxisIntervals[13] = 1
-        this.currentYAxisGridScaleIndex = 13; 
+        this.voltageYAxisGridScaleIndex = 23; //index of PlotYAxisIntervals[13] = 1
+        this.currentYAxisGridScaleIndex = 23; 
 
         this.numGridLines = 5; //must be an odd number...?
     }
-    Draw(pos = null, width = null, height = null)
+    Draw(pos = null, width = null, height = null, painter)
     {
-        
+        var p = painter
         /*
         if (pos == null)
         {
@@ -26,56 +27,55 @@ class Plot {
         DrawPlot(this, pos, width, height, PlotYAxisIntervals[this.yAxisGridScaleIndex], this.timeScale);
         */
 
-        strokeWeight(1);
-        stroke(200);
-        textSize(10);
+        p.SetStrokeWidth(2);
+        p.SetStrokeColor('white');
+        p.SetTextSize(14);
 
         //drawing the outside box
-        line(pos.x, pos.y, pos.x+width, pos.y);
-        line(pos.x, pos.y, pos.x, pos.y+height);
-        line(pos.x+width, pos.y+height, pos.x+width, pos.y);
-        line(pos.x+width, pos.y+height, pos.x, pos.y+height);
+        p.DrawLine(pos.x, pos.y, pos.x+width, pos.y);
+        p.DrawLine(pos.x, pos.y, pos.x, pos.y+height);
+        p.DrawLine(pos.x+width, pos.y+height, pos.x+width, pos.y);
+        p.DrawLine(pos.x+width, pos.y+height, pos.x, pos.y+height);
 
 
         var lineStep = height/(this.numGridLines+1); //num pixels per vertical division
         var curY = pos.y +lineStep;
         
         //drawing the horizontal lines and vertical axis grid text
-        stroke(100);
+        p.SetStrokeWidth(1);
         for (var i=0; i<this.numGridLines; i++)
         {
-            stroke(100);
-            line(pos.x+70, curY, pos.x+width, curY);
-            stroke(0,0,0);
-            fill(0,200,0);
-            text(Number(((this.numGridLines-1)/2-i)*PlotYAxisIntervals[this.voltageYAxisGridScaleIndex]).toPrecision(4), pos.x, curY+5);
-            stroke(0,0,0);
-            fill(200,200,0);
-            text(Number(((this.numGridLines-1)/2-i)*PlotYAxisIntervals[this.currentYAxisGridScaleIndex]).toPrecision(4), pos.x+40, curY+5);
+            p.SetStrokeColor('grey');
+            p.DrawLine(pos.x+100, curY, pos.x+width, curY);
+            p.SetStrokeColor(0,0,0);
+            p.DrawLine(0,200,0);
+            p.SetTextColor('green');
+            p.DrawText(pos.x+10, curY+5,  formatValue(((this.numGridLines-1)/2-i)*PlotYAxisIntervals[this.voltageYAxisGridScaleIndex], 'V' ) );
+            p.SetTextColor('yellow');
+            p.DrawText(pos.x+50, curY+5, formatValue(((this.numGridLines-1)/2-i)*PlotYAxisIntervals[this.currentYAxisGridScaleIndex], 'A' ) );
             curY += lineStep;
         }
 
+
         var data = this.component.voltageData
-        stroke(255)
-        var plotStartPoint = new Point(  pos.x + width , pos.y + height/2  ) //vertically middle, horizontally rightmost
-        //line(plotStartPoint.x, plotStartPoint.y, plotStartPoint.x +-10, plotStartPoint.y)
-
         var voltageScaler = lineStep / PlotYAxisIntervals[this.voltageYAxisGridScaleIndex];
-        //var timeScaler = 
-        var p1 = new Point();
-        var p2 = new Point();
+        var p1 = new Point(pos.x +width, pos.y + height/2);
+        var p2 = new Point(pos.x +width, pos.y + height/2);
         
-
-        stroke(0,255,0);
+        p.SetStrokeColor('green');
         var scaleTooSmall = true;
-        for (var i=1; i<min(data.length, width); i++ )
+        
+        
+        for (var i=1; i*this.horizontalModifier<data.length && i<width-100; i++)
         {
+            p2.x = p1.x;
+            p2.y = p1.y;
             p1.x = pos.x + width - i - 1;
-            p1.y =  pos.y + height/2 - voltageScaler * data[data.length - i];
-            p2.x = pos.x + width - i;
-            p2.y =  pos.y + height/2 - voltageScaler * data[data.length - i - 1];
+            p1.y = pos.y + height/2 - voltageScaler * data[data.length - Math.round(i*this.horizontalModifier)];
+            //p2.x = pos.x + width - i;
+            //p2.y = pos.y + height/2 - voltageScaler * data[data.length - i*this.horizontalModifier -1];
 
-            line(p1.x, p1.y, p2.x, p2.y);
+            p.DrawLine(p1.x, p1.y, p2.x, p2.y);
 
             //check if the plot goes outside of the box
             if (p1.y < pos.y || p1.y > p1.y + height || p2.y < pos.y || p2.y > pos.y + height)
@@ -95,6 +95,39 @@ class Plot {
             this.DecreaseVoltageYScale();
         }
 
+        
+        var scaleTooSmall = true;
+        var data = this.component.currentData;
+        var currentScaler = lineStep / PlotYAxisIntervals[this.currentYAxisGridScaleIndex];
+        p.SetStrokeColor('yellow');
+        p1 = new Point(pos.x + width, pos.y + height/2);
+        for (var i=1; i*this.horizontalModifier<data.length && i<width-100; i++ )
+        {
+            p2.x = p1.x;
+            p2.y = p1.y;
+            p1.x = pos.x + width - i;
+            p1.y = pos.y + height/2 - currentScaler * data[data.length - Math.round(i*this.horizontalModifier)];
+
+            p.DrawLine(p1.x, p1.y, p2.x, p2.y);
+
+            //check if the plot goes outside of the box
+            if (p1.y < pos.y || p1.y > p1.y + height || p2.y < pos.y || p2.y > pos.y + height)
+            {
+                this.IncreaseCurrentYScale();
+                return;
+            } 
+            
+            //check if the plot is too small (needs to be streched vertically)
+            if (scaleTooSmall == true && (p1.y < pos.y + height*3/8 || p1.y > p1.y + height*5/8 || p2.y < pos.y + height*3/8 || p2.y > pos.y + height*5/8))
+            {
+                scaleTooSmall = false;
+            } 
+        }
+        if (scaleTooSmall)
+        {
+            this.DecreaseCurrentYScale();
+        }
+
     }
 
     SetComponent(newComponentToPlot = null)
@@ -112,13 +145,25 @@ class Plot {
     IncreaseVoltageYScale() 
     {
         this.voltageYAxisGridScaleIndex -= 1;
-        this.voltageYAxisGridScaleIndex = max(this.voltageYAxisGridScaleIndex, 0);
+        this.voltageYAxisGridScaleIndex = Math.max(this.voltageYAxisGridScaleIndex, 0);
     }
 
     DecreaseVoltageYScale()
     {
         this.voltageYAxisGridScaleIndex += 1;
-        this.voltageYAxisGridScaleIndex = min(this.voltageYAxisGridScaleIndex, PlotYAxisIntervals.length-1);
+        this.voltageYAxisGridScaleIndex = Math.min(this.voltageYAxisGridScaleIndex, PlotYAxisIntervals.length-1);
+    }
+
+    IncreaseCurrentYScale() 
+    {
+        this.currentYAxisGridScaleIndex -= 1;
+        this.currentYAxisGridScaleIndex = Math.max(this.currentYAxisGridScaleIndex, 0);
+    }
+
+    DecreaseCurrentYScale()
+    {
+        this.currentYAxisGridScaleIndex += 1;
+        this.currentYAxisGridScaleIndex = Math.min(this.currentYAxisGridScaleIndex, PlotYAxisIntervals.length-1);
     }
 
     GetAutoScale()
@@ -187,7 +232,7 @@ class PlotManager {
         this.plots = tempList;
     }
 
-    Draw()
+    Draw(painter)
     {
         var plotWidth = ( this.screenWidth - this.gapBetweenPlots*(this.plots.length-1) ) / this.plots.length;
         var xPos = 0;
@@ -201,7 +246,7 @@ class PlotManager {
                 return;
             }
 
-            this.plots[i].Draw(new Point(xPos, yPos), plotWidth, this.plotHeight);
+            this.plots[i].Draw(new Point(xPos, yPos), plotWidth, this.plotHeight, painter);
             xPos += plotWidth;
             xPos += this.gapBetweenPlots;
         }
@@ -211,28 +256,19 @@ class PlotManager {
     {
         return this.plots;
     }
-}
 
-
-
-
-
-
-
-
-
-class Slider {
-    constructor(pos, width, thickness) {
-        this.width = width;
-        this.thickness = thickness;
-        this.pos = pos;
-        this.val = 0.5;
-    }
-    Draw() {
-        DrawSlider(pos, width, thickness, val);
+    GetPlot(comp)
+    {
+        for(var i=0; i<this.plots.length; i++)
+        {
+            if (this.plots[i].comp == comp)
+            {
+                return this.plots[i];
+            }
+        }
+        return null;
     }
 }
-
 
 
 

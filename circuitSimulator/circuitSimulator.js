@@ -6,15 +6,17 @@ var ValueInputTextElement = document.getElementById("valueInputText");
 var SelectedComponentElement = document.getElementById("selectedComponent");
 var MovingComponentPointElement = document.getElementById("movingComponentPoint");
 var SimulationSpeedSliderElement = document.getElementById("simulationSpeedSlider");
+var CircuitCanvasElement = document.getElementById("circuitCanvas");
 
 //Settings and such
-var canvas;
 var width;
 var height;
 var nodeSize = 5;
 var gridSize = 20;
 var clickRange = 30;
 var labelTextSize = 10;
+var painter;
+
 var plotManager;
 
 //component and node stuff
@@ -48,26 +50,38 @@ var shiftIsDown = false;
 var controlIsDown = false;
 
 
+var mousePos = new Point();
+
+
+setup();
+document.addEventListener('keydown', keyPressed);
+document.addEventListener('mouseUp', mouseReleased);
+
+function mouseMoved(event) {
+    //mousePos.x = event.clientX;
+    ///mousePos.y = event.clientY;
+    mousePos = screenPointToCanvas(new Point(event.clientX, event.clientY), CircuitCanvasElement);
+}
 
 //Input Functions
-function mousePressed() {
+function mousePressed(event) {
+    mousePos = screenPointToCanvas(new Point(event.clientX, event.clientY), CircuitCanvasElement);
+
     if (editingComponentValue == true)
     {
         return;
     }
+
     if (drawMode != "") { //if drawMode != "", then on mousePressed we want to draw a new component, component type = drawMode
-        selectedComponent = new Component(); //create new component
-        selectedComponent.startPos = worldRoundToGrid(new Point(mouseX,mouseY)); //set startPos and endPos
-        selectedComponent.endPos = worldRoundToGrid(new Point(mouseX,mouseY));
+        selectedComponent = createNewComponent(drawMode);
+        selectedComponent.startPos = worldRoundToGrid(mousePos); //set startPos and endPos
+        selectedComponent.endPos = worldRoundToGrid(mousePos);
         selectedComponent.name = getNewComponentName();
         components.push(selectedComponent); //add the new component (which is currently selected) to 'components' array
         movingComponentPoint = "end"; /*specify which end of the component we want to be moving. In this case, we place the startPos at the initial click
                                         and the endPos follows around the cursor until the mouse button is released  */
         selectedComponent.type = drawMode; /*and of course, how could I forget, we need to let the new component know what type of component it is 
                                             (wire, resistor, capacitor, voltagSource, or currentSource)*/
-        //var MYNEWPLOT = new Plot(selectedComponent);
-        //plotManager.addPlot(MYNEWPLOT);
-
         if (selectedComponent.type == "capacitor" || selectedComponent.type == "inductor")
         {
             selectedComponent.voltage = 0;
@@ -82,7 +96,6 @@ function mousePressed() {
         //We need to search for the nearest component (in components), and check to see if it is within clickRange;
         var bestDist = clickRange;
         var dist = 100000000000;
-        var mousePos = new Point(mouseX, mouseY);
         for (var i=0; i<components.length; i++)  //for each component...
         { 
             dist = distToLine(components[i].startPos, components[i].endPos, mousePos); //Find the distance from the component to the mouse Position
@@ -115,71 +128,83 @@ function mousePressed() {
     }
 }
 function mouseReleased() {
+    //console.log("MOUSE_UP");
     movingComponentPoint = "";
 }
-function keyPressed() {
-    if (editingComponentValue == true && (keyCode == ESCAPE || keyCode == ENTER))
+function keyPressed(event) {
+    var keyCode = event.key;
+    //console.log("Key Presed:\""+keyCode+"\"");
+
+    if (editingComponentValue == true && (keyCode == "Escape" || keyCode == "Enter")) //when we're done editing a component's value
     {
         editingComponentValue = false;
+        var output = parseStringValue( ValueInputTextElement.value );
+        if (output != null && output != NaN)
+        {
+            selectedComponent.SetValue( output );
+        } else {
+            console.error("Failed to parse input   ( in keyPressed(event) )");
+        }
         selectedComponent = null;
         return;
-    } else if (editingComponentValue == true) {
+    }
+    
+    if (editingComponentValue == true) {
         return;
     }
 
 
-    if (keyCode == ESCAPE) {
-        drawMode = "";
-        selectedComponent = null;
-    } else if (keyCode == BACKSPACE || keyCode == DELETE) {
-        if (controlIsDown == true)
-        {
+    switch (keyCode) {
+        case "Escape":
+            drawMode = "";
+            selectedComponent = null;
+            break;
+        case "Backspace":
+            deleteComponent(selectedComponent);
+            selectedComponent = null;
+            break;
+        case "Delete":
             components = [];
             nodes = [];
-        }
-        deleteComponent(selectedComponent);
-        selectedComponent = null;
-    } else if (keyCode == ENTER) {
-        Calculate();
-    } else if (keyCode == SHIFT) {
-        shiftIsDown = true;
-    } else if (keyCode == CONTROL) {
-        controlIsDown = true;
-    } else if (key == "p") { //PRINT
-        PrintCircuit();
-    } else if (key == "L") { //LOAD
-        //LoadCircuit("voltageSource2n 0 5 220 300 220 200 resistor 1 1000 220 200 320 200 resistor 2 1000 320 200 320 300 voltageSource2n 3 5 320 200 420 200 resistor 4 1000 420 200 420 300 wire 5 _ 420 300 320 300 wire 6 _ 320 300 220 300");
-        //LoadCircuit("voltageSource2n 0 5 140 300 140 200 resistor 1 1000 220 200 320 200 resistor 2 1000 320 200 320 300 wire 6 _ 320 300 140 300 resistor 8 1000 620 200 620 300 wire 9 _ 620 300 320 300 voltageSource2n 3 5 560 200 620 200 resistor 10 1000 480 200 560 200 voltageSource2n 11 5 320 200 480 200 resistor 4 1000 220 200 140 200");
-        //LoadCircuit("resistor 0 1000 460 240 460 360 currentSource 1 0.001 460 360 600 360 voltageSource2n 2 5 600 360 600 300 voltageSource2n 3 5 600 300 600 240 wire 4 _ 600 240 460 240 voltageSource1n 5 0 360 220 360 280 wire 6 _ 360 220 460 240");
-        LoadCircuit("voltageSource2n 0 5 260 320 260 200 resistor 1 1000 260 200 400 200 resistor 2 1000 400 200 400 320 wire 3 _ 400 320 260 320 resistor 4 1000 400 200 540 200 wire 6 _ 540 320 400 320 currentSource 5 0.001 540 320 540 200 resistor 7 1000 540 200 640 200 resistor 8 1000 640 200 640 320 wire 9 _ 640 320 540 320 voltageSource2n 10 5 640 200 740 200 resistor 11 1000 740 200 740 320 wire 12 _ 740 320 640 320 voltageSource1n 13 0 260 320 260 360");
-    } else if (key == "w") {
-        drawMode = "wire";
-    } else if (key == "r") {
-        drawMode = "resistor";
-    } else if (key == "c") {
-        drawMode = "capacitor";
-    } else if (key == "l") {
-        drawMode = "inductor";
-    } else if (key == "g") {
-        drawMode = "ground";
-    } else if (key == "V") {
-        drawMode = "voltageSource1n";
-    } else if (key == "v") {
-        drawMode = "voltageSource2n";
-    } else if (key == "i") {
-        drawMode = "currentSource";
-    } else if (key == '>') {
-        var plots = plotManager.GetPlots();
-        for (var i=0; i<plots.length; i++)
-        {
-            plots[i].timeScale = plots[i].timeScale*2;
-        }
-    } else if (key == '<') {
-        var plots = plotManager.GetPlots();
-        for (var i=0; i<plots.length; i++)
-        {
-            plots[i].timeScale = plots[i].timeScale/2;
-        }
+            break;
+        case "Shift":
+            shiftIsDown = true;
+            break;
+        case "Control":
+            controlIsDown = true;
+            break;
+        case "p":
+            PrintCircuit();
+            break;
+        case "L":
+            LoadCircuit("voltageSource2n 0 5 260 320 260 200 resistor 1 1000 260 200 400 200 resistor 2 1000 400 200 400 320 wire 3 _ 400 320 260 320 resistor 4 1000 400 200 540 200 wire 6 _ 540 320 400 320 currentSource 5 0.001 540 320 540 200 resistor 7 1000 540 200 640 200 resistor 8 1000 640 200 640 320 wire 9 _ 640 320 540 320 voltageSource2n 10 5 640 200 740 200 resistor 11 1000 740 200 740 320 wire 12 _ 740 320 640 320 voltageSource1n 13 0 260 320 260 360");
+            break;
+        case "w": drawMode = "wire"; break;
+        case "r": drawMode = "resistor"; break;
+        case "c": drawMode = "capacitor"; break;
+        case "l": drawMode = "inductor"; break;
+        case "v": drawMode = "voltageSource2n"; break;
+        case "V": drawMode = "voltageSource1n"; break;
+        case "g": drawMode = "ground"; break;
+        case "i": drawMode = "currentSource"; break;
+        case "<": plotManager.GetPlots()[0].horizontalModifier *= 2; break;
+        case ">": plotManager.GetPlots()[0].horizontalModifier /= 2; break;
+        case "R":
+            for(var i=0; i<components.length; i++)
+            {
+                var c = components[i];
+                if (c instanceof VoltageSource1n == true || c instanceof VoltageSource2n == true || c instanceof CurrentSource == true)
+                {
+                    continue;
+                }
+                c.voltage = 0;
+                c.current = 0;
+                c.voltageData = new Array(5000);
+                c.currentData = new Array(5000);
+                console.log(c.name);
+            }
+            console.log("Reset");
+            break;
     }
     DrawModeElement.innerHTML = "Draw Mode: " + drawMode;
 }
@@ -191,14 +216,18 @@ function keyReleased() {
     }
 }
 function valueInputTextClicked() {
-    editingComponentValue = true;
-    ValueInputTextElement.value = selectedComponent.GetValue();
+    if (editingComponentValue == false)
+    {
+        ValueInputTextElement.value = formatValue( selectedComponent.GetValue(),selectedComponent.GetStringSuffix());
+        editingComponentValue = true;
+    }
 }
 function setup() {
     width = window.innerWidth*19/20;
     height = window.innerHeight-100;
-    canvas = createCanvas(width, height);
-    canvas.parent('simulator');
+    painter = new Painter(CircuitCanvasElement);
+    //canvas = createCanvas(width, height);
+    //canvas.parent('simulator');
     //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
     LoadCircuit("resistor 0 1 300 200 440 200 voltageSource2n 1 5 180 300 180 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 wire 5 _ 180 300 300 300 inductor 6 0.001 300 300 300 200 capacitor 4 0.000001 440 300 440 200 resistor 7 10 300 200 180 200");
     plotManager = new PlotManager(width, height);
@@ -207,7 +236,7 @@ function setup() {
 window.onresize = function(event){
     width = window.innerWidth*19/20;
     height = window.innerHeight*6/8;
-    canvas.resize(width,height);
+    //canvas.resize(width,height);
     plotManager.screenWidth = width;
     plotManager.screenHeight = height;
 }
@@ -217,6 +246,11 @@ function simulationSpeedSliderChanged()
     //Range from 1 to 1000
     var val = Number(SimulationSpeedSliderElement.value);
     //console.log(val);
+    if (val <= 1)
+    {
+        clearInterval(calcUpdateInterval);
+        return;
+    }
     val = (31 - val);
     val = val*val;
     val = Math.max(val, 1);
@@ -255,17 +289,17 @@ function RemovePlotButtonClick()
 
 function Update() {
     //move the endpoint, the startpoint, or the entirety of the selected component     //THIS IF STATEMENT SHOULD BE PUT SOMEWHERE ELSE PROBABLY
+    //console.log("movingComp: " + movingComponentPoint + "   selectedComp: " + selectedComponent);
     if (movingComponentPoint == "end" && selectedComponent != null) 
     {
-        selectedComponent.endPos = worldRoundToGrid(new Point(mouseX,mouseY)); //move endPos
+        selectedComponent.endPos = worldRoundToGrid(mousePos.copy()); //move endPos
     } else if (movingComponentPoint == "start" && selectedComponent != null) 
     {
-        selectedComponent.startPos = worldRoundToGrid(new Point(mouseX,mouseY)); //move startPos
+        selectedComponent.startPos = worldRoundToGrid(mousePos.copy()); //move startPos
     } else if (movingComponentPoint == "mid" && selectedComponent != null) 
     {
-        var mousePos = new Point(mouseX,mouseY);                                //move mid
-        selectedComponent.startPos = worldRoundToGrid(mousePos.add(vectorMouseToStart));
-        selectedComponent.endPos = worldRoundToGrid(mousePos.add(vectorMouseToEnd));
+        selectedComponent.startPos = worldRoundToGrid(mousePos.copy().add(vectorMouseToStart));
+        selectedComponent.endPos = worldRoundToGrid(mousePos.copy().add(vectorMouseToEnd));
     } else if (selectedComponent != null){
         if (selectedComponent.startPos.equals(selectedComponent.endPos))
         {
@@ -273,47 +307,37 @@ function Update() {
         }
     }
 
-    UpdateDisplay(); //this updates the entire display (in graphics file)
-    plotManager.Draw();
+    if (selectedComponent != null)
+    {
+        SelectedComponentElement.innerHTML = "Selected Component: " + selectedComponent.toString();
+    } else {
+        SelectedComponentElement.innerHTML = "Selected Component: None";
+    }
+
+    UpdateDisplay(painter); //this updates the entire display (in graphics file)
+    plotManager.Draw(painter);
 
     //Misc
     //???????????
-    if (editingComponentValue == true && selectedComponent != null)
-    {
-        var x = ValueInputTextElement.value;
-        if (ValueInputTextElement.value == "")
-        {
-
-        } else if (Number(x) != NaN)
-        {
-            selectedComponent.SetValue( x );
-            ValueInputTextElement.value = selectedComponent.GetValue();
-        }
-    } else {
-        ValueInputTextElement.selected = false;
-    }
-
-    if (selectedComponent != null && selectedComponent.type != "wire")
+    if (editingComponentValue == false && selectedComponent != null && selectedComponent.type != "wire")
     {
         ValueInputTextElement.style.width = "100px";
-        ValueInputTextElement.value = selectedComponent.GetValue();
-    } else {
-        ValueInputTextElement.style.width = "1px";
+        ValueInputTextElement.value = formatValue( selectedComponent.GetValue(),  selectedComponent.GetStringSuffix());
+    } else if (editingComponentValue == false){
+        ValueInputTextElement.style.width = "5px";
     }
 }
-
 
 
 function PrintCircuit() {
     var s = "";
     for(var i=0; i<components.length; i++)
     {
-        s += components[i].GetString();
+        s += components[i].GetEncodedDataString();
     }
     console.log(s);
     return s;
 }
-
 
 
 /*This function takes a string and generates the components.
@@ -335,27 +359,39 @@ function LoadCircuit(dataString) {
     }
     
     var numComponents = dataArray.length/7;
+    var type;
+    var numComponents = dataArray.length/7;
     var c;
-    var compVal;
     for (var i=0; i<numComponents; i++)
     {
-        c = new Component(); //Create a new component
-        c.type = dataArray[i*7+0];              //Set it's type (ex. "wire" or "resistor")
-        c.name = Number(dataArray[i*7+1]);      //Name is an identifying characteristic we need for other stuff (I have forgotten)
-        compVal = Number(dataArray[i*7+2]);
-        if (c.type == "resistor") { c.resistance = compVal; }           //Now, set it's component-specific value (resistors have resistance, capacitors have capacitance, etc)
-        else if (c.type == "capacitor") { c.capacitance = compVal; }    
-        else if (c.type == "inductor") { c.inductor = compVal; }
-        else if (c.type == "voltageSource2n") { c.voltage = compVal; }
-        else if (c.type == "voltageSource1n") { c.voltage = compVal; }
-        else if (c.type == "currentSource") { c.current = compVal; }
-        c.startPos = new Point(Number(dataArray[i*7+3]),Number(dataArray[i*7+4])); //Set the start and end points of the component
+        type = dataArray[i*7+0];
+        if (type == 'wire')
+        {
+            c = new Wire();
+        } else if (type == 'resistor') {
+            c = new Resistor();
+        } else if (type == 'capacitor') {
+            c = new Capacitor();
+        } else if (type == 'inductor') {
+            c = new Inductor();
+        } else if (type == 'voltageSource2n') {
+            c = new VoltageSource2n();
+        } else if (type == 'voltageSource1n') {
+            c = new VoltageSource1n();
+        } else if (type == 'currentSource') {
+            c = new CurrentSource();
+        }
+        
+        c.name = Number(dataArray[i*7+1]);
+        c.SetValue(Number(dataArray[i*7+2]));
+        c.startPos = new Point(Number(dataArray[i*7+3]),Number(dataArray[i*7+4]));
         c.endPos = new Point(Number(dataArray[i*7+5]),Number(dataArray[i*7+6]));
-        components.push(c); //Add the component to the master list of components
+        components.push(c);
     }
     
     CenterCircuit(); //Center the circuit to 
 }
+
 
 //Centers the circuit to the center of the screen
 function CenterCircuit()
@@ -370,17 +406,6 @@ function CenterCircuit()
         
         maxPoint.y = Math.max( components[i].startPos.y, components[i].endPos.y, maxPoint.y );
         minPoint.y = Math.min( components[i].startPos.y, components[i].endPos.y, minPoint.y );
-        
-        /*
-        if (components[i].startPos.x > maxPoint.x) { maxPoint.x = components[i].startPos.x; }
-        if (components[i].endPos.x > maxPoint.x) { maxPoint.x = components[i].endPos.x; }
-        if (components[i].startPos.x < minPoint.x) { minPoint.x = components[i].startPos.x; }
-        if (components[i].endPos.x < minPoint.x) { minPoint.x = components[i].endPos.x; }
-
-        if (components[i].startPos.y > maxPoint.y) { maxPoint.y = components[i].startPos.y; }
-        if (components[i].endPos.y > maxPoint.y) { maxPoint.y = components[i].endPos.y; }
-        if (components[i].startPos.y < minPoint.y) { minPoint.y = components[i].startPos.y; }
-        if (components[i].endPos.y < minPoint.y) { minPoint.y = components[i].endPos.y; }*/
     }
     
     var curCenter = worldRoundToGrid(new Point((maxPoint.x+minPoint.x)/2, (maxPoint.y+minPoint.y)/2));
@@ -400,21 +425,9 @@ function CenterCircuit()
 function Calculate() {
     currentTime += timeStep;
 
-    /*
-    for (var i=0; i<components.length; i++)
-    {
-        components[i].voltageData[components[i].dataStart] = components[i].voltage;
-        components[i].currentData[components[i].dataStart] = components[i].current;
-        components[i].dataStart += 1;
-        if (components[i].dataStart >= components[i].voltageData.length)
-        {
-            components[i].dataStart = 0;
-        }
-    }*/
     for (var i=0; i<components.length; i++)
     {
         components[i].RecordData();
-        //console.log(components[i].voltageData);
     }
     
     
@@ -440,14 +453,8 @@ function Calculate() {
 
     CalcCurrents();
 
-    /*
-    var s = "";
-    for (var i=0; i<nodes.length; i++)
-    {
-        s += "Node: " + nodes[i].name + "   Voltage: " + nodes[i].voltage + "\n";
-    }
-    console.log(s);*/
 }
+
 
 //Finds all of the nodes
 function FindNodes() {
@@ -763,8 +770,6 @@ function GaussianElimination(matA, matB) {
         }
     }
 
-    //matrixA = mA;
-    //matrixB = mB;
 }
 
 
@@ -798,7 +803,6 @@ function CheckForSingleRow(A,B) {
     return false;
 }
 
-
 function CalcCurrents() {
     //clear components we don't know
     for (var i=0; i<components.length; i++)
@@ -828,9 +832,17 @@ function CalcCurrents() {
             components[i].endNode.numCurrentsOut += 1;
         } else if (components[i].type == "inductor")
         {
-            if (components[i].startNode == null || components[i].endNode == null || components[i].endNode.voltage == -65536 || components[i].startNode.voltage == -65536) { console.error("Continuing"); continue; }
-            components[i].voltage = (components[i].startNode.voltage - components[i].endNode.voltage);
-            components[i].current += timeStep * components[i].voltage/components[i].inductance;
+            if (components[i].startNode == null || components[i].endNode == null || components[i].endNode.voltage == -65536 || components[i].startNode.voltage == -65536) { 
+                //console.error("Continuing");
+                components[i].voltage = 0;
+                components[i].current = 0;
+            } else if (components[i].startNode == components[i].endNode) {
+                components[i].voltage = 0;
+                components[i].current = 0;
+            } else {
+                components[i].voltage = Math.min( Math.max((components[i].startNode.voltage - components[i].endNode.voltage),-1000000000), 1000000000);
+                components[i].current += timeStep * components[i].voltage/components[i].inductance;
+            }
             
             components[i].startNode.currentOut += components[i].current;
             components[i].startNode.numCurrentsOut += 1;
@@ -896,8 +908,13 @@ function CalcCurrents() {
     {
         if (components[i].type == "capacitor")
         {
-            components[i].voltage -= timeStep * components[i].current/components[i].capacitance;
-
+            if (components[i].startNode == components[i].endNode)
+            {
+                components[i].voltage = 0;
+            } else {
+                components[i].voltage -= timeStep * components[i].current/components[i].capacitance;
+            }
+            
 
         }
     }

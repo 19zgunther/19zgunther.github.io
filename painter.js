@@ -7,7 +7,6 @@ class Painter {
         this.ctx = this.canvas.getContext('2d');
 
         this.plotStrokeWidth = 1;
-        this.axisStrokeWidth = 2;
     }
 
     Clear(color)
@@ -287,4 +286,43 @@ class Painter {
     {
         return this.textColor;
     }
+}
+
+function rgbToHex(r,g,b)
+{
+    if (r == null || isNaN(r))
+    {
+        r = 0;
+    }
+    if (g == null || isNaN(g))
+    {
+        g = 0;
+    }
+    if (b == null || isNaN(b))
+    {
+        b = 0;
+    }
+    r = Math.min(Math.max(0,Math.round(r)),255);
+    g = Math.min(Math.max(0,Math.round(g)),255);
+    b = Math.min(Math.max(0,Math.round(b)),255);
+
+
+    r = r.toString(16);
+    g = g.toString(16);
+    b = b.toString(16);
+
+    while (r.length < 2)
+    {
+        r = "0"+r;
+    }
+    while (g.length < 2)
+    {
+        g = "0"+g;
+    }
+    while (b.length < 2)
+    {
+        b = "0"+b;
+    }
+
+    return '#'+r+g+b;
 }

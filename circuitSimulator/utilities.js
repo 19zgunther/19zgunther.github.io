@@ -7,6 +7,9 @@ class Point { //oh yea.... and I use this as a VECTOR sometimes so HAVE FUN tryi
     add(p2) {
         return new Point(this.x + p2.x, this.y + p2.y);
     }
+    sub(p2) {
+        return new Point(this.x - p2.x, this.y - p2.y);
+    }
     equals(p2) {
         if (this.x == p2.x && this.y == p2.y)
         {
@@ -14,6 +17,10 @@ class Point { //oh yea.... and I use this as a VECTOR sometimes so HAVE FUN tryi
         } else {
             return false;
         }
+    }
+    copy()
+    {
+        return new Point(this.x, this.y);
     }
 }
 
@@ -25,6 +32,15 @@ function worldRoundToGrid(p) {
     p.y = Math.round(p.y/gridSize)*gridSize;
     return p;
 }
+
+function screenPointToCanvas(point, canvas)
+{
+    var rect = canvas.getBoundingClientRect();
+    point = point.sub(new Point(rect.left, rect.top));
+    return point;
+}
+
+
 function distBetweenPoints(p1,p2) {
     //Find the distance between two points (point objects) P1 and P2
     return Math.sqrt(Math.pow(p1.x-p2.x,2) + Math.pow(p1.y-p2.y,2));
@@ -147,7 +163,84 @@ function getNewNodeName() { //returns the lowest unused node name.
 }
 
 
+function formatValue(numeric_value, suffix)
+{
+    if (numeric_value == null || numeric_value == NaN) { return NaN; }
+    var value = numeric_value;
+    s = ['P','M','k','','m','u','n','p'];
+    start_index = 3;
 
+    while (Math.abs(value) < 1  &&   start_index != 0   &&   start_index != 7 )
+    {
+        start_index += 1;
+        value = value * 1000;
+    }
+
+    while (Math.abs(value) > 1000  &&   start_index != 0   &&   start_index != 7)
+    {
+        start_index -= 1;
+        value = value / 1000;
+    }
+    if (suffix != NaN && suffix != null)
+    {
+        return value + s[start_index] + suffix;
+    } else {
+        return value + s[start_index];
+    }
+}
+
+function parseStringValue(string_value)
+{
+    //parses input in forms: "100P", "1M", "5k", "5", etc. DO NOT INCLUDE SPACES
+    //how this works: s is the list of accepted suffixes which modulate the value.
+    //  We run through until we find a suffix character, copy the first part of the string (the number part) over to 'o'.
+    //   Then we make o a number, and multiply or divide it by 1000 until s_index is 3 (no suffix)
+    s = ['P','M','k','','m','u','n','p'];
+    s_index = 3;
+    ind = string_value.length;
+    for (var i=0; i<string_value.length; i++)
+    {
+        for (var j=0; j<s.length; j++)
+        {
+            if (string_value[i] == s[j])
+            {
+                s_index = j;
+                ind = i;
+                break;
+            }
+        }
+        if (isNaN(Number(string_value[i])) == true && string_value[i] != '.')
+        {
+            ind = i;
+            break;
+        }
+        if (ind != string_value.length)
+        {
+            break;
+        }
+    }
+
+    
+    o = ""
+    for (var i=0; i<ind; i++)
+    {
+        o += string_value[i];
+    }
+
+    var val = Number(o);
+    if (val == null || isNaN(val)) {console.error("Cannot parse input: "+string_value +"   In utilities.parseValue"); return NaN; }
+    while (s_index < 3)
+    {
+        s_index += 1;
+        val = val * 1000;
+    }
+    while (s_index > 3)
+    {
+        s_index -= 1;
+        val = val/1000;
+    }
+    return val;
+}
 
 
 
@@ -218,4 +311,8 @@ function combineNodes(node1, node2)
     deleteNode(node2);
     return node1;
 }
+
+
+
+
 
