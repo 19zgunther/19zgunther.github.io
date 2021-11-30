@@ -1,0 +1,42 @@
+</html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gunther</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div id="Header" class = "header">
+        <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('../index.html')">Home</div>
+        <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('../resume.html')" >Resume</div>
+        <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
+        <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
+        <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
+    </div>
+    <div style="color:black; font-size: larger;">
+        Logic Simulator - Currently being built!
+    </div>
+    <div style="color:black; font-size:x-small;">
+        (AKA it doesn't work yet or barely works)
+    </div>
+    <canvas id = 'mainCanvas' onmousedown = canvas_onmousedown(event)  onmouseup = canvas_onmouseup(event)  onmousemove=canvas_onmousemove(event) style='width:100%; height:70%;'></canvas>
+    <div style="color: black; font-size: smaller;">
+        Key bindings to gates: a=and, c=clock, i=inverter, o=or, x=xor, n=nor, w=wire    escape=unselect_component & drawmode=false<br>
+        <br>Notes: <br> to place a component, press the specified key and then click where you want to place the component. <br>
+        wires are placed with 2 clicks.
+         <br>connections can only be made through wires <br> inputs to gates are marked by not-filled circles <br>the routing algorithm O(n) = n^6 so please be gentle I'm going to fix this
+    </div>
+    <div id = 'scope'>
+        <canvas id = 'scopeCanvas'></canvas>
+    </div>
+</body>
+
+<script src="../painter.js"></script>
+<script src="../point.js"></script>
+<script src="../utilities.js"></script>
+<script src="logicSimulator.js"></script>
+<script src="../script.js"></script>
+</html>

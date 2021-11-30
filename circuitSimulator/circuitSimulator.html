@@ -17,6 +17,7 @@
             <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('../resume.html')" >Resume</div>
             <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
             <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
+            <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
         </div>
 
         <div id="simulator">
@@ -31,7 +32,7 @@
             <div id = "drawMode" style = "user-select: none;">
                 Draw Mode:
             </div>
-            <div id = "selectedComponent" style = "user-select: none;">
+            <div id = "selectedComponent" style = "user-select: none; size:5px;">
                 Selected Component: -1 (none)
             </div>
             <div id = "movingComponentPoint" style = "user-select: none;">
@@ -53,8 +54,9 @@
 
 <!--<script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>-->
 <script src="../script.js"></script>
+<script src="../point.js"></script>
 <script src="../painter.js"></script>
-<script src="utilities.js"></script>
+<script src="../utilities.js"></script>
 <script src="node.js"></script>
 <script src="plot.js"></script>
 <script src="component.js"></script>

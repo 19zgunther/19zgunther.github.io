@@ -225,20 +225,28 @@ function valueInputTextClicked() {
 function setup() {
     width = window.innerWidth*19/20;
     height = window.innerHeight-100;
+    plotManager = new PlotManager(width, height);
+    resizeWindow();
     painter = new Painter(CircuitCanvasElement);
     //canvas = createCanvas(width, height);
     //canvas.parent('simulator');
     //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
     LoadCircuit("resistor 0 1 300 200 440 200 voltageSource2n 1 5 180 300 180 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 wire 5 _ 180 300 300 300 inductor 6 0.001 300 300 300 200 capacitor 4 0.000001 440 300 440 200 resistor 7 10 300 200 180 200");
-    plotManager = new PlotManager(width, height);
+    
     simulationSpeedSliderChanged();
 }
-window.onresize = function(event){
+window.onresize = resizeWindow();
+
+function resizeWindow() {
     width = window.innerWidth*19/20;
     height = window.innerHeight*6/8;
     //canvas.resize(width,height);
     plotManager.screenWidth = width;
     plotManager.screenHeight = height;
+
+    CircuitCanvasElement.setAttribute("style", 'width:'+width+"px; height:"+height+"px;");
+    CircuitCanvasElement.width = width;
+    CircuitCanvasElement.height = height;
 }
 
 function simulationSpeedSliderChanged()
@@ -833,10 +841,11 @@ function CalcCurrents() {
         } else if (components[i].type == "inductor")
         {
             if (components[i].startNode == null || components[i].endNode == null || components[i].endNode.voltage == -65536 || components[i].startNode.voltage == -65536) { 
-                //console.error("Continuing");
+                console.error("startN or endN or volt == null  sn:"+components[i].startNode.name+"  en:"+components[i].endNode.name+"  snv:"+components[i].startNode.voltage + "   env:"+components[i].endNode.voltage);
                 components[i].voltage = 0;
                 components[i].current = 0;
             } else if (components[i].startNode == components[i].endNode) {
+                console.error("endnode == startnode");
                 components[i].voltage = 0;
                 components[i].current = 0;
             } else {
