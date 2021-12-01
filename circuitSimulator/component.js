@@ -6,6 +6,7 @@ function createNewComponent(drawMode)
     {
         case "wire": return new Wire();
         case "resistor": return new Resistor();
+        case "switch": return new Switch();
         case "capacitor": return new Capacitor();
         case "inductor": return new Inductor();
         case "voltageSource2n": return new VoltageSource2n();
@@ -38,7 +39,17 @@ class Component {
 
     GetValueString() {console.error("GetValueString() not implmented for type: " + this.type)}
     GetEncodedDataString(){}
-    toString() { return "Type: \'"+this.type + "\'  Value: "+formatValue(this.GetValue(),this.GetStringSuffix())+"  voltage: "+this.voltage.toPrecision(3)+"  current: "+this.current.toPrecision(3);}
+    toString() { 
+        var voltage = "null";
+        var current = "null";
+        if (this.voltage != null) {
+            voltage = this.voltage.toPrecision(3);
+        }
+        if (this.current != null) {
+            current = this.current.toPrecision(3);
+        }
+        return "Type: \'"+this.type + "\'  Value: "+formatValue(this.GetValue(),this.GetStringSuffix())+"  voltage: "+voltage+"  current: "+current;
+    }
     SetValue(){}
     GetValue(){}
     GetStringSuffix(){return "Null_Suffix";}
@@ -226,7 +237,7 @@ class Inductor extends Component {
     constructor() {
         super();
         this.type = 'inductor';
-        this.inductance = 0.000001;
+        this.inductance = 0.001;
     }
     GetEncodedDataString() {
         return this.type+" "+this.name+" "+this.GetValue()+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
@@ -333,6 +344,7 @@ class VoltageSource1n extends Component {
         if (val == NaN || val == null)
         {
             console.error("Component passed NaN or null in .SetValue(val)");
+            return;
         }
         this.voltage = val;
     }
@@ -473,6 +485,77 @@ class CurrentSource extends Component {
             //strokeWeight(1);
             //textSize(labelTextSize);
             //text("I"+this.name+": "+this.GetValueString(), midpoint.x, midpoint.y);
+        }
+    }
+}
+
+
+class Switch extends Component {
+    constructor() {
+        super();
+        this.type = 'switch';
+        this.switchClosed = 1; //1 = true = switch_Is_Closed, 0 = false = switch_is_open
+    }
+    GetEncodedDataString() {
+        return this.type+" "+this.name+" "+this.GetValue()+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
+    }
+    SetValue(val)
+    {   
+        val = Number(val)
+        if (val == NaN || val == null)
+        {
+            console.error("Component passed NaN or null in .SetValue(val)");
+        }
+        if (val == 0 || val == 1) {
+            this.switchClosed = val;
+        } else {
+            console.error("Component type " + this.type + " was passed invalid value ("+val+"). Expected 0 or 1");
+        }
+    }
+    GetValue() {
+        return this.switchClosed;
+    }
+    GetStringSuffix() {
+        return "B";
+    }
+    Draw(p) {
+
+        var startPos = this.startPos; 
+        var endPos = this.endPos;
+        var dist = Math.sqrt(Math.pow(startPos.x-endPos.x,2) + Math.pow(startPos.y-endPos.y,2)); //distance between startPos and endPos (start & end positions x and y)
+        var angle = Math.atan2(startPos.y-endPos.y, startPos.x-endPos.x) + Math.PI; //angle from startPos to endPos, offset by Math.PI because it works
+        var len = (dist/2) - 20; //length from each point to center minus resistor box length
+        var p5 = new Point((Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y));
+        var p6 = new Point((Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
+        
+
+        //var midpoint = new Point((Math.cos(angle)*dist/2+startPos.x),(Math.sin(angle)*dist/2+startPos.y)); //find the midpoint between startPos and endPos
+        //var height = 20; //this is the distance the points below are from the midpoint
+        //var angleModifier = 0.3; //how much we deviate from initial angle to draw 4 points which will make the box
+        //var p1 = new Point((Math.cos(angle+angleModifier)*height+midpoint.x),(Math.sin(angle+angleModifier)*height+midpoint.y)); //these 4 points make up a rectangle
+        //var p2 = new Point((Math.cos(angle-angleModifier)*height+midpoint.x),(Math.sin(angle-angleModifier)*height+midpoint.y));
+        //var p3 = new Point((Math.cos(angle+angleModifier+Math.PI)*height+midpoint.x),(Math.sin(angle+angleModifier+Math.PI)*height+midpoint.y));
+        //var p4 = new Point((Math.cos(angle-angleModifier+Math.PI)*height+midpoint.x),(Math.sin(angle-angleModifier+Math.PI)*height+midpoint.y));
+        
+
+        //Draw lines from endpoints to box
+        p.DrawLine(startPos.x,startPos.y, p5.x, p5.y); //drawing line from startPos
+        p.DrawLine(endPos.x,endPos.y, p6.x, p6.y); //drawing line from endPos
+        p.DrawCircle(p5.x,p5.y,3);
+        p.DrawCircle(p6.x,p6.y,3);
+        
+        if (this.switchClosed == 1) {
+            p.DrawLine(p5.x + Math.cos(angle+Math.PI/2)*3, p5.y + Math.sin(angle+Math.PI/2)*3,  p6.x, p6.y);
+        } else {
+            p.DrawLine(p5.x + Math.cos(angle+Math.PI/2)*15, p5.y + Math.sin(angle+Math.PI/2)*15,  p6.x, p6.y);
+        }
+
+        if (labelComponentNames == true) {
+            //fill(255,255,255);
+            //stroke(5);
+            //strokeWeight(1);
+            //textSize(labelTextSize);
+            //text("R"+this.name+": "+comp.GetValueString(), midpoint.x, midpoint.y);
         }
     }
 }

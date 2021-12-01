@@ -19,34 +19,53 @@
             <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
             <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
         </div>
-
-        <div id="simulator">
+        <div>
+            <br>
+            <div style = "user-select: none;">
+                Circuit Simulator v3.15
+            </div>
+            
+            <div style="display:flex; flex-wrap:wrap; width:400">
+                <div id = "startStopButton", class = 'ui_button' style = "background-color: green;" onclick = StartStopButtonClick()>
+                    Stop Simulation
+                </div>
+                <div id = "resetButton", class = 'ui_button' onclick = ResetButtonClick()>
+                    Reset
+                </div>
+                <div id = "centerCircuitButton", class = 'ui_button' onclick = CenterCircuit()>
+                    Center Circuit
+                </div>
+            </div>
             <div>
                 Simulation Speed
                 <input id = simulationSpeedSlider class = "slider" type = "range" width = 100 max = 31 value = 25 min = 1 onchange = simulationSpeedSliderChanged()></slider> 
             </div>
-            <input id = "valueInputText" class = "InputText" onclick = "valueInputTextClicked()">
-            <div style = "user-select: none;">
-                Circuit Simulator v3.0
-            </div>
             <div id = "drawMode" style = "user-select: none;">
                 Draw Mode:
             </div>
+            <input id = "labelNodesCheckbox" type="checkbox" checked = "true"> Label Nodes   </input>
+            <br>
+            <input id = "labelNodeValuesCheckbox" type="checkbox" checked = "false"> Label Node Voltages</input>
             <div id = "selectedComponent" style = "user-select: none; size:5px;">
                 Selected Component: -1 (none)
             </div>
-            <div id = "movingComponentPoint" style = "user-select: none;">
+            <input id = "valueInputText" class = "InputText" onclick = "valueInputTextClicked()">
+            <!--<div id = "movingComponentPoint" style = "user-select: none;">
                 Moving Component Point: 
-            </div>
+            </div> -->
             <div style="display:flex; flex-wrap:wrap; width:400">
-                <div id = "add_plot_button", class = 'ui_button' onclick = AddPlotButtonClick()>
+                <div id = "addPlotButton", class = 'ui_button' onclick = AddPlotButtonClick()>
                     Plot Component
                 </div>
-                <div id = "remove_plot_button", class = 'ui_button' onclick = RemovePlotButtonClick()>
+                <div id = "removePlotButton", class = 'ui_button' onclick = RemovePlotButtonClick()>
                     Remove Plot of Component
                 </div>
             </div>
-            <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event) , onmouseup = mouseReleased(event) , width = 1000 , height = 700 , style = "width:1000; height:700px;"></canvas>
+            <br>
+        </div>
+        <div>
+            <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event)
+            onmouseup = mouseReleased(event) , width = 1000 , height = 700 , style = "width:1000; height:700px;"></canvas>
         </div>
 
     </div>

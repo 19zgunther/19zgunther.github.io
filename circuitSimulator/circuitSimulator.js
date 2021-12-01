@@ -1,14 +1,28 @@
 
 
-//HTML Elements!!!
+//HTML Elements!!!///////////////////////////////////////////////////////
 var DrawModeElement = document.getElementById("drawMode");
 var ValueInputTextElement = document.getElementById("valueInputText");
 var SelectedComponentElement = document.getElementById("selectedComponent");
-var MovingComponentPointElement = document.getElementById("movingComponentPoint");
+//var MovingComponentPointElement = document.getElementById("movingComponentPoint");
 var SimulationSpeedSliderElement = document.getElementById("simulationSpeedSlider");
 var CircuitCanvasElement = document.getElementById("circuitCanvas");
 
-//Settings and such
+//checkboxes
+var LabelNodesCheckboxElement = document.getElementById("labelNodesCheckbox");
+var LabelNodeValuesCheckboxElement = document.getElementById('labelNodeValuesCheckbox')
+
+//buttons
+var AddPlotButtonElement = document.getElementById("addPlotButton");
+var RemovePlotButtonElement = document.getElementById("removePlotButton");
+var StartStopButtonElement = document.getElementById("startStopButton");
+
+
+
+
+
+
+//Settings and such///////////////////////////////////////////////////////////
 var width;
 var height;
 var nodeSize = 5;
@@ -27,6 +41,7 @@ var nodes = [];
 //MISC variables
 var updateInterval = setInterval(Update,50);
 var calcUpdateInterval = setInterval(Calculate,5);
+var running = true;
 var drawMode = "";
 var movingComponentPoint = ""; //can be "start" (move startPos),"end" (move endPos), "mid" (move entire component aka both points equally) or "" (do not move anything)
 var vectorMouseToStart = new Point(0,0); //These two Vector variables are only used when we are in 'movingComponentPoint = "mid" '  mode.
@@ -125,6 +140,16 @@ function mousePressed(event) {
             dist = distBetweenPoints(mousePos, components[i].endPos);
             if (dist < bestDist) { bestDist = dist; movingComponentPoint = "end"; selectedComponent = components[i];}*/
         }
+
+        //Toggling the switch
+        if (selectedComponent != null && selectedComponent.type == "switch")
+        {
+            if (selectedComponent.GetValue() == 1) {
+                selectedComponent.SetValue(0);
+            } else {
+                selectedComponent.SetValue(1);
+            }
+        }
     }
 }
 function mouseReleased() {
@@ -181,6 +206,7 @@ function keyPressed(event) {
             break;
         case "w": drawMode = "wire"; break;
         case "r": drawMode = "resistor"; break;
+        case "s": drawMode = "switch"; break;
         case "c": drawMode = "capacitor"; break;
         case "l": drawMode = "inductor"; break;
         case "v": drawMode = "voltageSource2n"; break;
@@ -189,22 +215,6 @@ function keyPressed(event) {
         case "i": drawMode = "currentSource"; break;
         case "<": plotManager.GetPlots()[0].horizontalModifier *= 2; break;
         case ">": plotManager.GetPlots()[0].horizontalModifier /= 2; break;
-        case "R":
-            for(var i=0; i<components.length; i++)
-            {
-                var c = components[i];
-                if (c instanceof VoltageSource1n == true || c instanceof VoltageSource2n == true || c instanceof CurrentSource == true)
-                {
-                    continue;
-                }
-                c.voltage = 0;
-                c.current = 0;
-                c.voltageData = new Array(5000);
-                c.currentData = new Array(5000);
-                console.log(c.name);
-            }
-            console.log("Reset");
-            break;
     }
     DrawModeElement.innerHTML = "Draw Mode: " + drawMode;
 }
@@ -222,43 +232,10 @@ function valueInputTextClicked() {
         editingComponentValue = true;
     }
 }
-function setup() {
-    width = window.innerWidth*19/20;
-    height = window.innerHeight-100;
-    plotManager = new PlotManager(width, height);
-    resizeWindow();
-    painter = new Painter(CircuitCanvasElement);
-    //canvas = createCanvas(width, height);
-    //canvas.parent('simulator');
-    //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
-    LoadCircuit("resistor 0 1 300 200 440 200 voltageSource2n 1 5 180 300 180 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 wire 5 _ 180 300 300 300 inductor 6 0.001 300 300 300 200 capacitor 4 0.000001 440 300 440 200 resistor 7 10 300 200 180 200");
-    
-    simulationSpeedSliderChanged();
-}
-window.onresize = resizeWindow();
-
-function resizeWindow() {
-    width = window.innerWidth*19/20;
-    height = window.innerHeight*6/8;
-    //canvas.resize(width,height);
-    plotManager.screenWidth = width;
-    plotManager.screenHeight = height;
-
-    CircuitCanvasElement.setAttribute("style", 'width:'+width+"px; height:"+height+"px;");
-    CircuitCanvasElement.width = width;
-    CircuitCanvasElement.height = height;
-}
-
 function simulationSpeedSliderChanged()
 {
     //Range from 1 to 1000
     var val = Number(SimulationSpeedSliderElement.value);
-    //console.log(val);
-    if (val <= 1)
-    {
-        clearInterval(calcUpdateInterval);
-        return;
-    }
     val = (31 - val);
     val = val*val;
     val = Math.max(val, 1);
@@ -270,7 +247,6 @@ function simulationSpeedSliderChanged()
     clearInterval(calcUpdateInterval);
     calcUpdateInterval = setInterval(Calculate, val );
 }
-
 function AddPlotButtonClick()
 {
     if (selectedComponent != null)
@@ -280,13 +256,69 @@ function AddPlotButtonClick()
         plotManager.AddPlotOfComponent(selectedComponent);
     }
 }
-
 function RemovePlotButtonClick()
 {
     if (selectedComponent != null)
     {
         plotManager.RemovePlotOfComponent(selectedComponent);
     }
+}
+function StartStopButtonClick()
+{
+    if (running)
+    {
+        running = false;
+        StartStopButtonElement.innerHTML = "Run Simulation";
+        StartStopButtonElement.setAttribute("style", "background-color: red;");
+    } else {
+        running = true;
+        StartStopButtonElement.innerHTML = "Stop Simulation";
+        StartStopButtonElement.setAttribute("style", "background-color: green;");
+    }
+}
+function ResetButtonClick() {
+    for(var i=0; i<components.length; i++)
+    {
+        var c = components[i];
+        if (c instanceof VoltageSource1n == true || c instanceof VoltageSource2n == true || c instanceof CurrentSource == true)
+        {
+            continue;
+        }
+        c.voltage = 0;
+        c.current = 0;
+        c.voltageData = new Array(5000);
+        c.currentData = new Array(5000);
+        console.log(c.name);
+    }
+    console.log("Reset");
+}
+
+function setup() {
+    width = window.innerWidth*19/20;
+    height = window.innerHeight-100;
+    plotManager = new PlotManager(width, height);
+    resizeWindow();
+    painter = new Painter(CircuitCanvasElement);
+    //canvas = createCanvas(width, height);
+    //canvas.parent('simulator');
+    //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
+    //LoadCircuit("resistor 0 1 300 200 440 200 voltageSource2n 1 5 180 300 180 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 wire 5 _ 180 300 300 300 inductor 6 0.001 300 300 300 200 capacitor 4 0.000001 440 300 440 200 resistor 7 10 300 200 180 200");
+    LoadCircuit("resistor 0 1 900 280 1040 280 voltageSource2n 1 5 660 380 660 280 voltageSource1n 2 0 900 380 900 420 wire 3 _ 900 380 1040 380 wire 5 _ 660 380 900 380 inductor 6 0.001 900 380 900 280 capacitor 4 0.000001 1040 380 1040 280 resistor 7 10 900 280 780 280 switch 8 0 660 280 780 280");
+
+    simulationSpeedSliderChanged();
+}
+window.onresize = resizeWindow();
+
+function resizeWindow() {
+    width = window.innerWidth;
+    height = window.innerHeight*6/8;
+    //canvas.resize(width,height);
+    plotManager.screenWidth = width;
+    plotManager.screenHeight = height;
+
+    CircuitCanvasElement.setAttribute("style", 'width:'+width+"px; height:"+height+"px;");
+    CircuitCanvasElement.width = width;
+    CircuitCanvasElement.height = height;
 }
 
 
@@ -315,25 +347,10 @@ function Update() {
         }
     }
 
-    if (selectedComponent != null)
-    {
-        SelectedComponentElement.innerHTML = "Selected Component: " + selectedComponent.toString();
-    } else {
-        SelectedComponentElement.innerHTML = "Selected Component: None";
-    }
+    
 
     UpdateDisplay(painter); //this updates the entire display (in graphics file)
     plotManager.Draw(painter);
-
-    //Misc
-    //???????????
-    if (editingComponentValue == false && selectedComponent != null && selectedComponent.type != "wire")
-    {
-        ValueInputTextElement.style.width = "100px";
-        ValueInputTextElement.value = formatValue( selectedComponent.GetValue(),  selectedComponent.GetStringSuffix());
-    } else if (editingComponentValue == false){
-        ValueInputTextElement.style.width = "5px";
-    }
 }
 
 
@@ -378,6 +395,8 @@ function LoadCircuit(dataString) {
             c = new Wire();
         } else if (type == 'resistor') {
             c = new Resistor();
+        } else if (type == 'switch') {
+            c = new Switch();
         } else if (type == 'capacitor') {
             c = new Capacitor();
         } else if (type == 'inductor') {
@@ -431,6 +450,13 @@ function CenterCircuit()
 
 //Call this to calculate the entire circuit.
 function Calculate() {
+
+    if (!running)
+    {
+        FindNodes();
+        return;
+    }
+
     currentTime += timeStep;
 
     for (var i=0; i<components.length; i++)
@@ -441,9 +467,42 @@ function Calculate() {
     
     
     FindNodes();
+
+    //Removing all wires from each node
+    for (var i=0; i<nodes.length; i++)
+    {
+        var newStartComponents = [];
+        var newEndComponents = [];
+        for (var j=0; j<nodes[i].startComponents.length; j++)
+        {
+            if (nodes[i].startComponents[j].type != "wire")
+            {
+                newStartComponents.push( nodes[i].startComponents[j] );
+            }
+        }
+        for (var j=0; j<nodes[i].endComponents.length; j++)
+        {
+            if (nodes[i].endComponents[j].type != "wire")
+            {
+                newEndComponents.push( nodes[i].endComponents[j] );
+            }
+        }
+        nodes[i].startComponents = newStartComponents;
+        nodes[i].endComponents = newEndComponents;
+    }
+
+
     MakeMatrices();
     if (debugCalculate == true) {console.log("initial Matrices:"); PrintMatrices(matrixA, matrixB);}
+    for (var i=0; i<components.length; i++)
+    {
+        //console.log(components[i].toString())
+    }
     ApplyVoltageSources();
+    for (var i=0; i<components.length; i++)
+    {
+        //console.log(components[i].toString())
+    }
     if (debugCalculate == true) {console.log("After applying Voltage Sources:");PrintMatrices(matrixA, matrixB);}
     UpdateMatrices();
     if (debugCalculate == true) {console.log("After Updating.. : ");PrintMatrices(matrixA, matrixB);}
@@ -524,7 +583,7 @@ function FindNodes() {
     //Finally, combine all nodes which are between wire components.
     for (var i=0; i<components.length; i++) 
     {
-        if (components[i].type == "wire")
+        if (components[i].type == "wire" || (components[i].type == "switch" && components[i].GetValue() == 1))
         {
             combineNodes(components[i].startNode, components[i].endNode);
         }
@@ -564,7 +623,7 @@ function MakeMatrices() {
     
         for (var j=0; j<node.startComponents.length; j++) //for each startComponent in node[i]
         {
-            if (node.startComponents[j].type == "wire") {
+            if (node.startComponents[j].type == "wire" || node.startComponents[j].type == "switch") {
                 //if it's a wire, do nothing.
             } else if (node.startComponents[j].type == "resistor") {
                 matrixA[node.name][node.startComponents[j].endNode.name] -= 1/node.startComponents[j].resistance;
@@ -577,7 +636,7 @@ function MakeMatrices() {
 
         for (var j=0; j<node.endComponents.length; j++) //for each endComponent in node[i]
         {
-            if (node.endComponents[j].type == "wire") {
+            if (node.endComponents[j].type == "wire" || node.endComponents[j].type == "switch") {
                 //if it's a wire, do nothing.
             } else if (node.endComponents[j].type == "resistor") {
                 matrixA[node.name][node.endComponents[j].startNode.name] -= 1/node.endComponents[j].resistance;
@@ -595,7 +654,7 @@ function UpdateMatrices() {
     //This function checks through each node to see if it has a known voltage. If the node's voltage is known, then it is applied to the Matrices.
     for (var i=0; i<nodes.length; i++)
     {
-        if (nodes[i].voltage != -65536) //if the voltage is NOT null
+        if (nodes[i].voltage != null) //if the voltage is NOT null
         {
             matrixB[i] = 0; 
             for (var j=0; j<nodes.length; j++)
@@ -627,15 +686,16 @@ function ApplyVoltageSources() {
     {
         if (components[i].type == "voltageSource2n" || components[i].type == "capacitor") //if the component is a voltage source
         {
-            if (components[i].startNode.voltage != -65536 && components[i].endNode.voltage == -65536) //if the startNode voltage is known and endNode is not known
+            //console.log(components[i].startNode.voltage +"   "+components[i].endNode.voltage);
+            if (components[i].startNode.voltage != null && components[i].endNode.voltage == null) //if the startNode voltage is known and endNode is not known
             {
                 //If the startNode is known, (the neg side of the voltage source), then we KNOW the endNode voltage. Let's apply it to the matrices.
                 components[i].endNode.voltage = components[i].startNode.voltage + components[i].voltage;
-            } else if (components[i].endNode.voltage != -65536 && components[i].startNode.voltage == -65536) //if the endNode voltage is known and the startNode is not known.
+            } else if (components[i].endNode.voltage != null && components[i].startNode.voltage == null) //if the endNode voltage is known and the startNode is not known.
             {
                 //If the endNode is known, (the pos side of the voltage source), then we KNOW the startNode voltage. Let's apply it to the matrices.
                 components[i].startNode.voltage = components[i].endNode.voltage - components[i].voltage;
-            } else if (components[i].startNode.voltage == -65536 && components[i].endNode.voltage == -65536) //If both nodes are unknown, reduce!
+            } else if (components[i].startNode.voltage == null && components[i].endNode.voltage == null) //If both nodes are unknown, reduce!
             {
                 //ahh yes this is where the fuckery begins. I need to somehow reduce all of the connected voltage sources to this. Wish me luck
                 //console.log("vs ID: " + (components[i].name));
@@ -681,17 +741,17 @@ function CheckVoltageSources() {
     {
         if (components[i].type == "voltageSource2n" || components[i].type == "capacitor")
         {
-            if (components[i].startNode.voltage != -65536 && components[i].endNode.voltage == -65536)
+            if (components[i].startNode.voltage != null && components[i].endNode.voltage == null)
             {
                 components[i].endNode.voltage = components[i].startNode.voltage + components[i].voltage;
                 //console.log("setting node " + components[i].endNode.name + " to " + components[i].endNode.voltage + " volts.");
                 CheckVoltageSources();
-            } else if (components[i].startNode.voltage == -65536 && components[i].endNode.voltage != -65536)
+            } else if (components[i].startNode.voltage == null && components[i].endNode.voltage != null)
             {
                 components[i].startNode.voltage = components[i].endNode.voltage - components[i].voltage;
                 //console.log("setting node " + components[i].endNode.name + " to " + components[i].endNode.voltage + " volts.");
                 CheckVoltageSources();
-            } else if (components[i].startNode.voltage != -65536 && components[i].endNode.voltage != -65536)
+            } else if (components[i].startNode.voltage != null && components[i].endNode.voltage != null)
             {
                 //console.log("Both nodes are known");
             }
@@ -817,10 +877,11 @@ function CalcCurrents() {
     {
         if (components[i].type == "resistor" || components[i].type == "voltageSource2n" || components[i].type == "voltageSource1n" || components[i].type == "capacitor")
         {
-            components[i].current = -65536;
+            components[i].current = null;
         }
     }
 
+    //Reseting current in/out of each node
     for (var i=0; i<nodes.length; i++)
     {
         nodes[i].currentOut = 0;
@@ -830,9 +891,11 @@ function CalcCurrents() {
     //find resistor currents
     for (var i=0; i<components.length; i++)
     {
-        if (components[i].type == "resistor")
+        if (components[i].type == "resistor") 
         {
-            components[i].current = (components[i].startNode.voltage - components[i].endNode.voltage)/components[i].resistance;
+            //The resistor current = voltage across the component divided by its resistance    I=V/R
+            components[i].voltage = components[i].startNode.voltage - components[i].endNode.voltage;
+            components[i].current = components[i].voltage/components[i].resistance;
             
             components[i].startNode.currentOut += components[i].current;
             components[i].startNode.numCurrentsOut += 1;
@@ -840,14 +903,16 @@ function CalcCurrents() {
             components[i].endNode.numCurrentsOut += 1;
         } else if (components[i].type == "inductor")
         {
-            if (components[i].startNode == null || components[i].endNode == null || components[i].endNode.voltage == -65536 || components[i].startNode.voltage == -65536) { 
+            //
+            if (components[i].startNode == null || components[i].endNode == null || components[i].endNode.voltage == null || components[i].startNode.voltage == null) { 
+                SimulationSpeedSliderElement.value = 0; 
                 console.error("startN or endN or volt == null  sn:"+components[i].startNode.name+"  en:"+components[i].endNode.name+"  snv:"+components[i].startNode.voltage + "   env:"+components[i].endNode.voltage);
-                components[i].voltage = 0;
-                components[i].current = 0;
+                StartStopButtonClick();
+                //components[i].voltage = 0;
+                //components[i].current = 0;
             } else if (components[i].startNode == components[i].endNode) {
-                console.error("endnode == startnode");
+                console.error("CalcCurrents() inductor endnode == startnode");
                 components[i].voltage = 0;
-                components[i].current = 0;
             } else {
                 components[i].voltage = Math.min( Math.max((components[i].startNode.voltage - components[i].endNode.voltage),-1000000000), 1000000000);
                 components[i].current += timeStep * components[i].voltage/components[i].inductance;
@@ -877,7 +942,7 @@ function CalcCurrents() {
                 //console.log("Node: " +nodes[i].name);
                 for (var j=0; j<nodes[i].startComponents.length; j++)
                 {
-                    if (nodes[i].startComponents[j].current == -65536)
+                    if (nodes[i].startComponents[j].current == null && nodes[i].startComponents[j].type != "wire")
                     {
                         nodes[i].startComponents[j].current = -nodes[i].currentOut;
                         foundAnother = true;
@@ -893,7 +958,7 @@ function CalcCurrents() {
                 
                 for (var j=0; j<nodes[i].endComponents.length; j++)
                 {
-                    if (nodes[i].endComponents[j].current == -65536)
+                    if (nodes[i].endComponents[j].current == null && nodes[i].endComponents[j].type != "wire")
                     {
                         nodes[i].endComponents[j].current = nodes[i].currentOut;
                         foundAnother = true;

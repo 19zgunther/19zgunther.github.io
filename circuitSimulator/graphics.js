@@ -13,7 +13,7 @@ function UpdateDisplay(p) {
     p.SetTextColor('white');
     p.SetTextSize(15);
 
-    //Draw each of the components
+    //Draw each of the components////////////////////////////////////////////////////////////
     for (var i=0; i<components.length; i++)
     {
         if (components[i] == selectedComponent) //if the component == selectedComponent, make it more bold so we can easily see it's the selected Component
@@ -26,7 +26,7 @@ function UpdateDisplay(p) {
     }
     
 
-    //Label each node
+    //Label each node////////////////////////////////////////////////////////////////////
     for (var i=0; i<nodes.length; i++)
     {
         for (var j=0; j<nodes[i].points.length; j++)
@@ -36,10 +36,67 @@ function UpdateDisplay(p) {
             p.SetStrokeColor(rgbToHex(val, val, val));
             p.DrawCircleFilled(nodes[i].points[j].x, nodes[i].points[j].y, nodeSize );
         }
-        p.DrawText(nodes[i].points[0].x+5,nodes[i].points[0].y-5,nodes[i].name);
+
+        //Labeling the node & drawing the voltage. We must check the checkbox elements to see what the user wants displayed
+        if (LabelNodesCheckboxElement.checked ==true && LabelNodeValuesCheckboxElement.checked ==true && nodes[i].voltage != null)
+        {
+            p.DrawText(nodes[i].points[0].x+5,nodes[i].points[0].y-8,nodes[i].name + ": "+(nodes[i].voltage).toPrecision(3)+"v");
+        } else if (LabelNodesCheckboxElement.checked) {
+            p.DrawText(nodes[i].points[0].x+5,nodes[i].points[0].y-8,nodes[i].name);
+        } else if (LabelNodeValuesCheckboxElement.checked && nodes[i].voltage != null) {
+            p.DrawText(nodes[i].points[0].x+5,nodes[i].points[0].y-8,(nodes[i].voltage).toPrecision(3)+"v");
+        }        
+    }
+
+    //Misc UI Stuff//////////////////////////////////////////////////////////////////
+    if (selectedComponent != null)
+    {
+        SelectedComponentElement.innerHTML = "Selected Component: " + selectedComponent.toString(); 
+        
+        //Lets check if the selected component is currently being plotted or not, so we can enable the AddPlotButton and RemovePlotButton accordingly
+        var foundPlotOfComponent = false
+        for (var i=0; i<plotManager.plots.length; i++)
+        {
+            if (plotManager.plots[i].component == selectedComponent)
+            {
+                foundPlotOfComponent = true;
+                break;
+            }
+        }
+        if (foundPlotOfComponent) {
+            RemovePlotButtonElement.innerHTML = "Remove Plot of Component";
+            AddPlotButtonElement.innerHTML = "|";
+        } else {
+            RemovePlotButtonElement.innerHTML = "|";
+            AddPlotButtonElement.innerHTML = "Plot Component";
+        }
+
+    } else {
+        SelectedComponentElement.innerHTML = "Selected Component: None";
+        AddPlotButtonElement.innerHTML = "|";
+        RemovePlotButtonElement.innerHTML = "|";
+    }
+
+    if (editingComponentValue == false && selectedComponent != null && selectedComponent.type != "wire")
+    {
+        ValueInputTextElement.style.width = "100px";
+        ValueInputTextElement.value = formatValue( selectedComponent.GetValue(),  selectedComponent.GetStringSuffix());
+    } else if (editingComponentValue == false){
+        ValueInputTextElement.style.width = "5px";
     }
 
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

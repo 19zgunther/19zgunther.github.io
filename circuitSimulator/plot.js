@@ -55,6 +55,8 @@ class Plot {
             p.DrawText(pos.x+50, curY+5, formatValue(((this.numGridLines-1)/2-i)*PlotYAxisIntervals[this.currentYAxisGridScaleIndex], 'A' ) );
             curY += lineStep;
         }
+        p.SetTextColor('white');
+        p.DrawText(pos.x+10, pos.y+15, this.component.type + " " + this.component.name);
 
 
         var data = this.component.voltageData

@@ -6,7 +6,7 @@ class Node {
         this.points = []; //different coordinates where this node exists
         this.startComponents = []; //components which start at this node
         this.endComponents = []; //components which end at this node
-        this.voltage = -65536;
+        this.voltage = null;
 
         this.forwardingAddress = -1; //has this node already been reduced? If so, leave a forwarding address for the other node.
         this.forwardingVoltage = 0;
