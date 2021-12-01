@@ -35,8 +35,11 @@ var plotManager;
 
 //component and node stuff
 var selectedComponent = null;
-var components = [];
-var nodes = [];
+var components = [];            //List of all components
+var points = [];                //List of all points shared by components
+var nodes = [];                 //List of all nodes (electrical, meaning wires have 1 node)
+var nodesNotCombined = [];      //List of all basic nodes (not electrical nodes, like junctions) <-- used for calculating currents through wires & such at the very end.
+
 
 //MISC variables
 var updateInterval = setInterval(Update,50);
@@ -111,6 +114,7 @@ function mousePressed(event) {
         //We need to search for the nearest component (in components), and check to see if it is within clickRange;
         var bestDist = clickRange;
         var dist = 100000000000;
+        var pSelectedComponent = selectedComponent;
         for (var i=0; i<components.length; i++)  //for each component...
         { 
             dist = distToLine(components[i].startPos, components[i].endPos, mousePos); //Find the distance from the component to the mouse Position
@@ -142,12 +146,26 @@ function mousePressed(event) {
         }
 
         //Toggling the switch
-        if (selectedComponent != null && selectedComponent.type == "switch")
+        if (selectedComponent != null && selectedComponent.type == "switch" && pSelectedComponent == selectedComponent)
         {
             if (selectedComponent.GetValue() == 1) {
                 selectedComponent.SetValue(0);
             } else {
                 selectedComponent.SetValue(1);
+            }
+        }
+
+        //Check if we are selecting a plot!
+        console.log(mousePos.x + " " + mousePos.y);
+        for (var i=0; i<plotManager.plots.length; i++)
+        {
+            var plot = plotManager.plots[i];
+            //if within plot...
+            console.log(plot.pos.x + " "+plot.pos.y);
+            if (mousePos.x > plot.pos.x && mousePos.x < plot.pos.x + plot.width && mousePos.y > plot.pos.y && mousePos.y < plot.pos.y + plot.height )
+            {
+                selectedComponent = plot.component;
+                break;
             }
         }
     }
@@ -282,6 +300,8 @@ function ResetButtonClick() {
         var c = components[i];
         if (c instanceof VoltageSource1n == true || c instanceof VoltageSource2n == true || c instanceof CurrentSource == true)
         {
+            c.voltageData = new Array(5000);
+            c.currentData = new Array(5000);
             continue;
         }
         c.voltage = 0;
@@ -303,7 +323,8 @@ function setup() {
     //canvas.parent('simulator');
     //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
     //LoadCircuit("resistor 0 1 300 200 440 200 voltageSource2n 1 5 180 300 180 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 wire 5 _ 180 300 300 300 inductor 6 0.001 300 300 300 200 capacitor 4 0.000001 440 300 440 200 resistor 7 10 300 200 180 200");
-    LoadCircuit("resistor 0 1 900 280 1040 280 voltageSource2n 1 5 660 380 660 280 voltageSource1n 2 0 900 380 900 420 wire 3 _ 900 380 1040 380 wire 5 _ 660 380 900 380 inductor 6 0.001 900 380 900 280 capacitor 4 0.000001 1040 380 1040 280 resistor 7 10 900 280 780 280 switch 8 0 660 280 780 280");
+    //LoadCircuit("resistor 0 1 900 280 1040 280 voltageSource2n 1 5 660 380 660 280 voltageSource1n 2 0 900 380 900 420 wire 3 _ 900 380 1040 380 wire 5 _ 660 380 900 380 inductor 6 0.001 900 380 900 280 capacitor 4 0.000001 1040 380 1040 280 resistor 7 10 900 280 780 280 switch 8 0 660 280 780 280");
+    LoadCircuit("resistor 0 1 740 280 880 280 voltageSource2n 1 5 500 380 500 280 voltageSource1n 2 0 740 380 740 420 wire 3 _ 740 380 880 380 wire 5 _ 500 380 740 380 inductor 6 0.001 740 380 740 280 capacitor 4 0.000001 880 380 880 280 resistor 7 10 740 280 620 280 switch 8 0 500 280 620 280 plot 1 _ _ _ _ _ plot 6 _ _ _ _ _ plot 4 _ _ _ _ _");
 
     simulationSpeedSliderChanged();
 }
@@ -360,11 +381,13 @@ function PrintCircuit() {
     {
         s += components[i].GetEncodedDataString();
     }
+    for (var i=0; i<plotManager.plots.length; i++)
+    {
+        s += plotManager.plots[i].GetEncodedDataString();
+    }
     console.log(s);
     return s;
 }
-
-
 /*This function takes a string and generates the components.
 *   It is used at start to load the initial circuit, and whenever we want to load a saved circuit
 *   See PrintCircuit() and component.GetString() to see more about the format: "TYPE NAME VALUE START.X START.Y END.X END.Y". 
@@ -407,6 +430,16 @@ function LoadCircuit(dataString) {
             c = new VoltageSource1n();
         } else if (type == 'currentSource') {
             c = new CurrentSource();
+        } else if (type == 'plot') {
+            for (var j=0; j<components.length; j++)
+            {
+                if (components[j].name == Number(dataArray[i*7+1]))
+                {
+                    plotManager.AddPlot(new Plot(components[j]));
+                    break;
+                }
+            }
+            continue;
         }
         
         c.name = Number(dataArray[i*7+1]);
@@ -526,7 +559,6 @@ function Calculate() {
 //Finds all of the nodes
 function FindNodes() {
     //Start by removing all old nodes and data
-    nodes = [];
     if (components.length == 0) { return; }
     for(var i=0; i<components.length; i++)
     {
@@ -535,9 +567,11 @@ function FindNodes() {
     }
 
     //now find all of the intersections between components
-    var points = [];
+    points = [];
+    nodes = [];
     var comp;
     var node;
+
     for(var i=0; i<components.length; i++)
     {
         comp = components[i];
@@ -550,8 +584,6 @@ function FindNodes() {
             points.push(comp.endPos);
         }
     }
-
-    //console.log("points: " + points);
 
     //now, make those points into nodes (it's just easier this way)
     for (var i=0; i<points.length; i++)
@@ -578,6 +610,22 @@ function FindNodes() {
                 comp.endNode = node;
             }
         }
+    }
+
+    //var nodes2 = [];
+    nodesNotCombined = [];
+    for (var i=0; i<nodes.length; i++)
+    {
+        var node = new Node();
+        for (var j=0; j<nodes[i].startComponents.length; j++)
+        {
+            node.startComponents.push(nodes[i].startComponents[j]);
+        }
+        for (var j=0; j<nodes[i].endComponents.length; j++)
+        {
+            node.endComponents.push(nodes[i].endComponents[j]);
+        }
+        nodesNotCombined.push(node);
     }
 
     //Finally, combine all nodes which are between wire components.
@@ -875,7 +923,7 @@ function CalcCurrents() {
     //clear components we don't know
     for (var i=0; i<components.length; i++)
     {
-        if (components[i].type == "resistor" || components[i].type == "voltageSource2n" || components[i].type == "voltageSource1n" || components[i].type == "capacitor")
+        if (components[i].type != "inductor" && components[i].type != "currentSource")
         {
             components[i].current = null;
         }
@@ -931,10 +979,12 @@ function CalcCurrents() {
         }
     }
 
+
     var foundAnother = true;
     while (foundAnother == true)
-    {
+    { 
         foundAnother = false;
+        /*
         for (var i=0; i<nodes.length; i++)
         {
             if (nodes[i].numCurrentsOut == nodes[i].startComponents.length + nodes[i].endComponents.length - 1)
@@ -974,6 +1024,50 @@ function CalcCurrents() {
                 }
 
             }
+        }*/
+        for (var i=0; i<nodesNotCombined.length; i++) //for each node
+        {
+            var node = nodesNotCombined[i];
+            var currentOutOfNode = 0;
+            var compsWithUnknownCurrent = [];
+            var snOrEn = [];
+            for (var j=0; j<node.startComponents.length; j++)
+            {
+                var comp = node.startComponents[j];
+                //if (comp.type == "wire" || comp.type == "switch") { continue ; }
+                if (comp.current == null)
+                {
+                    compsWithUnknownCurrent.push(comp);
+                    snOrEn.push(0);
+                    continue;
+                }
+                currentOutOfNode += comp.current;
+            }
+            for (var j=0; j<node.endComponents.length; j++)
+            {
+                var comp = node.endComponents[j];
+                //if (comp.type == "wire" || comp.type == "switch") { continue ; }
+                if (comp.current == null)
+                {
+                    compsWithUnknownCurrent.push(comp);
+                    snOrEn.push(1);
+                    continue;
+                }
+                currentOutOfNode -= comp.current;
+            }
+            //We can only solve if there is 1 unknown
+            if (compsWithUnknownCurrent.length == 1)
+            {   
+                var comp = compsWithUnknownCurrent[0];
+                //console.log("Its working.... comp="+comp.type);
+                if (snOrEn[0] == 0)
+                {
+                    comp.current = -currentOutOfNode;
+                } else {
+                    comp.current = currentOutOfNode;
+                }
+                foundAnother = true;
+            }
         }
     }
 
@@ -988,9 +1082,56 @@ function CalcCurrents() {
             } else {
                 components[i].voltage -= timeStep * components[i].current/components[i].capacitance;
             }
-            
-
         }
     }
+
+    //Update generic currents. If we know all of the other components current at a node (only 1 unknown) we can easily find the current.
+    for (var i=0; i<nodes.length; i++) //for each node
+    {
+        var node = nodes[i];
+        var currentOutOfNode = 0;
+        var compsWithUnknownCurrent = [];
+        var snOrEn = [];
+        for (var j=0; j<node.startComponents.length; j++)
+        {
+            var comp = node.startComponents[j];
+            if (comp.current == null)
+            {
+                compsWithUnknownCurrent.push(comp);
+                snOrEn.push(0);
+                continue;
+            }
+            currentOutOfNode += comp.current;
+        }
+        for (var j=0; j<node.endComponents.length; j++)
+        {
+            var comp = node.endComponents[j];
+            if (comp.current == null)
+            {
+                compsWithUnknownCurrent.push(comp);
+                snOrEn.push(1);
+                continue;
+            }
+            currentOutOfNode -= comp.current;
+        }
+        //We can only solve if there is 1 unknown
+        if (compsWithUnknownCurrent.length == 1)
+        {   
+            var comp = compsWithUnknownCurrent[0];
+            console.log("Its working.... comp="+comp.type);
+            if (snOrEn[0] == 0)
+            {
+                comp.current = currentOutOfNode;
+            } else {
+                comp.current = -currentOutOfNode;
+            }
+        } else if (compsWithUnknownCurrent > 1)
+        {
+            console.log("Multiple unknown");
+        }
+        
+    }
+
+
 }
 

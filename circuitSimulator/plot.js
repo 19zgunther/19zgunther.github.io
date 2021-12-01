@@ -13,10 +13,18 @@ class Plot {
         this.currentYAxisGridScaleIndex = 23; 
 
         this.numGridLines = 5; //must be an odd number...?
+
+        //These variables are set each time this.Draw() function is called, so don't ever set them. it won't do anything :-D
+        this.pos = null;
+        this.width = null;
+        this.height = null;
     }
     Draw(pos = null, width = null, height = null, painter)
     {
         var p = painter
+        this.pos = pos;
+        this.width = width;
+        this.height = height;
         /*
         if (pos == null)
         {
@@ -175,6 +183,11 @@ class Plot {
     GetComponent()
     {
         return this.component;
+    }
+    GetEncodedDataString()
+    {
+        //return this.type+" "+this.name+" "+"_"+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
+        return "plot " + this.component.name + " _ _ _ _ _ ";
     }
 }
 

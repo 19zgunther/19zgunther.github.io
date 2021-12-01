@@ -87,7 +87,6 @@ class Wire extends Component {
         {
             this.voltage = this.startNode.voltage;
         }
-        this.current = 0;
         this.voltageData.shift(); //remove the first element in the array ( [0,1,2,3,4,5]  ->  [1,2,3,4,5])
         this.currentData.shift();
         this.voltageData.push(this.voltage); //push a new value onto the back
