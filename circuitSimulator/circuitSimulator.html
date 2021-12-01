@@ -19,8 +19,7 @@
             <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
             <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
         </div>
-        <div>
-            <br>
+        <div style="margin:20px;">
             <div style = "user-select: none;">
                 Circuit Simulator v3.15
             </div>
@@ -61,11 +60,27 @@
                     Remove Plot of Component
                 </div>
             </div>
-            <br>
         </div>
+
         <div>
             <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event)
             onmouseup = mouseReleased(event) , width = 1000 , height = 700 , style = "width:1000; height:700px;"></canvas>
+        </div>
+        <div style = "margin:auto; justify-content: center; justify-self: center; width:80%;">
+            <br>
+            Key Bindings:<br>c=capacitor, r=resistor, l=inductor, s=switch, w=wire, v=battery, g=ground, V=voltageSource, i=currentSource
+            <br><br>
+            Notes: <br>
+            -- Inductors have a tendancy to make voltage blow up to infinity. Watch out for inductors in series or parallel.<br>
+            <br><br>
+            How this simulator works:<br>
+            This simulator works by using KCL and nodal analysis. It essentially is a simple DC simulator which has been adapted to allow for AC functionality, albeit inaccurate.
+            Inductors find the current flowing through them for the next simulation frame by finding the voltage across the component and incrementing the current accordinly.
+            Capacitors find the voltage across them for the next simulation by finding the current flowing into them and using V=Q/C.
+            This is by no means a proper simulator, but really just an excersize forcing me to learn more about circuits and how they work.
+            <br>
+            <br>
+            <br>
         </div>
 
     </div>

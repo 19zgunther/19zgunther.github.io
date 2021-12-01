@@ -310,13 +310,13 @@ function setup() {
 window.onresize = resizeWindow();
 
 function resizeWindow() {
-    width = window.innerWidth;
+    width = window.innerWidth*19/20;
     height = window.innerHeight*6/8;
     //canvas.resize(width,height);
     plotManager.screenWidth = width;
     plotManager.screenHeight = height;
 
-    CircuitCanvasElement.setAttribute("style", 'width:'+width+"px; height:"+height+"px;");
+    CircuitCanvasElement.setAttribute("style", 'width:'+width+"px; height:"+height+"px;margin:auto;");
     CircuitCanvasElement.width = width;
     CircuitCanvasElement.height = height;
 }
