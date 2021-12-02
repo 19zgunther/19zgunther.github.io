@@ -4,6 +4,7 @@
 var DrawModeElement = document.getElementById("drawMode");
 var ValueInputTextElement = document.getElementById("valueInputText");
 var SelectedComponentElement = document.getElementById("selectedComponent");
+
 //var MovingComponentPointElement = document.getElementById("movingComponentPoint");
 var SimulationSpeedSliderElement = document.getElementById("simulationSpeedSlider");
 var CircuitCanvasElement = document.getElementById("circuitCanvas");
@@ -15,7 +16,10 @@ var LabelNodeValuesCheckboxElement = document.getElementById('labelNodeValuesChe
 //buttons
 var AddPlotButtonElement = document.getElementById("addPlotButton");
 var RemovePlotButtonElement = document.getElementById("removePlotButton");
+var IncreasePlotScaleButtonElement = document.getElementById("increasePlotScaleButton");
+var DecreasePlotScaleButtonElement = document.getElementById("decreasePlotScaleButton");
 var StartStopButtonElement = document.getElementById("startStopButton");
+
 
 
 
@@ -42,7 +46,7 @@ var nodesNotCombined = [];      //List of all basic nodes (not electrical nodes,
 
 
 //MISC variables
-var updateInterval = setInterval(Update,50);
+var updateInterval = setInterval(Update,70);
 var calcUpdateInterval = setInterval(Calculate,5);
 var running = true;
 var drawMode = "";
@@ -115,6 +119,7 @@ function mousePressed(event) {
         var bestDist = clickRange;
         var dist = 100000000000;
         var pSelectedComponent = selectedComponent;
+        selectedComponent = null;
         for (var i=0; i<components.length; i++)  //for each component...
         { 
             dist = distToLine(components[i].startPos, components[i].endPos, mousePos); //Find the distance from the component to the mouse Position
@@ -156,12 +161,10 @@ function mousePressed(event) {
         }
 
         //Check if we are selecting a plot!
-        console.log(mousePos.x + " " + mousePos.y);
         for (var i=0; i<plotManager.plots.length; i++)
         {
             var plot = plotManager.plots[i];
             //if within plot...
-            console.log(plot.pos.x + " "+plot.pos.y);
             if (mousePos.x > plot.pos.x && mousePos.x < plot.pos.x + plot.width && mousePos.y > plot.pos.y && mousePos.y < plot.pos.y + plot.height )
             {
                 selectedComponent = plot.component;
@@ -188,7 +191,7 @@ function keyPressed(event) {
         } else {
             console.error("Failed to parse input   ( in keyPressed(event) )");
         }
-        selectedComponent = null;
+        //selectedComponent = null;
         return;
     }
     
@@ -231,8 +234,20 @@ function keyPressed(event) {
         case "V": drawMode = "voltageSource1n"; break;
         case "g": drawMode = "ground"; break;
         case "i": drawMode = "currentSource"; break;
-        case "<": plotManager.GetPlots()[0].horizontalModifier *= 2; break;
-        case ">": plotManager.GetPlots()[0].horizontalModifier /= 2; break;
+        case "<": 
+            var plot = plotManager.GetPlotOfComponent(selectedComponent);
+            if (plot != null)
+            {
+                plot.IncreaseHorizontalScale();
+            }
+            break;
+        case ">": 
+            var plot = plotManager.GetPlotOfComponent(selectedComponent);
+            if (plot != null)
+            {
+                plot.DecreaseHorizontalScale();
+            }
+        break;
     }
     DrawModeElement.innerHTML = "Draw Mode: " + drawMode;
 }
@@ -281,6 +296,19 @@ function RemovePlotButtonClick()
         plotManager.RemovePlotOfComponent(selectedComponent);
     }
 }
+function IncreasePlotScaleButtonClick()
+{
+    var plot = plotManager.GetPlotOfComponent(selectedComponent);
+    if (plot == null) { return; }
+    plot.IncreaseHorizontalScale();
+}
+function DecreasePlotScaleButtonClick()
+{
+    var plot = plotManager.GetPlotOfComponent(selectedComponent);
+    if (plot == null) { return; }
+    plot.DecreaseHorizontalScale();
+}
+
 function StartStopButtonClick()
 {
     if (running)
@@ -298,20 +326,21 @@ function ResetButtonClick() {
     for(var i=0; i<components.length; i++)
     {
         var c = components[i];
+        c.voltageData = new Array(20000);
+        c.currentData = new Array(20000);
         if (c instanceof VoltageSource1n == true || c instanceof VoltageSource2n == true || c instanceof CurrentSource == true)
         {
-            c.voltageData = new Array(5000);
-            c.currentData = new Array(5000);
             continue;
         }
         c.voltage = 0;
         c.current = 0;
-        c.voltageData = new Array(5000);
-        c.currentData = new Array(5000);
-        console.log(c.name);
     }
+    currentTime = 0;
     console.log("Reset");
 }
+
+
+
 
 function setup() {
     width = window.innerWidth*19/20;
@@ -331,7 +360,7 @@ function setup() {
 window.onresize = resizeWindow();
 
 function resizeWindow() {
-    width = window.innerWidth*19/20;
+    width = window.innerWidth-40;
     height = window.innerHeight*6/8;
     //canvas.resize(width,height);
     plotManager.screenWidth = width;
@@ -456,6 +485,7 @@ function LoadCircuit(dataString) {
 //Centers the circuit to the center of the screen
 function CenterCircuit()
 {
+    resizeWindow();
     //now, lets center the circuit to the best of our ability!
     var maxPoint = new Point(0,0); //arbitrary small point (upper left corner of screen)
     var minPoint = new Point(10000,10000); //arbitrary large point (lower right in screen)

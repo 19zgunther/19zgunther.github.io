@@ -32,8 +32,8 @@ class Component {
         this.voltage = 5;
         this.current = 0.001;
         
-        this.voltageData = new Array(5000);
-        this.currentData = new Array(5000);
+        this.voltageData = new Array(20000);
+        this.currentData = new Array(20000);
         this.dataStart = 0;
     }
 
@@ -43,12 +43,12 @@ class Component {
         var voltage = "null";
         var current = "null";
         if (this.voltage != null) {
-            voltage = this.voltage.toPrecision(3);
+            voltage = (Math.round( this.voltage * 1000000)/1000000).toPrecision(3);
         }
         if (this.current != null) {
-            current = this.current.toPrecision(3);
+            current = (Math.round( this.current * 1000000)/1000000).toPrecision(3);
         }
-        return "Type: \'"+this.type + "\'  Value: "+formatValue(this.GetValue(),this.GetStringSuffix())+"  voltage: "+voltage+"  current: "+current;
+        return formatValue(this.GetValue(),this.GetStringSuffix())+" " + this.type + "  ΔV: "+formatValue(voltage, "v")+" I: "+formatValue(current,"A");
     }
     SetValue(){}
     GetValue(){}

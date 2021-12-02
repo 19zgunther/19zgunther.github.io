@@ -25,6 +25,7 @@ function UpdateDisplay(p) {
         components[i].Draw(p);
     }
     
+    p.SetStrokeWidth(1);
 
     //Label each node////////////////////////////////////////////////////////////////////
     for (var i=0; i<nodes.length; i++)
@@ -49,32 +50,38 @@ function UpdateDisplay(p) {
     }
 
     //Misc UI Stuff//////////////////////////////////////////////////////////////////
+    //Lets check if the selected component is currently being plotted or not, so we can enable the AddPlotButton and RemovePlotButton accordingly
+    if (plotManager.GetPlotOfComponent(selectedComponent) != null) {
+        //RemovePlotButtonElement.innerHTML = "Remove Plot of Component";
+        RemovePlotButtonElement.style.display = "block";
+        //AddPlotButtonElement.innerHTML = "|";
+        AddPlotButtonElement.style.display = "none";
+        //IncreasePlotScaleButtonElement.innerHTML = "Increase Plot Scale";
+        IncreasePlotScaleButtonElement.style.display = "block";
+        //DecreasePlotScaleButtonElement.innerHTML = "Decrease Plot Scale";
+        DecreasePlotScaleButtonElement.style.display = "block";
+    } else {
+        //RemovePlotButtonElement.innerHTML = "|";
+        RemovePlotButtonElement.style.display = "none";
+        //AddPlotButtonElement.innerHTML = "Plot Component";
+        if (selectedComponent != null) {
+            AddPlotButtonElement.style.display = "block";
+        } else {
+            AddPlotButtonElement.style.display = "none";
+        }
+        //IncreasePlotScaleButtonElement.innerHTML = "|";
+        IncreasePlotScaleButtonElement.style.display = "none";
+        //DecreasePlotScaleButtonElement.innerHTML = "|";
+        DecreasePlotScaleButtonElement.style.display = "none";
+    }
+
     if (selectedComponent != null)
     {
         SelectedComponentElement.innerHTML = "Selected Component: " + selectedComponent.toString(); 
-        
-        //Lets check if the selected component is currently being plotted or not, so we can enable the AddPlotButton and RemovePlotButton accordingly
-        var foundPlotOfComponent = false
-        for (var i=0; i<plotManager.plots.length; i++)
-        {
-            if (plotManager.plots[i].component == selectedComponent)
-            {
-                foundPlotOfComponent = true;
-                break;
-            }
-        }
-        if (foundPlotOfComponent) {
-            RemovePlotButtonElement.innerHTML = "Remove Plot of Component";
-            AddPlotButtonElement.innerHTML = "|";
-        } else {
-            RemovePlotButtonElement.innerHTML = "|";
-            AddPlotButtonElement.innerHTML = "Plot Component";
-        }
-
     } else {
         SelectedComponentElement.innerHTML = "Selected Component: None";
-        AddPlotButtonElement.innerHTML = "|";
-        RemovePlotButtonElement.innerHTML = "|";
+        //AddPlotButtonElement.innerHTML = "|";
+        //RemovePlotButtonElement.innerHTML = "|";
     }
 
     if (editingComponentValue == false && selectedComponent != null && selectedComponent.type != "wire")

@@ -19,56 +19,73 @@
             <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
             <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
         </div>
-        <div style="margin:20px;">
-            <div style = "user-select: none;">
-                Circuit Simulator v3.15
+        <div style = "display:flex;">
+            <div style="margin:20px;width:fit-content; background-color: rgb(64, 64, 64); border-radius:5px;">
+                <div style = "margin:10px;">
+                    <div style = "user-select: none;">
+                        Circuit Simulator v3.15
+                    </div>
+                    <input id = "labelNodesCheckbox" type="checkbox" checked = "true"> Label Nodes   </input> 
+                    <br>
+                    <input id = "labelNodeValuesCheckbox" type="checkbox" checked = "false"> Label Node Voltages</input>
+                    <div style="display:flex; flex-wrap:wrap; width:400">
+                        <div id = "startStopButton", class = 'ui_button' style = "background-color: green;" onclick = StartStopButtonClick()>
+                            Stop Simulation
+                        </div>
+                        <div id = "resetButton", class = 'ui_button' onclick = ResetButtonClick()>
+                            Reset
+                        </div>
+                    </div>
+                    <div id = "centerCircuitButton", class = 'ui_button' onclick = CenterCircuit()>
+                        Center Circuit
+                    </div>
+                    <div style = "display:flex;">
+                        Simulation Speed
+                        <div style = "padding: 5px;">
+                            <input id = simulationSpeedSlider class = "slider" type = "range" width = 100 max = 31 value = 25 min = 1 onchange = simulationSpeedSliderChanged()></slider>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div style="display:flex; flex-wrap:wrap; width:400">
-                <div id = "startStopButton", class = 'ui_button' style = "background-color: green;" onclick = StartStopButtonClick()>
-                    Stop Simulation
-                </div>
-                <div id = "resetButton", class = 'ui_button' onclick = ResetButtonClick()>
-                    Reset
-                </div>
-                <div id = "centerCircuitButton", class = 'ui_button' onclick = CenterCircuit()>
-                    Center Circuit
-                </div>
-            </div>
-            <div>
-                Simulation Speed
-                <input id = simulationSpeedSlider class = "slider" type = "range" width = 100 max = 31 value = 25 min = 1 onchange = simulationSpeedSliderChanged()></slider> 
-            </div>
-            <div id = "drawMode" style = "user-select: none;">
-                Draw Mode:
-            </div>
-            <input id = "labelNodesCheckbox" type="checkbox" checked = "true"> Label Nodes   </input>
-            <br>
-            <input id = "labelNodeValuesCheckbox" type="checkbox" checked = "false"> Label Node Voltages</input>
-            <div id = "selectedComponent" style = "user-select: none; size:5px;">
-                Selected Component: -1 (none)
-            </div>
-            <input id = "valueInputText" class = "InputText" onclick = "valueInputTextClicked()">
-            <!--<div id = "movingComponentPoint" style = "user-select: none;">
-                Moving Component Point: 
-            </div> -->
-            <div style="display:flex; flex-wrap:wrap; width:400">
-                <div id = "addPlotButton", class = 'ui_button' onclick = AddPlotButtonClick()>
-                    Plot Component
-                </div>
-                <div id = "removePlotButton", class = 'ui_button' onclick = RemovePlotButtonClick()>
-                    Remove Plot of Component
+            <div style="margin:20px; width:fit-content;  background-color: rgb(64, 64, 64);border-radius:5px;">
+                <div style = "margin:10px;">
+                    <div id = "drawMode" style = "user-select: none;">
+                        Draw Mode:
+                    </div>
+                    <div id = "selectedComponent" style = "user-select: none; size:5px;">
+                        Selected Component: -1 (none)
+                    </div>
+                    <div>
+                        Component Value: 
+                        <input id = "valueInputText" class = "InputText" onclick = "valueInputTextClicked()">
+                    </div>
+
+                    <div style="display:flex;">
+                        <div id = "addPlotButton", class = 'ui_button' onclick = AddPlotButtonClick()>
+                            Plot Component
+                        </div>
+                        <div id = "increasePlotScaleButton", class = 'ui_button' onclick = IncreasePlotScaleButtonClick()>
+                            Increase Plot Scale
+                        </div>
+                        <div id = "decreasePlotScaleButton", class = 'ui_button' onclick = DecreasePlotScaleButtonClick()>
+                            Decrease Plot Scale
+                        </div>
+                        <div id = "removePlotButton", class = 'ui_button' onclick = RemovePlotButtonClick()>
+                            Remove Plot
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div>
             <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event)
-            onmouseup = mouseReleased(event) , width = 1000 , height = 700 , style = "width:1000; height:700px;"></canvas>
+            onmouseup = mouseReleased(event) , width = 1000 , height = 700></canvas>
         </div>
         <div style = "margin:auto; justify-content: center; justify-self: center; width:80%;">
             <br>
-            Key Bindings:<br>c=capacitor, r=resistor, l=inductor, s=switch, w=wire, v=battery, g=ground, V=voltageSource, i=currentSource
+            Key Bindings:<br>c=capacitor, r=resistor, l=inductor, s=switch, w=wire, v=battery, g=ground, V=voltageSource, i=currentSource, '<'=increasePlotTimeScale, '>'=decreasePlotTimeScale
             <br><br>
             Notes: <br>
             -- Inductors have a tendancy to make voltage blow up to infinity. Watch out for inductors in series or parallel.<br>
