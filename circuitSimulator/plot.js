@@ -24,15 +24,21 @@ class Plot {
         this.width = width;
         this.height = height;
 
-        p.SetStrokeWidth(2);
+        if (this.component == selectedComponent)
+        {
+            p.SetStrokeWidth(2);
+        } else {
+            p.SetStrokeWidth(1);
+        }
         p.SetStrokeColor('#888888');
         p.SetTextSize(14);
 
         //drawing the outside box
-        p.DrawLine(pos.x, pos.y, pos.x+width, pos.y);
-        p.DrawLine(pos.x, pos.y, pos.x, pos.y+height);
-        p.DrawLine(pos.x+width, pos.y+height, pos.x+width, pos.y);
-        p.DrawLine(pos.x+width, pos.y+height, pos.x, pos.y+height);
+        //p.DrawLine(pos.x, pos.y, pos.x+width, pos.y);
+        //p.DrawLine(pos.x, pos.y, pos.x, pos.y+height);
+        //p.DrawLine(pos.x+width, pos.y+height, pos.x+width, pos.y);
+        //p.DrawLine(pos.x+width, pos.y+height, pos.x, pos.y+height);
+        p.DrawRect(pos.x,pos.y, width, height);
 
 
         var lineStep = height/(this.numGridLines+1); //num pixels per vertical division

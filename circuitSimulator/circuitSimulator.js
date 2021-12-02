@@ -11,7 +11,8 @@ var CircuitCanvasElement = document.getElementById("circuitCanvas");
 
 //checkboxes
 var LabelNodesCheckboxElement = document.getElementById("labelNodesCheckbox");
-var LabelNodeValuesCheckboxElement = document.getElementById('labelNodeValuesCheckbox')
+var LabelNodeValuesCheckboxElement = document.getElementById('labelNodeValuesCheckbox');
+var ColorComponentsCheckboxElement = document.getElementById("colorComponentsCheckbox");
 
 //buttons
 var AddPlotButtonElement = document.getElementById("addPlotButton");
@@ -499,7 +500,14 @@ function CenterCircuit()
     }
     
     var curCenter = worldRoundToGrid(new Point((maxPoint.x+minPoint.x)/2, (maxPoint.y+minPoint.y)/2));
-    var wantedCenter = worldRoundToGrid(new Point(width/2, height/2));
+    var h;
+    if (plotManager.plots.length != 0)
+    {
+        h = height-plotManager.plotHeight;
+    } else {
+        h = height;
+    }
+    var wantedCenter = worldRoundToGrid(new Point(width/2, h/2));
     var diff = new Point(curCenter.x-wantedCenter.x, curCenter.y-wantedCenter.y);
     for (var i=0; i<components.length; i++)
     {

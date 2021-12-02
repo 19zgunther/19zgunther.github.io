@@ -43,10 +43,13 @@ class Component {
         var voltage = "null";
         var current = "null";
         if (this.voltage != null) {
-            voltage = (Math.round( this.voltage * 1000000)/1000000).toPrecision(3);
+            voltage = this.voltage.toPrecision(3);
+            voltage = voltage[0] + voltage[1] + voltage[2];
         }
         if (this.current != null) {
-            current = (Math.round( this.current * 1000000)/1000000).toPrecision(3);
+            //current = (Math.round( this.current * 1000000)/1000000).toPrecision(3);
+            current = this.current.toPrecision(3);
+            current = current[0] + current[1] + current[2];
         }
         return formatValue(this.GetValue(),this.GetStringSuffix())+" " + this.type + "  ΔV: "+formatValue(voltage, "v")+" I: "+formatValue(current,"A");
     }

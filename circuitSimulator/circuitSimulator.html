@@ -28,6 +28,8 @@
                     <input id = "labelNodesCheckbox" type="checkbox" checked = "true"> Label Nodes   </input> 
                     <br>
                     <input id = "labelNodeValuesCheckbox" type="checkbox" checked = "false"> Label Node Voltages</input>
+                    <!--<br>
+                    <input id = "colorComponentsCheckbox" type="checkbox" checked = "false"> Color Components </input>-->
                     <div style="display:flex; flex-wrap:wrap; width:400">
                         <div id = "startStopButton", class = 'ui_button' style = "background-color: green;" onclick = StartStopButtonClick()>
                             Stop Simulation
@@ -83,18 +85,31 @@
             <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event)
             onmouseup = mouseReleased(event) , width = 1000 , height = 700></canvas>
         </div>
-        <div style = "margin:auto; justify-content: center; justify-self: center; width:80%;">
-            <br>
-            Key Bindings:<br>c=capacitor, r=resistor, l=inductor, s=switch, w=wire, v=battery, g=ground, V=voltageSource, i=currentSource, '<'=increasePlotTimeScale, '>'=decreasePlotTimeScale
+        <div style = "margin:auto; padding:20px; justify-content: center; justify-self: center; width:80%;">
+            <div style="font-weight: bold;">
+                Key Bindings:
+            </div>
+            w=wire, s=switch, 
+            <br>r=resistor, c=capacitor, l=inductor,
+            <br> g=ground, v=signal generator, V=voltageSource, i=currentSource, 
+            <br>'<'=increasePlotTimeScale, '>'=decreasePlotTimeScale
             <br><br>
-            Notes: <br>
-            -- Inductors have a tendancy to make voltage blow up to infinity. Watch out for inductors in series or parallel.<br>
-            <br><br>
-            How this simulator works:<br>
-            This simulator works by using KCL and nodal analysis. It essentially is a simple DC simulator which has been adapted to allow for AC functionality, albeit inaccurate.
+
+            <div style="font-weight: bold;">
+                How it works:
+            </div>
+            To start, this is by no means a proper circuit simulator. It lacks functionality and some accuracy, although
+            the entire purpose of the project was to force me to learn more about circuits and circuit analysis.
+            This simulator works by using KCL and nodal analysis. It essentially is a simple DC simulator which has been adapted to allow for AC functionality, albeit likely a bit inaccurate.
             Inductors find the current flowing through them for the next simulation frame by finding the voltage across the component and incrementing the current accordinly.
             Capacitors find the voltage across them for the next simulation by finding the current flowing into them and using V=Q/C.
-            This is by no means a proper simulator, but really just an excersize forcing me to learn more about circuits and how they work.
+            <br><br>
+            <div style="font-weight: bold;">
+                Notes:
+            </div>
+            -- Inductors have a tendancy to make voltage blow up to infinity. Watch out for inductors in series or parallel.<br>
+            -- Small inductor and capacitor values are harder to simulate. The time step needs to be adjusted if using smaller values. <br>
+            <br><br>
             <br>
             <br>
             <br>
