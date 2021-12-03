@@ -20,7 +20,7 @@
             <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
         </div>
         <div style = "display:flex;">
-            <div style="margin:20px;width:fit-content; background-color: rgb(64, 64, 64); border-radius:5px;">
+            <div style="margin:20px;width:25%; background-color: rgb(64, 64, 64);">
                 <div style = "margin:10px;">
                     <div style = "user-select: none;">
                         Circuit Simulator v3.15
@@ -50,7 +50,7 @@
                 </div>
             </div>
             
-            <div style="margin:20px; width:fit-content;  background-color: rgb(64, 64, 64);border-radius:5px;">
+            <div style="margin:20px; width:25%;  background-color: rgb(64, 64, 64);">
                 <div style = "margin:10px;">
                     <div id = "drawMode" style = "user-select: none;">
                         Draw Mode:
@@ -75,6 +75,36 @@
                         </div>
                         <div id = "removePlotButton", class = 'ui_button' onclick = RemovePlotButtonClick()>
                             Remove Plot
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id = "inputGrid" style="margin:20px; width:25%;  background-color: rgb(64, 64, 64);">
+                <div style="margin:10px;">
+                    <div style="display:flex">
+                        <div>
+                            <div id = "gridText0" class = 'gridText'>
+                                -
+                            </div>
+                            <div id = "gridText1" class = 'gridText'>
+                                -
+                            </div>
+                            <div id = "gridText2" class = 'gridText'>
+                                -
+                            </div>
+                            <div id = "gridText3" class = 'gridText'>
+                                -
+                            </div>
+                            <div id = "gridText4" class = 'gridText'>
+                                -
+                            </div>
+                        </div>
+                        <div >
+                            <input id = "gridInput0" class = "gridInput" onclick = "GridInputClicked(this)" spellcheck="false">
+                            <input id = "gridInput1" class = "gridInput" onclick = "GridInputClicked(this)" spellcheck="false">
+                            <input id = "gridInput2" class = "gridInput" onclick = "GridInputClicked(this)" spellcheck="false">
+                            <input id = "gridInput3" class = "gridInput" onclick = "GridInputClicked(this)" spellcheck="false">
+                            <input id = "gridInput4" class = "gridInput" onclick = "GridInputClicked(this)" spellcheck="false">
                         </div>
                     </div>
                 </div>

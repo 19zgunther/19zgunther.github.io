@@ -52,44 +52,56 @@ function UpdateDisplay(p) {
     //Misc UI Stuff//////////////////////////////////////////////////////////////////
     //Lets check if the selected component is currently being plotted or not, so we can enable the AddPlotButton and RemovePlotButton accordingly
     if (plotManager.GetPlotOfComponent(selectedComponent) != null) {
-        //RemovePlotButtonElement.innerHTML = "Remove Plot of Component";
         RemovePlotButtonElement.style.display = "block";
-        //AddPlotButtonElement.innerHTML = "|";
         AddPlotButtonElement.style.display = "none";
-        //IncreasePlotScaleButtonElement.innerHTML = "Increase Plot Scale";
         IncreasePlotScaleButtonElement.style.display = "block";
-        //DecreasePlotScaleButtonElement.innerHTML = "Decrease Plot Scale";
         DecreasePlotScaleButtonElement.style.display = "block";
     } else {
-        //RemovePlotButtonElement.innerHTML = "|";
         RemovePlotButtonElement.style.display = "none";
-        //AddPlotButtonElement.innerHTML = "Plot Component";
         if (selectedComponent != null) {
             AddPlotButtonElement.style.display = "block";
         } else {
             AddPlotButtonElement.style.display = "none";
         }
-        //IncreasePlotScaleButtonElement.innerHTML = "|";
         IncreasePlotScaleButtonElement.style.display = "none";
-        //DecreasePlotScaleButtonElement.innerHTML = "|";
         DecreasePlotScaleButtonElement.style.display = "none";
     }
 
+    
     if (selectedComponent != null)
     {
-        SelectedComponentElement.innerHTML = "Selected Component: " + selectedComponent.toString(); 
+        SelectedComponentElement.innerHTML = "Selected Comp: " + selectedComponent.toString(); 
     } else {
-        SelectedComponentElement.innerHTML = "Selected Component: None";
-        //AddPlotButtonElement.innerHTML = "|";
-        //RemovePlotButtonElement.innerHTML = "|";
+        SelectedComponentElement.innerHTML = "Selected Comp: None";
     }
-
+    /*
     if (editingComponentValue == false && selectedComponent != null && selectedComponent.type != "wire")
     {
         ValueInputTextElement.style.width = "100px";
         ValueInputTextElement.value = formatValue( selectedComponent.GetValue(),  selectedComponent.GetStringSuffix());
     } else if (editingComponentValue == false){
         ValueInputTextElement.style.width = "5px";
+    }*/
+
+    if (selectedComponent == null)
+    {
+        GridElement.style.display = "none";
+    } else if (editingComponentValue == false) {
+        GridElement.style.display = "block";
+        var inputs = selectedComponent.GetInputs();
+        for (var i=0; i<GridTextElements.length; i++)
+        {
+            if (i < inputs.length)
+            {
+                GridTextElements[i].style.display = "block";
+                GridInputElements[i].style.display = "block";
+                GridTextElements[i].innerHTML = inputs[i][0];
+                GridInputElements[i].value = inputs[i][1];
+            } else {
+                GridTextElements[i].style.display = "none";
+                GridInputElements[i].style.display = "none";
+            }
+        }
     }
 
 }

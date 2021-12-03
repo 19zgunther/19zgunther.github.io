@@ -21,6 +21,15 @@ var IncreasePlotScaleButtonElement = document.getElementById("increasePlotScaleB
 var DecreasePlotScaleButtonElement = document.getElementById("decreasePlotScaleButton");
 var StartStopButtonElement = document.getElementById("startStopButton");
 
+//Grid
+var GridElement = document.getElementById("inputGrid");
+var GridInputElements = [];
+var GridTextElements = [];
+for (var i=0; i<5; i++)
+{
+    GridInputElements.push( document.getElementById("gridInput"+i) );
+    GridTextElements.push( document.getElementById("gridText"+i) );
+}
 
 
 
@@ -48,7 +57,7 @@ var nodesNotCombined = [];      //List of all basic nodes (not electrical nodes,
 
 //MISC variables
 var updateInterval = setInterval(Update,70);
-var calcUpdateInterval = setInterval(Calculate,5);
+var calcUpdateInterval = setInterval(Calculate,50);
 var running = true;
 var drawMode = "";
 var movingComponentPoint = ""; //can be "start" (move startPos),"end" (move endPos), "mid" (move entire component aka both points equally) or "" (do not move anything)
@@ -185,14 +194,20 @@ function keyPressed(event) {
     if (editingComponentValue == true && (keyCode == "Escape" || keyCode == "Enter")) //when we're done editing a component's value
     {
         editingComponentValue = false;
-        var output = parseStringValue( ValueInputTextElement.value );
-        if (output != null && output != NaN)
-        {
-            selectedComponent.SetValue( output );
-        } else {
-            console.error("Failed to parse input   ( in keyPressed(event) )");
+        numInputs = selectedComponent.GetInputs().length;
+        var arr = [];
+        for (var i=0; i<numInputs; i++) {
+            var output = parseStringValue( GridInputElements[i].value );
+            if (output != null && isNaN(Number(output)) == false)
+            {
+
+                arr.push(Number(output));
+            } else {
+                console.error("Failed to parse input   ( in keyPressed(event) )");
+                return;
+            }
         }
-        //selectedComponent = null;
+        selectedComponent.SetValues(arr);
         return;
     }
     
@@ -374,6 +389,16 @@ function resizeWindow() {
 
 
 
+function GridInputClicked(element)
+{
+    console.log("Clicked: " + element);
+    if (editingComponentValue == false)
+    {
+        editingComponentValue = true;
+
+    }
+}
+
 
 
 
@@ -529,13 +554,11 @@ function Calculate() {
     }
 
     currentTime += timeStep;
-
+    
     for (var i=0; i<components.length; i++)
     {
-        components[i].RecordData();
+        components[i].Update(currentTime, timeStep);
     }
-    
-    
     
     FindNodes();
 
@@ -590,6 +613,11 @@ function Calculate() {
     CheckVoltageSources();
 
     CalcCurrents();
+
+    for (var i=0; i<components.length; i++)
+    {
+        components[i].RecordData();
+    }
 
 }
 
@@ -1124,7 +1152,8 @@ function CalcCurrents() {
     }
 
     //Update generic currents. If we know all of the other components current at a node (only 1 unknown) we can easily find the current.
-    for (var i=0; i<nodes.length; i++) //for each node
+    
+    /*for (var i=0; i<nodes.length; i++) //for each node
     {
         var node = nodes[i];
         var currentOutOfNode = 0;
@@ -1168,7 +1197,7 @@ function CalcCurrents() {
             console.log("Multiple unknown");
         }
         
-    }
+    }*/
 
 
 }
