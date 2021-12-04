@@ -12,6 +12,7 @@ canvas {
     /*left:0px;
     top: 0px;
     position:absolute;*/
+    position:static;
     background-color: rgba(0, 0, 0, 0);
     display:block;
     z-index: -1000;

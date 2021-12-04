@@ -20,7 +20,7 @@
             <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
         </div>
         <div style = "display:flex;">
-            <div style="margin:20px;width:25%; background-color: rgb(64, 64, 64);">
+            <div style="margin:20px; width:fit-content; background-color: rgb(64, 64, 64);">
                 <div style = "margin:10px;">
                     <div style = "user-select: none;">
                         Circuit Simulator v3.15
@@ -50,7 +50,7 @@
                 </div>
             </div>
             
-            <div style="margin:20px; width:25%;  background-color: rgb(64, 64, 64);">
+            <div style="margin:20px; width:fit-content;  background-color: rgb(64, 64, 64);">
                 <div style = "margin:10px;">
                     <div id = "drawMode" style = "user-select: none;">
                         Draw Mode:
@@ -79,7 +79,7 @@
                     </div>
                 </div>
             </div>
-            <div id = "inputGrid" style="margin:20px; width:25%;  background-color: rgb(64, 64, 64);">
+            <div id = "inputGrid" style="margin:20px; width:fit-content;  background-color: rgb(64, 64, 64);">
                 <div style="margin:10px;">
                     <div style="display:flex">
                         <div>
@@ -111,10 +111,40 @@
             </div>
         </div>
 
-        <div>
-            <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event)
-            onmouseup = mouseReleased(event) , width = 1000 , height = 700></canvas>
+        <div style="margin:20px; margin-top: 0; width:fit-content;  background-color: rgb(64, 64, 64);">
+            <div style = "display:flex;">
+                <div style = "margin: auto; padding:5px;">
+                    Draw Component:
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "wire">
+                    wire
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "switch">
+                    switch
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "resistor">
+                    resistor
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "capacitor">
+                    capacitor
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "inductor">
+                    inductor
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "ground">
+                    ground
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "voltageSource2n">
+                    voltageSource2n
+                </div>
+                <div class = "ui_button" onclick = ComponentButtonClicked(this) id = "currentSource">
+                    currentSource
+                </div>
+            </div>
         </div>
+
+        <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event) onmouseup = mouseReleased(event) , width = 1000 , height = 700></canvas>
+        
         <div style = "margin:auto; padding:20px; justify-content: center; justify-self: center; width:80%;">
             <div style="font-weight: bold;">
                 Key Bindings:
@@ -123,6 +153,8 @@
             <br>r=resistor, c=capacitor, l=inductor,
             <br> g=ground, v=signal generator, V=voltageSource, i=currentSource, 
             <br>'<'=increasePlotTimeScale, '>'=decreasePlotTimeScale
+            <br> 'delete' = Remove All Components
+            <br> 'backspace' = Remove Selected Component
             <br><br>
 
             <div style="font-weight: bold;">

@@ -69,7 +69,7 @@ class Plot {
 
         var data = this.component.voltageData
         var voltageScaler = lineStep / PlotYAxisIntervals[this.voltageYAxisGridScaleIndex];
-        var p1 = new Point(pos.x +width, pos.y + height/2);
+        var p1 = new Point(pos.x +width, pos.y + height/2 - voltageScaler*data[0]);
         var p2 = new Point(pos.x +width, pos.y + height/2);
         
         p.SetStrokeColor('green');
@@ -118,11 +118,12 @@ class Plot {
             this.DecreaseVoltageYScale();
         }
         
+        
         var scaleTooSmall = true;
         var data = this.component.currentData;
         var currentScaler = lineStep / PlotYAxisIntervals[this.currentYAxisGridScaleIndex];
         p.SetStrokeColor('yellow');
-        p1 = new Point(pos.x + width, pos.y + height/2);
+        p1 = new Point(pos.x + width, pos.y + height/2 - currentScaler*data[0]);
         for (var i=1; i*this.horizontalModifier<data.length && i<width-100; i++ )
         {
             p2.x = p1.x;

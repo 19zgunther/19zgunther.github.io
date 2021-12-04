@@ -324,6 +324,10 @@ function DecreasePlotScaleButtonClick()
     if (plot == null) { return; }
     plot.DecreaseHorizontalScale();
 }
+function ComponentButtonClicked(element)
+{
+    drawMode = (element.id);
+}
 
 function StartStopButtonClick()
 {
