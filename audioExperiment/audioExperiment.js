@@ -4,17 +4,10 @@
 
 async function buttonPress()
 {
-    var link = document.createElement('a');
-    link.download = 'data.json';
-    var blob = new Blob(["class WhiteNoiseProcessor extends AudioWorkletProcessor {process (inputs, outputs, parameters) {const output = outputs[0]output.forEach(channel => {for (let i = 0; i < channel.length; i++) {channel[i] = Math.random() * 2 - 1}})return true}}registerProcessor('white-noise-processor', WhiteNoiseProcessor);"], {type: 'text/plain'});
-    link.href = window.URL.createObjectURL(blob);
-    //link.click();
-    console.log(link);
-    console.log(blob);
-    console.log(link.href);
+
 
     const audioContext = new AudioContext();
-    await audioContext.audioWorklet.addModule("class WhiteNoiseProcessor extends AudioWorkletProcessor {process (inputs, outputs, parameters) {const output = outputs[0]output.forEach(channel => {for (let i = 0; i < channel.length; i++) {channel[i] = Math.random() * 2 - 1}})return true}}registerProcessor('white-noise-processor', WhiteNoiseProcessor);");
+    await audioContext.audioWorklet.addModule("customProcessor.js");
     const whiteNoiseNode = new AudioWorkletNode(audioContext, 'white-noise-processor');
     whiteNoiseNode.connect(audioContext.destination);
 }
