@@ -59,6 +59,12 @@ function canvas_onmousedown(event)
             selectedComponent.AddPoint(roundToGrid(mousePos, gridWidth));
             return;
         } else {
+            if (distBetweenPoints( selectedComponent.points[0], selectedComponent.points[1]) < 2)
+            {
+                removeObjectFromList(wires, selectedComponent);
+                console.log("Wire length too short - deleting!");
+                return;
+            }
             var pSelectedComponent = selectedComponent;
             selectedComponent = new Wire(pSelectedComponent.points[1]);
             selectedComponent.AddPoint(roundToGrid(mousePos, gridWidth));
@@ -394,22 +400,165 @@ function Calculate()
 
 
 
-function Route_OTHER() 
+function Route_NEW() 
 {
     
-    var node = null;
-    for (var i=0; i<wires.length; i++)
+    //var points = [];
+    nodes = [];
+
+    //Start by finding all points for all wires.
+    for (var i=0; i<components.length; i++) //for each component
     {
-        node = wires[i].node;
-        if (node == null) {
-            node = new Node();
-            wires[i].node = node;
-            for (var j=0; j<wires[i].points.length; j++)
+        var comp = components[i];
+        for (var j=0; j<comp.inputsPos.length; i++) //for each input
+        {
+            var p = comp.inputsPos[j];
+
+            var foundPoint = false;
+            for (var k=0; k<nodes.length; k++) //for each node
             {
-                node.points.push(wires[i].points[j]);
+                for (var q=0; q<nodes[k].points.length; q++) //for each point in node.points
+                {
+                    if (nodes[k].points[q].equals(p)) //if comp input pos == nodes[k].points[q]
+                    {
+                        foundPoint = true;
+                        comp.inputNodes[j] = nodes[k];
+                        break;
+                    }
+                }
+                if (foundPoint)
+                {
+                    break;
+                }
+            }
+
+            if ( foundPoint )
+            {
+
+            } else {
+                var n = new Node();
+                n.points.push(p);
+                nodes.push(n);
+            }
+
+        }
+
+
+        var comp = components[i];
+        for (var j=0; j<comp.outputsPos.length; i++) //for each output
+        {
+            var p = comp.outputsPos[j];
+
+            var foundPoint = false;
+            for (var k=0; k<nodes.length; k++) //for each node
+            {
+                for (var q=0; q<nodes[k].points.length; q++) //for each point in node.points
+                {
+                    if (nodes[k].points[q].equals(p)) //if comp input pos == nodes[k].points[q]
+                    {
+                        foundPoint = true;
+                        comp.outputNodes[j] = nodes[k];
+                        break;
+                    }
+                }
+                if (foundPoint)
+                {
+                    break;
+                }
+            }
+            
+            if ( foundPoint )
+            {
+
+            } else {
+                var n = new Node();
+                n.points.push(p);
+                nodes.push(n);
             }
         }
     }
+
+    console.log("HERE");
+
+    //At this point, we have too many nodes. We need to remove ones linked by wires
+    for (var i=0; i<wires.length; i++)
+    {
+        var wire = wires[i];
+        if (node == null)
+        {
+            //if we don't already have a node, try to find a node it shares a point with
+            var foundANode = false;
+            for (var j=0; j<nodes.length; j++)
+            {
+                for (var k=0; k<nodes[j].points.length; k++)
+                {
+                    for (var q=0; q<wire.points.length; q++)
+                    {
+                        if (wire.points[q].equals(nodes[j].points[k]))
+                        {
+                            foundANode = true;
+                            wire.node = nodes[j];
+                            break;
+                        }
+                    }
+                    if (foundANode) {break;}
+                }
+                if (foundANode) {break;}
+            }
+
+            if (!foundANode) { continue; }
+
+            //At this point, we have found a node for the wire. Now we need to search for other connected wires and update them too
+            //Make sure the node has all of the points of the wire
+            for (var j=0; j<wire.points.length; j++)
+            {
+                if (wire.node.ContainsPoint(wire.points[j]) == false)
+                {
+                    wire.node.AddPoint(wire.points[j]);
+                }
+            }
+
+
+            var wiresFound = [];
+            wiresFound.push(wire);
+
+            for (var w=0;w<wiresFound.length;w++)
+            {
+                for (var j=0; j<wires.length; j++)
+                {
+                    //check if we've already hit wires[j]
+                    var alreadyHit = false
+                    for (var o=0; o<wiresFound.length; o++)
+                    {
+                        if (wiresFound[o] == wires[j])
+                        {
+                            alreadyHit = true;
+                            break;
+                        }
+                    }
+                    if (alreadyHit) { continue; }
+
+                    //Now, search all other wires.
+                    for (var k=0; k<wires[i].points.length; k++)
+                    {
+                        if (wire.node.ContainsPoint(wires[i].points[k]))
+                        {
+                            otherWires.push(wires[i]);
+                            wires[i].node = wire.node;
+                        }
+                    }
+                }
+            }
+
+
+
+
+        }
+    }
+
+    console.log("HERE2");
+
+
 }
 
 
