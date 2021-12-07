@@ -250,6 +250,7 @@ function keyPressed(event) {
         case "V": drawMode = "voltageSource1n"; break;
         case "g": drawMode = "ground"; break;
         case "i": drawMode = "currentSource"; break;
+        case "f": drawMode = "freqSweep"
         case "<": 
             var plot = plotManager.GetPlotOfComponent(selectedComponent);
             if (plot != null)
@@ -351,6 +352,11 @@ function ResetButtonClick() {
         if (c instanceof VoltageSource1n == true || c instanceof VoltageSource2n == true || c instanceof CurrentSource == true)
         {
             continue;
+        }
+        if (c instanceof FrequencySweep)
+        {
+            c.currentFreq = c.startFreq;
+            c.time = 0;
         }
         c.voltage = 0;
         c.current = 0;
@@ -802,7 +808,7 @@ function UpdateMatricesSpecific(node) {
 function ApplyVoltageSources() {
     for (var i = 0; i < components.length; i++) //for each component
     {
-        if (components[i].type == "voltageSource2n" || components[i].type == "capacitor") //if the component is a voltage source
+        if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep") //if the component is a voltage source
         {
             //console.log(components[i].startNode.voltage +"   "+components[i].endNode.voltage);
             if (components[i].startNode.voltage != null && components[i].endNode.voltage == null) //if the startNode voltage is known and endNode is not known
@@ -857,7 +863,7 @@ function ApplyVoltageSources() {
 function CheckVoltageSources() {
     for (var i=0; i<components.length; i++)
     {
-        if (components[i].type == "voltageSource2n" || components[i].type == "capacitor")
+        if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep")
         {
             if (components[i].startNode.voltage != null && components[i].endNode.voltage == null)
             {

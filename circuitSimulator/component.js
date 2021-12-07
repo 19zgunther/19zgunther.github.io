@@ -13,6 +13,7 @@ function createNewComponent(drawMode)
         case "voltageSource1n": return new VoltageSource1n();
         case "currentSource": return new CurrentSource();
         case "ground": var comp = new VoltageSource1n(); comp.SetValue(0); return comp;
+        case "freqSweep": return new FrequencySweep();
     }
 }
 
@@ -608,6 +609,87 @@ class CurrentSource extends Component {
             this.current = this.targetCurrent * Math.sin(currentTime * this.frequency * 6.283185);
         } else {
             this.current = this.targetCurrent;
+        }
+    }
+}
+
+class FrequencySweep extends Component {
+    constructor() {
+        super();
+        this.type = 'freqSweep';
+        this.targetVoltage = 5;
+        this.voltage = 5;
+        this.startFreq = 100;
+        this.stopFreq = 10000;
+        this.sweepDuration = .001;
+        this.currentFreq = this.startFreq;
+        this.time = 0;
+    }
+    GetEncodedDataString() {
+        return this.type+" "+this.name+" "+this.GetValue()+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
+    }
+    GetValue() {
+        return this.voltage;
+    }
+    GetStringSuffix() {
+        return "V";
+    }
+    GetInputs(){
+        var arr = [["Voltage", formatValue(this.targetVoltage,"V")],["Start Freqeuncy",formatValue(this.startFreq, "Hz")],["Stop Freqeuncy",formatValue(this.stopFreq, "Hz")],["Sweep Duration", formatValue(this.sweepDuration, "s")]];
+        //console.log(arr);
+        return arr;
+    }
+    SetValues(arr = []){
+        this.targetVoltage = arr[0];
+        this.startFreq = arr[1];
+        this.stopFreq = arr[2];
+        this.sweepDuration = arr[3];
+    }
+
+    Draw(p) {
+        var startPos = this.startPos;
+        var endPos = this.endPos;
+        var dist = Math.sqrt(Math.pow(startPos.x-endPos.x,2) + Math.pow(startPos.y-endPos.y,2));
+        var angle = Math.atan2(startPos.y-endPos.y, startPos.x-endPos.x) + Math.PI;
+        var len = (dist/2) - 25;
+        var midpoint = new Point((Math.cos(angle)*dist/2+startPos.x),(Math.sin(angle)*dist/2+startPos.y));
+
+        var height1 = 15;
+        var height2 = 10;
+        var angleModifier = Math.PI/2-0.3;
+        p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y));
+        p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
+
+        p.DrawCircle(midpoint.x, midpoint.y, 25);
+        p.DrawTextCentered(midpoint.x, midpoint.y, (this.currentFreq).toPrecision(2));
+        p.DrawTextCentered(midpoint.x, midpoint.y+15, "Hz");
+
+        //var p1 = new Point((Math.cos(angle+angleModifier)*height1+midpoint.x),(Math.sin(angle+angleModifier)*height1+midpoint.y));
+        //var p2 = new Point((Math.cos(angle-angleModifier)*height1+midpoint.x),(Math.sin(angle-angleModifier)*height1+midpoint.y));
+        //var p3 = new Point((Math.cos(angle+angleModifier+Math.PI)*height2+midpoint.x),(Math.sin(angle+angleModifier+Math.PI)*height2+midpoint.y));
+        //var p4 = new Point((Math.cos(angle-angleModifier+Math.PI)*height2+midpoint.x),(Math.sin(angle-angleModifier+Math.PI)*height2+midpoint.y));
+        //p.DrawLine(p1.x,p1.y,p2.x,p2.y);
+        //p.DrawLine(p3.x,p3.y,p4.x,p4.y);
+
+        if (labelComponentNames == true) {
+            //fill(255,255,255);
+            //stroke(5);
+            //strokeWeight(1);
+            //textSize(labelTextSize);
+            //text("Vs"+this.name+": "+this.GetValueString(), midpoint.x, midpoint.y);
+        }
+    }
+    Update(currentTime, timeStep) {
+        //var x = Math.round(currentTime/timeStep) % Math.round(this.sweepDuration/timeStep);
+        this.time += timeStep;
+        if (this.time >= this.sweepDuration) {this.time = 0;}
+
+        //console.log("t: " + this.time + "   freq: " + this.currentFreq);
+        this.currentFreq =  (this.stopFreq - this.startFreq) * (this.time)/(this.sweepDuration)  + this.startFreq;
+        if (this.frequency != 0) {
+            this.voltage = this.targetVoltage * Math.sin(this.time * this.currentFreq * 6.283185);
+        } else {
+            this.voltage = this.targetVoltage;
         }
     }
 }
