@@ -78,12 +78,12 @@ class Plot {
         
         //This is where we draw all of the data to the screen.
         var drewVerticalDivisionLastLoop = false;
-        for (var i=1; i*this.horizontalModifier<data.length && i<width-100; i++)
+        for (var i=1; i<data.length && i/this.horizontalModifier<width-100; i++)
         {
             p2.x = p1.x;
             p2.y = p1.y;
-            p1.x = pos.x + width - i - 1;
-            p1.y = pos.y + height/2 - voltageScaler * data[data.length - Math.round(i*this.horizontalModifier)];
+            p1.x = pos.x + width - i/this.horizontalModifier;
+            p1.y = pos.y + height/2 - voltageScaler * data[data.length - i];
 
             //check if the plot goes outside of the box
             if (p1.y < pos.y || p1.y > p1.y + height || p2.y < pos.y || p2.y > pos.y + height)
@@ -96,7 +96,7 @@ class Plot {
 
 
             //this chunk is to determine if we need to draw a vertical line or not
-            if ( ((Math.round(currentTime/timeStep) - Math.round(i*this.horizontalModifier) ) % baseHorizontalDivision) < this.horizontalModifier)
+            if ( (Math.round(currentTime/timeStep)-i + baseHorizontalDivision/2) % baseHorizontalDivision < baseHorizontalDivision/2)
             {
                 if (drewVerticalDivisionLastLoop == false)
                 {
@@ -118,18 +118,17 @@ class Plot {
             this.DecreaseVoltageYScale();
         }
         
-        
         var scaleTooSmall = true;
         var data = this.component.currentData;
         var currentScaler = lineStep / PlotYAxisIntervals[this.currentYAxisGridScaleIndex];
         p.SetStrokeColor('yellow');
         p1 = new Point(pos.x + width, pos.y + height/2 - currentScaler*data[0]);
-        for (var i=1; i*this.horizontalModifier<data.length && i<width-100; i++ )
+        for (var i=1; i<data.length && i/this.horizontalModifier<width-100; i++)
         {
             p2.x = p1.x;
             p2.y = p1.y;
-            p1.x = pos.x + width - i;
-            p1.y = pos.y + height/2 - currentScaler * data[data.length - Math.round(i*this.horizontalModifier)];
+            p1.x = pos.x + width - i/this.horizontalModifier;
+            p1.y = pos.y + height/2 - currentScaler * data[data.length - i];
 
             //check if the plot goes outside of the box
             if (p1.y < pos.y || p1.y > p1.y + height || p2.y < pos.y || p2.y > pos.y + height)
