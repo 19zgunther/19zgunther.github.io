@@ -49,5 +49,12 @@ class Node {
         }
         return L;
     }
+    equals(n2)
+    {
+        if (n2.name != null && this.name == n2.name)
+        {
+            return true;
+        }
+    }
 }
 

@@ -86,6 +86,50 @@ class Painter {
         }
         this.ctx.closePath();
     }
+    DrawTriangleFilled(x1 = 0, y1 = 0, x2=0, y2=0, x3=0,y3=0, color)
+    {
+        this.ctx.beginPath();
+        if (color == null)
+        {
+            this.ctx.moveTo(x1,y1);
+            this.ctx.lineTo(x2,y2);
+            this.ctx.lineTo(x3,y3);
+            this.ctx.lineTo(x1,y1);
+            this.ctx.fill();
+        } else {
+            var temp = this.GetFillColor();
+            this.SetFillColor(color);
+            this.ctx.moveTo(x1,y1);
+            this.ctx.lineTo(x2,y2);
+            this.ctx.lineTo(x3,y3);
+            this.ctx.lineTo(x1,y1);
+            this.ctx.fill();
+            this.SetFillColor(temp);
+        }
+        this.ctx.closePath();
+    }
+    DrawTriangle(x1 = 0, y1 = 0, x2=0, y2=0, x3=0,y3=0, color)
+    {
+        this.ctx.beginPath();
+        if (color == null)
+        {
+            this.ctx.moveTo(x1,y1);
+            this.ctx.lineTo(x2,y2);
+            this.ctx.lineTo(x3,y3);
+            this.ctx.lineTo(x1,y1);
+            this.ctx.stroke();
+        } else {
+            var temp = this.GetStrokeColor();
+            this.SetStrokeColor(color);
+            this.ctx.moveTo(x1,y1);
+            this.ctx.lineTo(x2,y2);
+            this.ctx.lineTo(x3,y3);
+            this.ctx.lineTo(x1,y1);
+            this.ctx.stroke();
+            this.SetStrokeColor(temp);
+        }
+        this.ctx.closePath();
+    }
     DrawCircleFilled(x = 0, y = 0, radius = 5, color)
     {
         this.ctx.beginPath();
@@ -198,7 +242,7 @@ class Painter {
     }
     DrawTextCentered(x = 0, y = 0, text = 'default_text', color)
     {
-        this.DrawText(x - this.GetTextWidth(text)/2, y, text, color);
+        this.DrawText(x - this.GetTextWidth(text)/2, y+this.GetTextHeight(text)/2, text, color);
     }
     DrawTextRotated(x = 0, y = 0, text = 'default_text', rotation = Math.PI/2, color)
     {
@@ -221,7 +265,8 @@ class Painter {
         this.ctx.save();
         this.ctx.translate(x,y);
         this.ctx.rotate(rotation);
-        this.DrawText(- this.GetTextWidth(text)/2, 0, text, color);
+        //this.DrawText(- this.GetTextWidth(text)/2, 0, text, color);
+        this.DrawTextCentered(0,0,text,color);
         this.ctx.restore();
     }
 

@@ -55,8 +55,11 @@ var nodes = [];                 //List of all nodes (electrical, meaning wires h
 var nodesNotCombined = [];      //List of all basic nodes (not electrical nodes, like junctions) <-- used for calculating currents through wires & such at the very end.
 
 
+var shouldUpdateNodes = true;
+
+
 //MISC variables
-var updateInterval = setInterval(Update,70);
+var updateInterval = setInterval(Update,50);
 var calcUpdateInterval = setInterval(Calculate,50);
 var running = true;
 var drawMode = "";
@@ -68,7 +71,8 @@ var labelNodes = true; //should we draw the node names and values?
 var editingComponentValue = false;
 
 //Circuit Analysis Variables
-var timeStep = 0.000001 //(1 uS)
+var timeStep = 0.000000001; //(1 nS)
+var calcCyclesPerCall = 1000;
 var currentTime = 0;
 var matrixA = [];
 var matrixB = [];
@@ -108,7 +112,6 @@ function mousePressed(event) {
         selectedComponent = createNewComponent(drawMode);
         selectedComponent.startPos = worldRoundToGrid(mousePos); //set startPos and endPos
         selectedComponent.endPos = worldRoundToGrid(mousePos);
-        selectedComponent.name = getNewComponentName();
         components.push(selectedComponent); //add the new component (which is currently selected) to 'components' array
         movingComponentPoint = "end"; /*specify which end of the component we want to be moving. In this case, we place the startPos at the initial click
                                         and the endPos follows around the cursor until the mouse button is released  */
@@ -132,6 +135,7 @@ function mousePressed(event) {
         selectedComponent = null;
         for (var i=0; i<components.length; i++)  //for each component...
         { 
+            if (components[i].parentComponent != null) {continue;}
             dist = distToLine(components[i].startPos, components[i].endPos, mousePos); //Find the distance from the component to the mouse Position
             if (dist < bestDist) //If the dist is better (less than) the best Distance, we have found a winner! (the current best component)
             {
@@ -200,7 +204,6 @@ function keyPressed(event) {
             var output = parseStringValue( GridInputElements[i].value );
             if (output != null && isNaN(Number(output)) == false)
             {
-
                 arr.push(Number(output));
             } else {
                 console.error("Failed to parse input   ( in keyPressed(event) )");
@@ -224,10 +227,12 @@ function keyPressed(event) {
         case "Backspace":
             deleteComponent(selectedComponent);
             selectedComponent = null;
+            shouldUpdateNodes = true;
             break;
         case "Delete":
             components = [];
             nodes = [];
+            shouldUpdateNodes = true;
             break;
         case "Shift":
             shiftIsDown = true;
@@ -240,6 +245,7 @@ function keyPressed(event) {
             break;
         case "L":
             LoadCircuit("voltageSource2n 0 5 260 320 260 200 resistor 1 1000 260 200 400 200 resistor 2 1000 400 200 400 320 wire 3 _ 400 320 260 320 resistor 4 1000 400 200 540 200 wire 6 _ 540 320 400 320 currentSource 5 0.001 540 320 540 200 resistor 7 1000 540 200 640 200 resistor 8 1000 640 200 640 320 wire 9 _ 640 320 540 320 voltageSource2n 10 5 640 200 740 200 resistor 11 1000 740 200 740 320 wire 12 _ 740 320 640 320 voltageSource1n 13 0 260 320 260 360");
+            shouldUpdateNodes = true;
             break;
         case "w": drawMode = "wire"; break;
         case "r": drawMode = "resistor"; break;
@@ -250,7 +256,8 @@ function keyPressed(event) {
         case "V": drawMode = "voltageSource1n"; break;
         case "g": drawMode = "ground"; break;
         case "i": drawMode = "currentSource"; break;
-        case "f": drawMode = "freqSweep"
+        case "f": drawMode = "freqSweep"; break;
+        case "a": drawMode = "opamp"; break;
         case "<": 
             var plot = plotManager.GetPlotOfComponent(selectedComponent);
             if (plot != null)
@@ -419,22 +426,24 @@ function Update() {
     if (movingComponentPoint == "end" && selectedComponent != null) 
     {
         selectedComponent.endPos = worldRoundToGrid(mousePos.copy()); //move endPos
+        shouldUpdateNodes = true;
     } else if (movingComponentPoint == "start" && selectedComponent != null) 
     {
         selectedComponent.startPos = worldRoundToGrid(mousePos.copy()); //move startPos
-    } else if (movingComponentPoint == "mid" && selectedComponent != null) 
+        shouldUpdateNodes = true;
+    } else if (movingComponentPoint == "mid" && selectedComponent != null) //move entire component ( translate )
     {
         selectedComponent.startPos = worldRoundToGrid(mousePos.copy().add(vectorMouseToStart));
         selectedComponent.endPos = worldRoundToGrid(mousePos.copy().add(vectorMouseToEnd));
+        shouldUpdateNodes = true;
     } else if (selectedComponent != null){
         if (selectedComponent.startPos.equals(selectedComponent.endPos))
         {
             deleteComponent(selectedComponent);
+            shouldUpdateNodes = true;
         }
     }
-
     
-
     UpdateDisplay(painter); //this updates the entire display (in graphics file)
     plotManager.Draw(painter);
 }
@@ -554,69 +563,67 @@ function CenterCircuit()
 }
 
 
-//Call this to calculate the entire circuit.
-function Calculate() {
 
+
+//Call this to calculate the entire circuit.   When calling this, ignore the numCalcOn
+function Calculate( numCalcOn ) {
+    
+    
+    //If we're not running, just update the nodes and continue.
     if (!running)
     {
-        FindNodes();
+        if (shouldUpdateNodes == true)
+        {
+            FindNodes();
+            RemoveWires();
+            shouldUpdateNodes = false; 
+        } else {
+            shouldUpdateNodes = true;
+        }
+        return;
+    }
+
+    
+    if (numCalcOn == null)
+    {
+        numCalcOn = 0;
+        //Recording data!
+        for (var i=0; i<components.length; i++)
+        {
+            components[i].RecordData();
+        }
+    } else if (numCalcOn > calcCyclesPerCall)
+    {
         return;
     }
 
     currentTime += timeStep;
     
+    //Update each componet ( important for capacitors and such )
     for (var i=0; i<components.length; i++)
     {
         components[i].Update(currentTime, timeStep);
     }
     
-    FindNodes();
-
-    //Removing all wires from each node
-    for (var i=0; i<nodes.length; i++)
-    {
-        var newStartComponents = [];
-        var newEndComponents = [];
-        for (var j=0; j<nodes[i].startComponents.length; j++)
-        {
-            if (nodes[i].startComponents[j].type != "wire")
-            {
-                newStartComponents.push( nodes[i].startComponents[j] );
-            }
-        }
-        for (var j=0; j<nodes[i].endComponents.length; j++)
-        {
-            if (nodes[i].endComponents[j].type != "wire")
-            {
-                newEndComponents.push( nodes[i].endComponents[j] );
-            }
-        }
-        nodes[i].startComponents = newStartComponents;
-        nodes[i].endComponents = newEndComponents;
+    //Check to see if we need to do the pathfinding and recreate all of the nodes or not
+    if (shouldUpdateNodes == true) {
+        FindNodes();
+        RemoveWires();
+        shouldUpdateNodes = false;
+    } else {
+        ResetNodes();   //if we don't recreate them, we have to reset a few parameters
     }
-
 
     MakeMatrices();
     if (debugCalculate == true) {console.log("initial Matrices:"); PrintMatrices(matrixA, matrixB);}
-    for (var i=0; i<components.length; i++)
-    {
-        //console.log(components[i].toString())
-    }
     ApplyVoltageSources();
-    for (var i=0; i<components.length; i++)
-    {
-        //console.log(components[i].toString())
-    }
     if (debugCalculate == true) {console.log("After applying Voltage Sources:");PrintMatrices(matrixA, matrixB);}
     UpdateMatrices();
     if (debugCalculate == true) {console.log("After Updating.. : ");PrintMatrices(matrixA, matrixB);}
-
     CheckVoltageSources();
-
     GaussianElimination(matrixA, matrixB);
     if (debugCalculate == true) {console.log("\n\n\n\nGaussianElimination:");PrintMatrices(matrixA, matrixB);}
 
-    //CheckVoltageSources();
 
     CheckForSingleRow(matrixA,matrixB);
 
@@ -624,10 +631,8 @@ function Calculate() {
 
     CalcCurrents();
 
-    for (var i=0; i<components.length; i++)
-    {
-        components[i].RecordData();
-    }
+
+    Calculate(numCalcOn + 1)
 
 }
 
@@ -650,17 +655,73 @@ function FindNodes() {
 
     for(var i=0; i<components.length; i++)
     {
-        comp = components[i];
-        if (isPointInList(points, comp.startPos) == false)
+        if (components[i].type == 'opamp') {
+            continue;
+        } else if (components[i].startPos.equals(components[i].endPos))
         {
-            points.push(comp.startPos);
+            //console.log("startPos == endPos. returning...   comp="+ components[i].type+" "+components[i].name);
+            continue;
         }
+        //This component is made up of many other components, so we don't actually need this one's start and end positions.
+        comp = components[i];
+
+        //If the point is not in the list,
+        if (isPointInList(points, comp.startPos) == false)
+        {   //Make a new node! We haven't seen it before!
+            points.push(comp.startPos);
+            node = new Node();
+            node.name = getNewNodeName();
+            node.points.push(comp.startPos);
+            node.startComponents.push(comp);
+            comp.startNode = node;
+            nodes.push(node);
+        } else {
+            //Node already exists, so lets find it... then, link the component to the node and vice versa
+            for (var j=0; j<nodes.length; j++)
+            {
+                if (isPointInList(nodes[j].points, comp.startPos))
+                {
+                    node = nodes[j];
+                    //node.points.push(comp.startPos);
+                    node.startComponents.push(comp);
+                    comp.startNode = node;
+                    break;
+                }
+            }
+        }
+
+
         if (isPointInList(points, comp.endPos) == false && comp.type != "voltageSource1n")  //but ignore the endNode for voltageSource1n components
         {
             points.push(comp.endPos);
+
+            node = new Node();
+            node.name = getNewNodeName();
+
+            node.points.push(comp.endPos);
+            node.endComponents.push(comp);
+            comp.endNode = node;
+            nodes.push(node);
+        } else if (comp.type != "voltageSource1n") {
+            //Node already exists, so lets find it... then, link the component to the node and vice versa
+            for (var j=0; j<nodes.length; j++)
+            {
+                if (isPointInList(nodes[j].points, comp.endPos))
+                {
+                    node = nodes[j];
+                    //node.points.push(comp.endPos);
+                    node.endComponents.push(comp);
+                    comp.endNode = node;
+                    break;
+                }
+            }
         }
     }
 
+    //console.log(nodes);
+    //console.log(components);
+
+    /*
     //now, make those points into nodes (it's just easier this way)
     for (var i=0; i<points.length; i++)
     {
@@ -686,9 +747,26 @@ function FindNodes() {
                 comp.endNode = node;
             }
         }
-    }
+    }*/
 
     //var nodes2 = [];
+    
+    /*
+    for (var i=0; i<components.length; i++)
+    {
+        if (components[i].startNode == null)
+        {
+            console.error("start node is null   comp: "+ components[i].type+" "+components[i].name);
+        }
+        if (components[i].endNode == null)
+        {
+            //console.error("end node is null    comp:" + components[i].type+" "+components[i].name);
+        }
+    }*/
+
+
+
+    //saving a copy of the nodes (duplicating them and storing them in nodesNotCombined)
     nodesNotCombined = [];
     for (var i=0; i<nodes.length; i++)
     {
@@ -709,7 +787,10 @@ function FindNodes() {
     {
         if (components[i].type == "wire" || (components[i].type == "switch" && components[i].GetValue() == 1))
         {
-            combineNodes(components[i].startNode, components[i].endNode);
+            if (combineNodes(components[i].startNode, components[i].endNode) == null)
+            {
+                console.error("    comp: " + components[i].type + "  " + components[i].name);
+            }
         }
     }
 
@@ -720,6 +801,56 @@ function FindNodes() {
     }
 
     //console.log("nodes: " + nodes);
+}
+
+//removes all wire components from nodes list
+function RemoveWires() {
+    //Removing all wires from each node
+    for (var i=0; i<nodes.length; i++)
+    {
+        var newStartComponents = [];
+        var newEndComponents = [];
+        for (var j=0; j<nodes[i].startComponents.length; j++)
+        {
+            if (nodes[i].startComponents[j].type != "wire" && !(nodes[i].startComponents[j].type == "switch" && nodes[i].startComponents[j].GetValue() == 1))
+            {
+                newStartComponents.push( nodes[i].startComponents[j] );
+            }
+        }
+        for (var j=0; j<nodes[i].endComponents.length; j++)
+        {
+            if (nodes[i].endComponents[j].type != "wire" && !(nodes[i].endComponents[j].type == "switch" && nodes[i].endComponents[j].GetValue() == 1))
+            {
+                newEndComponents.push( nodes[i].endComponents[j] );
+            }
+        }
+        nodes[i].startComponents = newStartComponents;
+        nodes[i].endComponents = newEndComponents;
+    }
+}
+
+//Resets each node to default while keeping linked components
+function ResetNodes() {
+    /*
+    this.name = -1; //give it a unique name (at some point)
+    this.points = []; //different coordinates where this node exists
+    this.startComponents = []; //components which start at this node
+    this.endComponents = []; //components which end at this node
+    this.voltage = null;
+
+    this.forwardingAddress = -1; //has this node already been reduced? If so, leave a forwarding address for the other node.
+    this.forwardingVoltage = 0;
+
+    this.visited = false;
+    this.currentOut = 0;
+    this.numCurrentsOut = 0;*/
+    for (var i=0; i<nodes.length; i++)
+    {
+        nodes[i].voltage = null;
+        nodes[i].visited = false;
+        nodes[i].currentOut = 0;
+        nodes[i].numCurrentsOut = 0;
+    }
 }
 
 //Creates New Matrices
@@ -810,7 +941,6 @@ function ApplyVoltageSources() {
     {
         if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep") //if the component is a voltage source
         {
-            //console.log(components[i].startNode.voltage +"   "+components[i].endNode.voltage);
             if (components[i].startNode.voltage != null && components[i].endNode.voltage == null) //if the startNode voltage is known and endNode is not known
             {
                 //If the startNode is known, (the neg side of the voltage source), then we KNOW the endNode voltage. Let's apply it to the matrices.
@@ -852,8 +982,13 @@ function ApplyVoltageSources() {
             //PrintMatrices(matrixA, matrixB);
         } else if (components[i].type == "voltageSource1n") //this is for applying KNOWN voltage nodes
         {
-            components[i].startNode.voltage = components[i].voltage;
-            UpdateMatricesSpecific(components[i].startNode);
+            if (components[i].startNode != null)
+            {
+                components[i].startNode.voltage = components[i].voltage;
+                UpdateMatricesSpecific(components[i].startNode);
+            } else {
+                //console.error("voltageSource1n  -  startNode is null  comp.name="+components[i].name);
+            }
         }
     }
     UpdateMatrices();
@@ -1048,10 +1183,14 @@ function CalcCurrents() {
             components[i].endNode.numCurrentsOut += 1;
         } else if (components[i].type == "currentSource")
         {
-            components[i].startNode.currentOut += components[i].current;
-            components[i].startNode.numCurrentsOut += 1;
-            components[i].endNode.currentOut -= components[i].current;
-            components[i].endNode.numCurrentsOut += 1;
+            if (components[i].startNode != null) {
+                components[i].startNode.currentOut += components[i].current;
+                components[i].startNode.numCurrentsOut += 1;
+            }
+            if (components[i].endNode != null) {
+                components[i].endNode.currentOut -= components[i].current;
+                components[i].endNode.numCurrentsOut += 1;
+            }
         }
     }
 

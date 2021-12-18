@@ -21,6 +21,9 @@ function deleteComponent(comp) {
     {
         selectedComponent = null;
     }
+    comp.Delete();
+    removeComponentFromList(components, comp);
+    /*
     for(var i=0; i<components.length; i++)
     {
         if (components[i] == comp)
@@ -28,7 +31,7 @@ function deleteComponent(comp) {
             components.splice(i,1);
             comp.Delete(); //Let's just let the component know it's done. IDK if this will be used. Seems like a good idea though :-D
         }
-    }
+    }*/
 }
 function deleteNode(node) {
     //Remove the comp component from the components list.
@@ -55,6 +58,7 @@ function isSamePoint(p1,p2)
 
 
 function getNewComponentName() { //returns the lowest unused component name.
+    return Math.floor((Math.random() * 1000000));
     var name = 0;
     var foundOne = true; //have we found a new name
     for(var j=0; j<1000; j++) { //lets try this a max of 1000 times.
@@ -146,7 +150,7 @@ function parseStringValue(string_value)
                 break;
             }
         }
-        if (isNaN(Number(string_value[i])) == true && string_value[i] != '.')
+        if (isNaN(Number(string_value[i])) == true && string_value[i] != '.' && string_value[i] != '-')
         {
             ind = i;
             break;
@@ -163,8 +167,9 @@ function parseStringValue(string_value)
     {
         o += string_value[i];
     }
-
+    console.log(o);
     var val = Number(o);
+    console.log(val);
     if (val == null || isNaN(val)) {console.error("Cannot parse input: "+string_value +"   In utilities.parseValue"); return NaN; }
     while (s_index < 3)
     {
@@ -229,7 +234,7 @@ function removeObjectFromList(list, object)
 function combineNodes(node1, node2)
 {
     //This function takes two nodes and combines them into one. It is intended to be used for removing wires from the circuit.
-    if (node1 == null || node2 == null) //just check to make sure it's not null... was running into issues here and it's good for debugging
+    if (node1 instanceof Node == false || node2 instanceof Node == false) //just check to make sure it's not null... was running into issues here and it's good for debugging
     {
         console.error("error in combineNodes, one node is null! Node1: " + node1 + "  Node2: " + node2);
         return;
@@ -253,6 +258,19 @@ function combineNodes(node1, node2)
     {
         node1.endComponents.push(node2.endComponents[i]);
         node2.endComponents[i].endNode = node1;
+    }
+
+    //make sure all of the components lose references to the node2
+    for (var i=0; i<components.length; i++)
+    {
+        if (components[i].startNode != null && components[i].startNode.equals(node2))
+        {
+            components[i].startNode = node1;
+        }
+        if (components[i].endNode != null && components[i].endNode.equals(node2))
+        {
+            components[i].endNode = node1;
+        }
     }
 
     //delete node2 and return node1!
