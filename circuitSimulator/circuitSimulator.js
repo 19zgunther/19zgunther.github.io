@@ -948,6 +948,8 @@ function ResetNodes() {
         nodes[i].visited = false;
         nodes[i].currentOut = 0;
         nodes[i].numCurrentsOut = 0;
+        nodes[i].forwardingAddress = -1; 
+        nodes[i].forwardingVoltage = 0;
     }
 }
 
@@ -1035,22 +1037,52 @@ function UpdateMatricesSpecific(node) {
 
 //apply voltage sources to the matrices
 function ApplyVoltageSources() {
+
+    //Apply all constants / single node voltage components
+    for (var i=0; i<components.length; i++)
+    {
+        if (components[i].type == "voltageSource1n")
+        {
+            if (components[i].startNode != null)
+            {
+                components[i].startNode.voltage = components[i].voltage;
+                UpdateMatricesSpecific(components[i].startNode);
+            } else {
+                //console.error("voltageSource1n  -  startNode is null  comp.name="+components[i].name);
+            }
+        }
+    }
+
+    //Now, Keep applying 2n voltage components until we're gotten all of them.
+    var foundAnother = true;
+    while (foundAnother == true)
+    {
+        foundAnother = false;
+        for (var i=0; i<components.length; i++) {
+            if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep") //if the component is a voltage source
+            {
+                if (components[i].startNode.voltage != null && components[i].endNode.voltage == null) //if the startNode voltage is known and endNode is not known
+                {
+                    //If the startNode is known, (the neg side of the voltage source), then we KNOW the endNode voltage. Let's apply it to the matrices.
+                    components[i].endNode.voltage = components[i].startNode.voltage + components[i].voltage;
+                    foundAnother = true;
+                } else if (components[i].endNode.voltage != null && components[i].startNode.voltage == null) //if the endNode voltage is known and the startNode is not known.
+                {
+                    //If the endNode is known, (the pos side of the voltage source), then we KNOW the startNode voltage. Let's apply it to the matrices.
+                    components[i].startNode.voltage = components[i].endNode.voltage - components[i].voltage;
+                    foundAnother = true;
+                }
+            }
+        }
+    }
+
     for (var i = 0; i < components.length; i++) //for each component
     {
         if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep") //if the component is a voltage source
         {
-            if (components[i].startNode.voltage != null && components[i].endNode.voltage == null) //if the startNode voltage is known and endNode is not known
-            {
-                //If the startNode is known, (the neg side of the voltage source), then we KNOW the endNode voltage. Let's apply it to the matrices.
-                components[i].endNode.voltage = components[i].startNode.voltage + components[i].voltage;
-            } else if (components[i].endNode.voltage != null && components[i].startNode.voltage == null) //if the endNode voltage is known and the startNode is not known.
-            {
-                //If the endNode is known, (the pos side of the voltage source), then we KNOW the startNode voltage. Let's apply it to the matrices.
-                components[i].startNode.voltage = components[i].endNode.voltage - components[i].voltage;
-            } else if (components[i].startNode.voltage == null && components[i].endNode.voltage == null) //If both nodes are unknown, reduce!
+            if (components[i].startNode.voltage == null && components[i].endNode.voltage == null) //If both nodes are unknown, reduce!
             {
                 //ahh yes this is where the fuckery begins. I need to somehow reduce all of the connected voltage sources to this. Wish me luck
-                //console.log("vs ID: " + (components[i].name));
                 //In this case, we can simplify the endNode (pos side).     endNode = startNode + voltage
                 var comp = components[i];
                 var startNode = comp.startNode;
@@ -1076,16 +1108,6 @@ function ApplyVoltageSources() {
 
                 endNode.forwardingAddress = startNode.name;
                 endNode.forwardingVoltage = voltage;
-            }
-            //PrintMatrices(matrixA, matrixB);
-        } else if (components[i].type == "voltageSource1n") //this is for applying KNOWN voltage nodes
-        {
-            if (components[i].startNode != null)
-            {
-                components[i].startNode.voltage = components[i].voltage;
-                UpdateMatricesSpecific(components[i].startNode);
-            } else {
-                //console.error("voltageSource1n  -  startNode is null  comp.name="+components[i].name);
             }
         }
     }
