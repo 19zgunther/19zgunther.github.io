@@ -167,9 +167,9 @@ function parseStringValue(string_value)
     {
         o += string_value[i];
     }
-    console.log(o);
+    //console.log(o);
     var val = Number(o);
-    console.log(val);
+    //console.log(val);
     if (val == null || isNaN(val)) {console.error("Cannot parse input: "+string_value +"   In utilities.parseValue"); return NaN; }
     while (s_index < 3)
     {

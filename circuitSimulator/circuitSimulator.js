@@ -244,7 +244,9 @@ function keyPressed(event) {
             PrintCircuit();
             break;
         case "L":
-            LoadCircuit("voltageSource2n 0 5 260 320 260 200 resistor 1 1000 260 200 400 200 resistor 2 1000 400 200 400 320 wire 3 _ 400 320 260 320 resistor 4 1000 400 200 540 200 wire 6 _ 540 320 400 320 currentSource 5 0.001 540 320 540 200 resistor 7 1000 540 200 640 200 resistor 8 1000 640 200 640 320 wire 9 _ 640 320 540 320 voltageSource2n 10 5 640 200 740 200 resistor 11 1000 740 200 740 320 wire 12 _ 740 320 640 320 voltageSource1n 13 0 260 320 260 360");
+            //LoadCircuit("voltageSource2n 0 5 260 320 260 200 resistor 1 1000 260 200 400 200 resistor 2 1000 400 200 400 320 wire 3 _ 400 320 260 320 resistor 4 1000 400 200 540 200 wire 6 _ 540 320 400 320 currentSource 5 0.001 540 320 540 200 resistor 7 1000 540 200 640 200 resistor 8 1000 640 200 640 320 wire 9 _ 640 320 540 320 voltageSource2n 10 5 640 200 740 200 resistor 11 1000 740 200 740 320 wire 12 _ 740 320 640 320 voltageSource1n 13 0 260 320 260 360");
+            //LoadCircuit("wire 347686 400 240 401 241 wire 938539 400 200 401 201 voltageSource1n 841538 500 220 450 220 Voltage -9.516000000000062V Freqeuncy 0Hz opamp 738254 400 220 500 220 Max Voltage 10V Min Voltage -10V Slew Rate (per uS) 1uV wire 231831 400 200 400 140 resistor 173223 400 140 500 140 Resistance 1000Ω wire 187158 500 140 500 220 wire 744532 400 240 400 280 resistor 645204 400 280 500 280 Resistance 1000Ω wire 468260 500 280 500 220 resistor 482420 400 280 400 340 Resistance 1000Ω voltageSource1n 402846 400 340 400 360 Voltage 0V Freqeuncy 0Hz capacitor 410889 320 200 400 200 Capacitance 50nF voltageSource1n 429836 320 200 320 240 Voltage 0V Freqeuncy 0Hz wire 339579 500 220 560 220 plot 339579");
+            LoadCircuit("voltageSource2n 571646 320 260 320 160 5V 0Hz resistor 811385 320 160 400 160 1000Ω capacitor 596668 400 160 400 260 1uF wire 803844 400 260 320 260 voltageSource1n 190279 320 260 320 300 0V 0Hz plot 596668");
             shouldUpdateNodes = true;
             break;
         case "w": drawMode = "wire"; break;
@@ -386,7 +388,11 @@ function setup() {
     //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
     //LoadCircuit("resistor 0 1 300 200 440 200 voltageSource2n 1 5 180 300 180 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 wire 5 _ 180 300 300 300 inductor 6 0.001 300 300 300 200 capacitor 4 0.000001 440 300 440 200 resistor 7 10 300 200 180 200");
     //LoadCircuit("resistor 0 1 900 280 1040 280 voltageSource2n 1 5 660 380 660 280 voltageSource1n 2 0 900 380 900 420 wire 3 _ 900 380 1040 380 wire 5 _ 660 380 900 380 inductor 6 0.001 900 380 900 280 capacitor 4 0.000001 1040 380 1040 280 resistor 7 10 900 280 780 280 switch 8 0 660 280 780 280");
-    LoadCircuit("resistor 0 1 740 280 880 280 voltageSource2n 1 5 500 380 500 280 voltageSource1n 2 0 740 380 740 420 wire 3 _ 740 380 880 380 wire 5 _ 500 380 740 380 inductor 6 0.001 740 380 740 280 capacitor 4 0.000001 880 380 880 280 resistor 7 10 740 280 620 280 switch 8 0 500 280 620 280 plot 1 _ _ _ _ _ plot 6 _ _ _ _ _ plot 4 _ _ _ _ _");
+    //LoadCircuit("resistor 0 1 740 280 880 280 voltageSource2n 1 5 500 380 500 280 voltageSource1n 2 0 740 380 740 420 wire 3 _ 740 380 880 380 wire 5 _ 500 380 740 380 inductor 6 0.001 740 380 740 280 capacitor 4 0.000001 880 380 880 280 resistor 7 10 740 280 620 280 switch 8 0 500 280 620 280 plot 1 _ _ _ _ _ plot 6 _ _ _ _ _ plot 4 _ _ _ _ _");
+    //LoadCircuit("wire 916408 440 240 441 241 wire 557081 440 200 441 201 voltageSource1n 70008 580 220 510 220 10V 0Hz opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz plot 513448");
+    //LoadCircuit("opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz plot 513448");
+    //LoadCircuit("opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz plot 513448");
+    LoadCircuit("opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz resistor 563550 440 140 320 140 100kΩ voltageSource1n 790272 320 140 320 100 1V 0Hz plot 513448");
 
     simulationSpeedSliderChanged();
 }
@@ -450,6 +456,7 @@ function Update() {
 
 
 function PrintCircuit() {
+    /*
     var s = "";
     for(var i=0; i<components.length; i++)
     {
@@ -460,6 +467,25 @@ function PrintCircuit() {
         s += plotManager.plots[i].GetEncodedDataString();
     }
     console.log(s);
+    return s;*/
+    var s = "";
+    var c;
+    for(var i=0; i<components.length; i++)
+    {
+        c = components[i];
+        if (c.parentComponent != null) { continue; }
+        s += c.type + " " + c.name + " " + c.startPos.x + " "+c.startPos.y+" "+c.endPos.x+" "+c.endPos.y+" ";
+        var L = components[i].GetInputs();
+        for (var j=0; j<L.length; j++)
+        {
+            s +=  L[j][1] + " ";
+        }
+    }
+    for (var i=0; i<plotManager.plots.length; i++)
+    {
+        s += "plot " + plotManager.plots[i].component.name + " ";
+    }
+    console.log(s);
     return s;
 }
 /*This function takes a string and generates the components.
@@ -467,6 +493,71 @@ function PrintCircuit() {
 *   See PrintCircuit() and component.GetString() to see more about the format: "TYPE NAME VALUE START.X START.Y END.X END.Y". 
 */
 function LoadCircuit(dataString) {
+    var data = dataString.split(" ");
+    components = [];
+    nodes = [];
+    points = [];
+    nodesNotCombined = [];
+    selectedComponent = null;
+    plotManager.plots = [];
+
+    var itr = 0;
+    while ( itr < data.length)
+    {
+        var compType = data[itr];
+        itr += 1;
+        var c = createNewComponent(compType);
+        if (c != null)
+        {
+            c.name = data[itr];
+            itr += 1;
+            c.startPos.x = Number(data[itr]);
+            itr += 1;
+            c.startPos.y = Number(data[itr]);
+            itr += 1;
+            c.endPos.x = Number(data[itr]);
+            itr += 1;
+            c.endPos.y = Number(data[itr]);
+            itr += 1;
+            var len = c.GetInputs().length;
+            var args = []
+            for (var i = 0; i<len; i++)
+            {
+                args.push( parseStringValue(data[itr]) );
+                itr += 1;
+            }
+            c.SetValues(args);
+            if (c instanceof Capacitor) { c.voltage = 0.01; }
+            components.push(c);
+            selectedComponent = c;
+        }
+        else if (compType == "plot")
+        {
+            for (var i=0; i<components.length; i++)
+            {
+                if (data[itr] == components[i].name)
+                {
+                    plotManager.AddPlot( new Plot( components[i] ) );
+                    break;
+                }
+            }
+            itr += 1;
+        }
+    }
+    shouldUpdateNodes = true;
+    CenterCircuit();
+    FindNodes();
+    for (var i=0; i<components.length; i++)
+    {
+        console.log("UPDATE");
+        //components[i].RecordData();
+        //components[i].Update();
+        //components[i].RecordData();
+    }
+    CenterCircuit();
+    FindNodes();
+}
+function LoadCircuit_OLD(dataString) {
     /* inputs data in the form "TYPE NAME VALUE startPos.x startPos.y endPos.x endPos.y" */
     //Start by splitting the dataString by spaces
     var dataArray = dataString.split(" "); 
