@@ -201,6 +201,7 @@ function keyPressed(event) {
         numInputs = selectedComponent.GetInputs().length;
         var arr = [];
         for (var i=0; i<numInputs; i++) {
+            //Parse string value from GridInputElement
             var output = parseStringValue( GridInputElements[i].value );
             if (output != null && isNaN(Number(output)) == false)
             {
@@ -211,6 +212,13 @@ function keyPressed(event) {
             }
         }
         selectedComponent.SetValues(arr);
+
+        //Now, deselect the grid elements.
+        for (var i=0; i<numInputs; i++)
+        {
+            GridInputElements[i].blur();
+        }
+        this.blur();
         return;
     }
     
@@ -616,8 +624,6 @@ function LoadCircuit_OLD(dataString) {
     
     CenterCircuit(); //Center the circuit to 
 }
-
-
 //Centers the circuit to the center of the screen
 function CenterCircuit()
 {
@@ -651,6 +657,7 @@ function CenterCircuit()
         components[i].startPos.y -= diff.y;
         components[i].endPos.y -= diff.y;
     }
+    shouldUpdateNodes = true;
 }
 
 
