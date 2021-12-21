@@ -126,6 +126,10 @@ function mousePressed(event) {
             selectedComponent.type = "voltageSource1n";
             selectedComponent.voltage = 0;
         }
+        vectorMouseToEnd.x = 0;
+        vectorMouseToEnd.y = 0;
+        vectorMouseToStart.x = 0;
+        vectorMouseToStart.y = 0;
     } else { //if drawMode == "", then we want to (potentially) move a component.
         
         //We need to search for the nearest component (in components), and check to see if it is within clickRange;
@@ -147,15 +151,17 @@ function mousePressed(event) {
                 var dS = distBetweenPoints(components[i].startPos, mousePos);
                 var dM = distBetweenPoints(midPoint, mousePos);
                 var dE = distBetweenPoints(components[i].endPos, mousePos);
-                if (dS < dM && dS < dE) 
+                if (dS < gridSize) 
                 {
+                    vectorMouseToStart = getVector(mousePos,components[i].startPos);
                     movingComponentPoint = "start"; 
-                } else if (dM < dS && dM < dE) {
+                } else if (dE < gridSize) {
+                    vectorMouseToEnd = getVector(mousePos,components[i].endPos);
+                    movingComponentPoint = "end";
+                } else {
                     vectorMouseToStart = getVector(mousePos,components[i].startPos);
                     vectorMouseToEnd = getVector(mousePos,components[i].endPos);
                     movingComponentPoint = "mid"; 
-                } else {
-                    movingComponentPoint = "end";
                 }
             }
             /*dist = distBetweenPoints(mousePos, components[i].startPos);
@@ -268,6 +274,8 @@ function keyPressed(event) {
         case "i": drawMode = "currentSource"; break;
         case "f": drawMode = "freqSweep"; break;
         case "a": drawMode = "opamp"; break;
+        case "d": drawMode = "diode"; break;
+        case "z": drawMode = "zenerDiode"; break;
         case "<": 
             var plot = plotManager.GetPlotOfComponent(selectedComponent);
             if (plot != null)
@@ -384,13 +392,22 @@ function ResetButtonClick() {
 
 
 
-
 function setup() {
+    InitExampleCircuits();
+
     width = window.innerWidth*19/20;
     height = window.innerHeight-100;
     plotManager = new PlotManager(width, height);
     resizeWindow();
     painter = new Painter(CircuitCanvasElement);
+    simulationSpeedSliderChanged();
+
+
+
+    Calculate();
+    Update();
+    Calculate();
+    Update();
     //canvas = createCanvas(width, height);
     //canvas.parent('simulator');
     //LoadCircuit("resistor 0 1000 300 200 440 200 voltageSource2n 1 5 300 300 300 200 voltageSource1n 2 0 300 300 300 340 wire 3 _ 300 300 440 300 resistor 4 1000 440 300 440 200");
@@ -400,9 +417,10 @@ function setup() {
     //LoadCircuit("wire 916408 440 240 441 241 wire 557081 440 200 441 201 voltageSource1n 70008 580 220 510 220 10V 0Hz opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz plot 513448");
     //LoadCircuit("opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz plot 513448");
     //LoadCircuit("opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz plot 513448");
-    LoadCircuit("opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz resistor 563550 440 140 320 140 100kΩ voltageSource1n 790272 320 140 320 100 1V 0Hz plot 513448");
+    //LoadCircuit("opamp 396956 440 220 580 220 10V -10V 1uV wire 132086 580 220 580 140 resistor 988489 580 140 440 140 1000Ω wire 314383 440 140 440 200 wire 743209 440 240 440 280 resistor 818196 440 280 580 280 1000Ω wire 140290 580 280 580 220 resistor 803248 440 280 440 360 1000Ω voltageSource1n 381550 440 360 440 380 0V 0Hz capacitor 290379 320 200 440 200 50nF voltageSource1n 666579 320 200 320 240 0V 0Hz wire 126540 580 220 680 220 resistor 513448 680 220 680 300 1000Ω voltageSource1n 758880 680 300 680 320 0V 0Hz resistor 563550 440 140 320 140 100kΩ voltageSource1n 790272 320 140 320 100 1V 0Hz plot 513448");
+    //LoadCircuit("996022 200 260 200 100 -15V 0Hz resistor 948196 200 100 320 180 1000Ω diode 486492 320 180 200 260 700mV 10V voltageSource1n 17767 200 260 200 320 0V 0Hz");
+    LoadCircuit("voltageSource2n 574829 400 240 400 100 15V 5kHz resistor 168808 400 100 540 100 1000Ω diode 296754 540 100 540 240 700mV 1000MV wire 924756 540 240 400 240 zenerDiode 267851 660 40 660 240 700mV 10V wire 780386 660 240 540 240 wire 711496 400 100 400 40 resistor 73992 400 40 660 40 1000Ω voltageSource1n 246326 400 240 400 300 0V 0Hz plot 574829 plot 296754 plot 267851");
 
-    simulationSpeedSliderChanged();
 }
 window.onresize = resizeWindow();
 
@@ -439,11 +457,11 @@ function Update() {
     //console.log("movingComp: " + movingComponentPoint + "   selectedComp: " + selectedComponent);
     if (movingComponentPoint == "end" && selectedComponent != null) 
     {
-        selectedComponent.endPos = worldRoundToGrid(mousePos.copy()); //move endPos
+        selectedComponent.endPos = worldRoundToGrid(mousePos.copy().add(vectorMouseToEnd)); //move endPos
         shouldUpdateNodes = true;
     } else if (movingComponentPoint == "start" && selectedComponent != null) 
     {
-        selectedComponent.startPos = worldRoundToGrid(mousePos.copy()); //move startPos
+        selectedComponent.startPos = worldRoundToGrid(mousePos.copy().add(vectorMouseToStart)); //move startPos
         shouldUpdateNodes = true;
     } else if (movingComponentPoint == "mid" && selectedComponent != null) //move entire component ( translate )
     {
@@ -457,7 +475,7 @@ function Update() {
             shouldUpdateNodes = true;
         }
     }
-    
+
     UpdateDisplay(painter); //this updates the entire display (in graphics file)
     plotManager.Draw(painter);
 }
@@ -519,13 +537,13 @@ function LoadCircuit(dataString) {
         {
             c.name = data[itr];
             itr += 1;
-            c.startPos.x = Number(data[itr]);
+            c.startPos.x = Math.round(Number(data[itr]));
             itr += 1;
-            c.startPos.y = Number(data[itr]);
+            c.startPos.y = Math.round(Number(data[itr]));
             itr += 1;
-            c.endPos.x = Number(data[itr]);
+            c.endPos.x = Math.round(Number(data[itr]));
             itr += 1;
-            c.endPos.y = Number(data[itr]);
+            c.endPos.y = Math.round(Number(data[itr]));
             itr += 1;
             var len = c.GetInputs().length;
             var args = []
@@ -633,6 +651,7 @@ function CenterCircuit()
     var minPoint = new Point(10000,10000); //arbitrary large point (lower right in screen)
     for (var i=0; i<components.length; i++)
     {
+        if (components[i].parentComponent != null) { continue;}
         maxPoint.x = Math.max( components[i].startPos.x, components[i].endPos.x, maxPoint.x );
         minPoint.x = Math.min( components[i].startPos.x, components[i].endPos.x, minPoint.x );
         
@@ -753,7 +772,7 @@ function FindNodes() {
 
     for(var i=0; i<components.length; i++)
     {
-        if (components[i].type == 'opamp') {
+        if (components[i].type == 'opamp' || components[i].type == 'diode') {
             continue;
         } else if (components[i].startPos.equals(components[i].endPos))
         {
@@ -815,53 +834,6 @@ function FindNodes() {
             }
         }
     }
-
-    //console.log(nodes);
-    //console.log(components);
-
-    /*
-    //now, make those points into nodes (it's just easier this way)
-    for (var i=0; i<points.length; i++)
-    {
-        node = new Node();
-        node.points.push(points[i]);
-        node.name = getNewNodeName();
-        nodes.push(node);
-    }
-
-    //now, for each component, find the nodes which corrospond to the component's startPos and endPos, and give that information to the nodes.
-    for (var i=0; i<components.length; i++)
-    {
-        comp = components[i];
-        for (var j=0; j<nodes.length; j++)
-        {
-            node = nodes[j];
-            if (isSamePoint(comp.startPos, node.points[0]) == true) //we can do this because the nodes only have 1 point in their "points" list.
-            {
-                node.startComponents.push(comp);
-                comp.startNode = node;
-            } else if (isSamePoint(comp.endPos, node.points[0]) == true) {
-                node.endComponents.push(comp);
-                comp.endNode = node;
-            }
-        }
-    }*/
-
-    //var nodes2 = [];
-    
-    /*
-    for (var i=0; i<components.length; i++)
-    {
-        if (components[i].startNode == null)
-        {
-            console.error("start node is null   comp: "+ components[i].type+" "+components[i].name);
-        }
-        if (components[i].endNode == null)
-        {
-            //console.error("end node is null    comp:" + components[i].type+" "+components[i].name);
-        }
-    }*/
-
 
 
     //saving a copy of the nodes (duplicating them and storing them in nodesNotCombined)
@@ -1059,7 +1031,7 @@ function ApplyVoltageSources() {
     {
         foundAnother = false;
         for (var i=0; i<components.length; i++) {
-            if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep") //if the component is a voltage source
+            if (components[i].enabled == true && ( components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep")) //if the component is a voltage source
             {
                 if (components[i].startNode.voltage != null && components[i].endNode.voltage == null) //if the startNode voltage is known and endNode is not known
                 {
@@ -1078,7 +1050,7 @@ function ApplyVoltageSources() {
 
     for (var i = 0; i < components.length; i++) //for each component
     {
-        if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep") //if the component is a voltage source
+        if (components[i].enabled == true && ( components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep")) //if the component is a voltage source
         {
             if (components[i].startNode.voltage == null && components[i].endNode.voltage == null) //If both nodes are unknown, reduce!
             {
@@ -1118,7 +1090,7 @@ function ApplyVoltageSources() {
 function CheckVoltageSources() {
     for (var i=0; i<components.length; i++)
     {
-        if (components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep")
+        if (components[i].enabled == true && ( components[i].type == "voltageSource2n" || components[i].type == "capacitor" || components[i].type == "freqSweep"))
         {
             if (components[i].startNode.voltage != null && components[i].endNode.voltage == null)
             {

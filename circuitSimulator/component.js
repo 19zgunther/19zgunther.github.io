@@ -16,6 +16,8 @@ function createNewComponent(drawMode)
         case "freqSweep": return new FrequencySweep();
 
         case "opamp": return new OpAmp();
+        case "diode": return new Diode();
+        case "zenerDiode": var d = new Diode(); d.breakdownVoltage = 10; return d;
     }
 }
 
@@ -40,6 +42,8 @@ class Component {
         this.dataStart = 0;
 
         this.parentComponent = null;
+
+        this.enabled = true;
     }
 
     GetValueString() {console.error("GetValueString() not implmented for type: " + this.type)}
@@ -199,7 +203,7 @@ class Resistor extends Component {
         this.resistance = arr[0];
     }
     Draw(p) {
-
+        if (this.parentComponent != null) { return; }
         var startPos = this.startPos; 
         var endPos = this.endPos;
         var dist = Math.sqrt(Math.pow(startPos.x-endPos.x,2) + Math.pow(startPos.y-endPos.y,2)); //distance between startPos and endPos (start & end positions x and y)
@@ -540,6 +544,7 @@ class VoltageSource2n extends Component {
     }
 
     Draw(p) {
+        if (this.parentComponent != null) { return; }
         var startPos = this.startPos;
         var endPos = this.endPos;
         var dist = Math.sqrt(Math.pow(startPos.x-endPos.x,2) + Math.pow(startPos.y-endPos.y,2));
@@ -853,5 +858,136 @@ class OpAmp extends Component {
         removeComponentFromList(components, this.posInputWire);
         removeComponentFromList(components, this.negInputWire);
         removeComponentFromList(components, this.outputVoltageSource1n);
+    }
+}
+
+
+
+class Diode extends Component {
+    constructor() {
+        super();
+        this.type = 'diode';
+        this.thresholdVoltage = 0.7;
+        this.breakdownVoltage = 1000000000;
+
+        this.inActiveMode = false;
+        this.inBreakdownMode = false;
+
+        this.voltageSource2n = new VoltageSource2n();
+        this.resistor = new Resistor();
+        this.resistor.resistance = 1000000000;
+
+
+        this.voltageSource2n.parentComponent = this;
+        this.resistor.parentComponent = this;
+
+        components.push(this.voltageSource2n);
+        components.push(this.resistor);
+    }
+    GetEncodedDataString() {
+        return this.type+" "+this.name+" "+"_"+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
+    }
+    Draw(p) {
+
+        var a = Math.atan2(this.startPos.y-this.endPos.y, this.startPos.x-this.endPos.x) + Math.PI; //angle from startPos to endPos
+        var midpoint = findMidpoint(this.startPos, this.endPos);
+        var dist = distBetweenPoints(this.startPos, this.endPos);
+        var size = 10;
+        var len = dist/2 - size;
+        var p1 = new Point(this.startPos.x + len*Math.cos(a), this.startPos.y + len*Math.sin(a));
+        var p2 = new Point(this.endPos.x - len*Math.cos(a), this.endPos.y - len*Math.sin(a));
+        
+        p.DrawLine(this.startPos.x, this.startPos.y, p1.x, p1.y);
+        p.DrawLine(this.endPos.x, this.endPos.y, p2.x, p2.y);
+
+        var a1 = a + Math.PI/2; //angle to + terminal  (90 deg/ perpendicular to angle a)
+
+        var p3 = new Point(p1.x + size*Math.cos(a1), p1.y + size*Math.sin(a1));
+        var p4 = new Point(p1.x - size*Math.cos(a1), p1.y - size*Math.sin(a1));
+        var p5 = new Point(p2.x + size*Math.cos(a1), p2.y + size*Math.sin(a1));
+        var p6 = new Point(p2.x - size*Math.cos(a1), p2.y - size*Math.sin(a1));
+        p.DrawLine(p3.x, p3.y, p4.x, p4.y);//back line
+        p.DrawLine(p5.x, p5.y, p6.x, p6.y);//front line
+
+        p.DrawLine(p3.x, p3.y, p2.x, p2.y);//angles
+        p.DrawLine(p4.x, p4.y, p2.x, p2.y);
+
+        if (this.breakdownVoltage < 100000000)
+        {
+            var a2 = a1 + Math.PI/4;
+            p.DrawLine(p5.x, p5.y, p5.x + size*Math.cos(a2)/2, p5.y + size*Math.sin(a2)/2);
+            p.DrawLine(p6.x, p6.y, p6.x - size*Math.cos(a2)/2, p6.y - size*Math.sin(a2)/2);
+        }
+
+        this.voltageSource2n.startPos = this.startPos;
+        this.voltageSource2n.endPos = this.endPos;
+        this.resistor.startPos = this.startPos;
+        this.resistor.endPos = this.endPos;
+    }
+    GetInputs(){
+        return [["Threshold Voltage", formatValue(this.thresholdVoltage,"V")],  ["Breakdown Voltage", formatValue(this.breakdownVoltage,"V")]];
+    }
+    SetValues(arr = []){
+        this.thresholdVoltage = arr[0];
+        this.breakdownVoltage = arr[1];
+    }
+
+    RecordData()
+    {
+        if (this.startNode != null)
+        {
+            this.voltage = this.startNode.voltage;
+        }
+        this.voltageData.shift(); //remove the first element in the array ( [0,1,2,3,4,5]  ->  [1,2,3,4,5])
+        this.currentData.shift();
+        this.voltageData.push(this.resistor.voltage); //push a new value onto the back
+        this.currentData.push(this.voltageSource2n.current);
+    }
+    Update(currentTime, timeStep) {
+        if (this.voltageSource2n.enabled == true) //if the voltage source is on, make sure the current is -
+        {
+            if (this.inBreakdownMode)
+            {
+                if (this.voltageSource2n.current <= 0)
+                {
+                    //do nothing
+                    this.voltageSource2n.voltage = this.breakdownVoltage;
+                } else {
+                    this.inBreakdownMode = false;
+                    this.voltageSource2n.enabled = false;
+                    this.voltageSource2n.voltage = -this.thresholdVoltage;
+                }
+            } else {
+                if (this.voltageSource2n.current >= 0)
+                {
+                    //do nothing
+                    this.voltageSource2n.voltage = -this.thresholdVoltage;
+                } else {
+                    //if current is positive (flowing out of the source) we don't want it to be enabled!
+                    this.voltageSource2n.enabled = false;
+                    this.inActiveMode = false;
+                }
+            }
+        } else {
+            //if the voltage source is off, should it be on?
+            if (this.resistor.voltage > this.thresholdVoltage-.01)
+            {
+                //It should be on! 
+                this.inActiveMode = true;
+                this.voltageSource2n.enabled = true;
+                this.voltageSource2n.voltage = -this.thresholdVoltage;
+            } else if (this.resistor.voltage < -this.breakdownVoltage)
+            {
+                //Uhhu! breakdown! voltage too high!
+                this.inBreakdownMode = true;
+                this.voltageSource2n.enabled = true;
+                this.voltageSource2n.voltage = this.breakdownVoltage;
+            }
+        }
+    }
+
+    Delete() {
+        this.voltageSource2n.Delete();
+        removeComponentFromList(components, this.voltageSource2n);
     }
 }
