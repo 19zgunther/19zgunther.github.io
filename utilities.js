@@ -57,8 +57,54 @@ function isSamePoint(p1,p2)
 }
 
 
-function getNewComponentName() { //returns the lowest unused component name.
-    return Math.floor((Math.random() * 1000000));
+function getNewComponentName(type) { //returns the lowest unused component name.
+    if (type == null)
+    {
+        return Math.floor((Math.random() * 1000000));
+    } else {
+        var N = null;
+        switch(type)
+        {
+            case "wire": N = "w";break;
+            case "switch": N = "sw";break;
+            case "resistor": N = "r";break;
+            case "capacitor": N = "c";break;
+            case "inductor": N = "L";break;
+            case "voltageSource1n": N = "v";break;
+            case "voltageSource2n": N = "v";break;
+            case "currentSource": N = "I";break;
+            case "freqSweep": N = "v";break;
+            case "opamp": N = "u";break;
+            case "diode": N = "d";break;
+        }
+        if (N == null)
+        {
+            N = "u";
+        }
+        
+        var x = 1;
+        var foundNewName = false;
+        for(var k=0; k<500; k++)
+        {
+            foundNewName = true;
+            var name = N + x.toString();
+            for (var i=0; i<components.length; i++)
+            {
+                if (components[i].name == name)
+                {
+                    foundNewName = false;
+                    x += 1;
+                    break;
+                }
+            }
+            if (foundNewName)
+            {
+                return name;
+            }
+        }
+    }
+    return "Could not find name";
+    /*
     var name = 0;
     var foundOne = true; //have we found a new name
     for(var j=0; j<1000; j++) { //lets try this a max of 1000 times.
@@ -77,7 +123,7 @@ function getNewComponentName() { //returns the lowest unused component name.
             return name;
         }
     }
-    return -2;
+    return -2;*/
 }
 function getNewNodeName() { //returns the lowest unused node name.
     var name = 0;

@@ -30,12 +30,14 @@ function UpdateDisplay(p) {
     //Label each node////////////////////////////////////////////////////////////////////
     for (var i=0; i<nodes.length; i++)
     {
+        if ( nodes[i].drawGraphics == false ) {continue;} //for internal nodes (inside of diodes and such)
+    
         for (var j=0; j<nodes[i].points.length; j++)
         {
-            p.SetFillColor(rgbToHex(-nodes[i].voltage*25, nodes[i].voltage*25, 0));
-            var val = 255-Math.abs(nodes[i].voltage*25);
-            p.SetStrokeColor(rgbToHex(val, val, val));
-            p.DrawCircleFilled(nodes[i].points[j].x, nodes[i].points[j].y, nodeSize );
+            //p.SetFillColor(rgbToHex(-nodes[i].voltage*25, nodes[i].voltage*25, 0));
+            //var val = 255-Math.abs(nodes[i].voltage*25);
+            p.SetStrokeColor(voltageToHexColor(nodes[i].voltage));
+            p.DrawCircleFilled(nodes[i].points[j].x, nodes[i].points[j].y, nodeSize , voltageToHexColor(nodes[i].voltage));
         }
 
         //Labeling the node & drawing the voltage. We must check the checkbox elements to see what the user wants displayed

@@ -24,12 +24,15 @@ function createNewComponent(drawMode)
 
 
 class Component {
-    constructor() {
-        this.name = getNewComponentName();
+    constructor(type) {
         
         this.startPos = new Point(0,0);
         this.endPos = new Point(0,0);
-        this.type = "default_component" //can be wire, resistor, capacitor, voltageSource1n, voltageSource2n, or currentSource, or inductor
+        this.type = type //can be wire, resistor, capacitor, voltageSource1n, voltageSource2n, or currentSource, or inductor
+
+
+        this.name = getNewComponentName(this.type);
+
 
         this.startNode = null;
         this.endNode = null;
@@ -85,7 +88,7 @@ class Component {
 
 class Wire extends Component {
     constructor() {
-        super();
+        super('wire');
         this.type = 'wire';
     }
     GetEncodedDataString() {
@@ -93,7 +96,11 @@ class Wire extends Component {
     }
     Draw(p) {
         //if (this.parentComponent != null) { return; }
-        p.DrawLine(this.startPos.x,this.startPos.y,this.endPos.x,this.endPos.y);
+        if (this.startNode != null)
+        {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+        }
+        p.DrawLine(this.startPos.x,this.startPos.y,this.endPos.x,this.endPos.y, snColor);
         if (this.startPos.equals(this.endPos))
         {
             p.DrawCircle(this.startPos.x, this.startPos.y, 5, 'purple');
@@ -121,8 +128,9 @@ class Wire extends Component {
 
 class Switch extends Component {
     constructor() {
-        super();
+        super('switch');
         this.type = 'switch';
+        this.name = getNewComponentName(this.type);
         this.switchClosed = 1; //1 = true = switch_Is_Closed, 0 = false = switch_is_open
     }
     GetEncodedDataString() {
@@ -157,16 +165,24 @@ class Switch extends Component {
         var p5 = new Point((Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y));
         var p6 = new Point((Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
         
+
+        if (this.startNode != null && this.endNode != null) {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+            var enColor = voltageToHexColor(this.endNode.voltage);
+            var mid = voltageToHexColor((this.startNode.voltage + this.endNode.voltage)/2);
+        }
+
+
         //Draw lines from endpoints to box
-        p.DrawLine(startPos.x,startPos.y, p5.x, p5.y); //drawing line from startPos
-        p.DrawLine(endPos.x,endPos.y, p6.x, p6.y); //drawing line from endPos
+        p.DrawLine(startPos.x,startPos.y, p5.x, p5.y, snColor); //drawing line from startPos
+        p.DrawLine(endPos.x,endPos.y, p6.x, p6.y, enColor); //drawing line from endPos
         p.DrawCircle(p5.x,p5.y,3);
         p.DrawCircle(p6.x,p6.y,3);
         
         if (this.switchClosed == 1) {
-            p.DrawLine(p5.x + Math.cos(angle+Math.PI/2)*3, p5.y + Math.sin(angle+Math.PI/2)*3,  p6.x, p6.y);
+            p.DrawLine(p5.x + Math.cos(angle+Math.PI/2)*3, p5.y + Math.sin(angle+Math.PI/2)*3,  p6.x, p6.y, snColor);
         } else {
-            p.DrawLine(p5.x + Math.cos(angle+Math.PI/2)*15, p5.y + Math.sin(angle+Math.PI/2)*15,  p6.x, p6.y);
+            p.DrawLine(p5.x + Math.cos(angle+Math.PI/2)*15, p5.y + Math.sin(angle+Math.PI/2)*15,  p6.x, p6.y,  enColor);
         }
     }
 }
@@ -174,8 +190,9 @@ class Switch extends Component {
 
 class Resistor extends Component {
     constructor() {
-        super();
+        super('resistor');
         this.type = 'resistor';
+        this.name = getNewComponentName(this.type);
         this.resistance = 1000;
     }
     GetEncodedDataString() {
@@ -221,16 +238,26 @@ class Resistor extends Component {
         var p3 = new Point((Math.cos(angle+angleModifier+Math.PI)*height+midpoint.x),(Math.sin(angle+angleModifier+Math.PI)*height+midpoint.y));
         var p4 = new Point((Math.cos(angle-angleModifier+Math.PI)*height+midpoint.x),(Math.sin(angle-angleModifier+Math.PI)*height+midpoint.y));
         
+        if (this.startNode != null && this.endNode != null) {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+            var enColor = voltageToHexColor(this.endNode.voltage);
+            var mid = voltageToHexColor((this.startNode.voltage + this.endNode.voltage)/2);
+        }
+
 
         //Draw lines from endpoints to box
-        p.DrawLine(startPos.x,startPos.y, p5.x, p5.y); //drawing line from startPos
-        p.DrawLine(endPos.x,endPos.y, p6.x, p6.y); //drawing line from endPos
+        p.DrawLine(startPos.x,startPos.y, p5.x, p5.y, snColor); //drawing line from startPos
+        p.DrawLine(endPos.x,endPos.y, p6.x, p6.y, enColor); //drawing line from endPos
         
+        var v = (this.startNode.voltage + this.endNode.voltage)/2;
         //actually drawing the box now (4 lines)
+        var temp = p.GetStrokeColor();
+        p.SetStrokeColor(mid);
         p.DrawLine(p1.x,p1.y,p2.x,p2.y); 
         p.DrawLine(p3.x,p3.y,p4.x,p4.y);
         p.DrawLine(p1.x,p1.y,p4.x,p4.y);
         p.DrawLine(p2.x,p2.y,p3.x,p3.y);
+        p.SetStrokeColor(temp);
 
 
         while (angle > Math.PI/2) {
@@ -253,8 +280,9 @@ class Resistor extends Component {
 
 class Capacitor extends Component {
     constructor() {
-        super();
+        super('capacitor');
         this.type = 'capacitor';
+        this.name = getNewComponentName(this.type);
         this.capacitance = 0.000001;
     }
     GetEncodedDataString() {
@@ -293,51 +321,43 @@ class Capacitor extends Component {
         var angleModifier = Math.PI/2-0.3;
         var ps = new Point((Math.cos(angle)*len+startPos.x),(Math.sin(angle)*len+startPos.y));
         var pe = new Point((Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
-        p.DrawLine(startPos.x,startPos.y, ps.x, ps.y);
-        p.DrawLine(endPos.x,endPos.y, pe.x, pe.y);
         var p1 = new Point((Math.cos(angle+angleModifier)*height+midpoint.x),(Math.sin(angle+angleModifier)*height+midpoint.y));
         var p2 = new Point((Math.cos(angle-angleModifier)*height+midpoint.x),(Math.sin(angle-angleModifier)*height+midpoint.y));
         var p3 = new Point((Math.cos(angle+angleModifier+Math.PI)*height+midpoint.x),(Math.sin(angle+angleModifier+Math.PI)*height+midpoint.y));
         var p4 = new Point((Math.cos(angle-angleModifier+Math.PI)*height+midpoint.x),(Math.sin(angle-angleModifier+Math.PI)*height+midpoint.y));
-        p.DrawLine(p1.x,p1.y,p2.x,p2.y);
+        
+        if (this.startNode != null && this.endNode != null) {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+            var enColor = voltageToHexColor(this.endNode.voltage);
+            var mid = (this.startNode.voltage - this.endNode.voltage)/2;
+        }
+
+
+        var temp = p.GetStrokeColor();
+        p.SetStrokeColor(snColor);
+        p.DrawLine(startPos.x,startPos.y, ps.x, ps.y);
         p.DrawLine(p3.x,p3.y,p4.x,p4.y);
-
-
-        /*
-        var size = 5;
-        if (this.voltage > 0) { 
-            var p5 = new Point(pe.x + 15*Math.cos(angle+Math.PI/3), pe.y + 15*Math.sin(angle+Math.PI/3));
-            var p6 = new Point(p5.x + size*2*Math.cos(angle), p5.y + size*2*Math.sin(angle));
-            var p7 = new Point(p5.x + size*1.5*Math.cos(angle+Math.PI/4), p5.y + size*1.5*Math.sin(angle+Math.PI/4));
-            var p8 = new Point(p5.x + size*1.5*Math.cos(angle-Math.PI/4), p5.y + size*1.5*Math.sin(angle-Math.PI/4));
-            p.DrawLine(p5.x,p5.y,p6.x,p6.y);
-            p.DrawLine(p7.x,p7.y,p8.x,p8.y);
-        } else {
-            var p5 = new Point(ps.x + 15*Math.cos(angle+Math.PI/3), ps.y - 15*Math.sin(angle+Math.PI/3));
-            var p6 = new Point(p5.x - size*2*Math.cos(angle), p5.y - size*2*Math.sin(angle));
-            var p7 = new Point(p5.x - size*1.5*Math.cos(angle+Math.PI/4), p5.y - size*1.5*Math.sin(angle+Math.PI/4));
-            var p8 = new Point(p5.x - size*1.5*Math.cos(angle-Math.PI/4), p5.y - size*1.5*Math.sin(angle-Math.PI/4));
-            p.DrawLine(p5.x,p5.y,p6.x,p6.y);
-            p.DrawLine(p7.x,p7.y,p8.x,p8.y);
-        }*/
+        p.SetStrokeColor(enColor);
+        p.DrawLine(endPos.x,endPos.y, pe.x, pe.y);
+        p.DrawLine(p1.x,p1.y,p2.x,p2.y);
+        p.SetStrokeColor(temp);
 
         p.DrawText(midpoint.x+height+2, midpoint.y, formatValue(this.capacitance, this.GetStringSuffix()) );
-
-
-        if (labelComponentNames == true) {
-            //fill(255,255,255);
-            //stroke(5);
-            //strokeWeight(1);
-            //textSize(labelTextSize);
-            //text("C"+comp.name+": "+comp.GetValueString(), midpoint.x, midpoint.y);
-        }
+    }
+    RecordData()
+    {
+        this.voltageData.shift(); //remove the first element in the array ( [0,1,2,3,4,5]  ->  [1,2,3,4,5])
+        this.currentData.shift();
+        this.voltageData.push(this.voltage); //push a new value onto the back
+        this.currentData.push(-this.current);
     }
 }
 
 class Inductor extends Component {
     constructor() {
-        super();
+        super('inductor');
         this.type = 'inductor';
+        this.name = getNewComponentName(this.type);
         this.inductance = 0.001;
     }
     GetEncodedDataString() {
@@ -384,13 +404,22 @@ class Inductor extends Component {
         var ps3 = new Point((Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y));
         var pe3 = new Point((Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
 
-        p.DrawLine(startPos.x,startPos.y, ps1.x, ps1.y); //drawing line from startPos
-        p.DrawLine(endPos.x,endPos.y, pe1.x, pe1.y); //drawing line from endPos
+
+        if (this.startNode != null && this.endNode != null) {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+            var enColor = voltageToHexColor(this.endNode.voltage);
+            var inc = (this.startNode.voltage - this.endNode.voltage)/5;
+            var v = this.endNode.voltage;
+        }
+
+        p.DrawLine(startPos.x,startPos.y, ps1.x, ps1.y, snColor); //drawing line from startPos
+        p.DrawLine(endPos.x,endPos.y, pe1.x, pe1.y, enColor); //drawing line from endPos
         
-        p.DrawArc(ps2.x,ps2.y, 5, 0+angle, Math.PI+angle);
-        p.DrawArc(ps3.x,ps3.y, 5, 0+angle, Math.PI+angle);
-        p.DrawArc(pe2.x,pe2.y, 5, 0+angle, Math.PI+angle);
-        p.DrawArc(pe3.x,pe3.y, 5, 0+angle, Math.PI+angle);
+
+        p.DrawArc(ps2.x,ps2.y, 5, 0+angle, Math.PI+angle, voltageToHexColor(v+inc*4));
+        p.DrawArc(ps3.x,ps3.y, 5, 0+angle, Math.PI+angle, voltageToHexColor(v+inc*3));
+        p.DrawArc(pe3.x,pe3.y, 5, 0+angle, Math.PI+angle, voltageToHexColor(v+inc*2));
+        p.DrawArc(pe2.x,pe2.y, 5, 0+angle, Math.PI+angle, voltageToHexColor(v+inc*1));
 
 
         //this is all for drawing the arrow next to the inductor specifying current direction
@@ -440,7 +469,7 @@ class Inductor extends Component {
 
 class VoltageSource1n extends Component {
     constructor() {
-        super();
+        super('voltageSource1n');
         this.type = 'voltageSource1n';
         this.targetVoltage = 0;
         this.frequency = 0;
@@ -474,9 +503,9 @@ class VoltageSource1n extends Component {
     }
     Draw(p) {
         if (this.parentComponent != null) { return; }
-        p.DrawLine(this.startPos.x,this.startPos.y,this.endPos.x,this.endPos.y);
-        //strokeWeight(2);
-        p.DrawLine(this.endPos.x - 10, this.endPos.y, this.endPos.x + 10, this.endPos.y);
+        var color = voltageToHexColor(this.voltage);
+        p.DrawLine(this.startPos.x,this.startPos.y,this.endPos.x,this.endPos.y, color);
+        p.DrawLine(this.endPos.x - 10, this.endPos.y, this.endPos.x + 10, this.endPos.y, color);
         
         if (this.targetVoltage == 0)
         {
@@ -511,7 +540,7 @@ class VoltageSource1n extends Component {
 
 class VoltageSource2n extends Component {
     constructor() {
-        super();
+        super('voltageSource2n');
         this.type = 'voltageSource2n';
         this.targetVoltage = 5;
         this.voltage = 5;
@@ -542,7 +571,6 @@ class VoltageSource2n extends Component {
         this.targetVoltage = arr[0];
         this.frequency = arr[1];
     }
-
     Draw(p) {
         if (this.parentComponent != null) { return; }
         var startPos = this.startPos;
@@ -551,7 +579,15 @@ class VoltageSource2n extends Component {
         var angle = Math.atan2(startPos.y-endPos.y, startPos.x-endPos.x) + Math.PI;
         var midpoint = new Point((Math.cos(angle)*dist/2+startPos.x),(Math.sin(angle)*dist/2+startPos.y));
         var len = 1;
+
+        if (this.startNode != null && this.endNode != null) {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+            var enColor = voltageToHexColor(this.endNode.voltage);
+            var mid = voltageToHexColor((this.startNode.voltage+this.endNode.voltage)/2);
+        }
+
         if (this.frequency == 0) {
+            //DC - draw battery
             len = (dist/2) - 7;
 
             var height1 = 20;
@@ -561,18 +597,19 @@ class VoltageSource2n extends Component {
             var p2 = new Point((Math.cos(angle-angleModifier)*height1+midpoint.x),(Math.sin(angle-angleModifier)*height1+midpoint.y));
             var p3 = new Point((Math.cos(angle+angleModifier+Math.PI)*height2+midpoint.x),(Math.sin(angle+angleModifier+Math.PI)*height2+midpoint.y));
             var p4 = new Point((Math.cos(angle-angleModifier+Math.PI)*height2+midpoint.x),(Math.sin(angle-angleModifier+Math.PI)*height2+midpoint.y));
-            p.DrawLine(p1.x,p1.y,p2.x,p2.y);
-            p.DrawLine(p3.x,p3.y,p4.x,p4.y);
+            p.DrawLine(p1.x,p1.y,p2.x,p2.y, enColor);
+            p.DrawLine(p3.x,p3.y,p4.x,p4.y, snColor);
             p.DrawTextCentered(midpoint.x+25, midpoint.y, formatValue(this.targetVoltage, this.GetStringSuffix()) );
         } else {
+            //ac - draw circle..?
             len = (dist/2) - 25;
-            p.DrawCircle(midpoint.x, midpoint.y, 25);
+            p.DrawCircle(midpoint.x, midpoint.y, 25, mid);
             p.DrawTextCentered(midpoint.x, midpoint.y, formatValue(this.frequency, "Hz"));
             p.DrawTextCentered(midpoint.x+35, midpoint.y, formatValue(this.targetVoltage, this.GetStringSuffix()) );
         }
 
-        p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y));
-        p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
+        p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y), snColor);
+        p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y), enColor);
     }
     Update(currentTime, timeStep) {
         if (this.frequency != 0) {
@@ -585,8 +622,8 @@ class VoltageSource2n extends Component {
 
 class CurrentSource extends Component {
     constructor() {
-        super();
-        this.type = 'voltageSource1n';
+        super('currentSource');
+        this.type = 'currentSource';
         this.targetCurrent = 5;
         this.frequency = 0;
         this.current = 5;
@@ -612,20 +649,29 @@ class CurrentSource extends Component {
         var len = (dist/2) - 15;
         var midpoint = new Point((Math.cos(angle)*dist/2+startPos.x),(Math.sin(angle)*dist/2+startPos.y));
         //fill(0,0,0,0);
-        p.DrawCircle(midpoint.x, midpoint.y, 15);
+        
 
         var height = 10;
         var angleModifier = Math.PI/2-0.3;
-        p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y));
-        p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
+
+        if (this.startNode != null && this.endNode != null) {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+            var enColor = voltageToHexColor(this.endNode.voltage);
+            var mid = voltageToHexColor((this.startNode.voltage+this.endNode.voltage)/2);
+        }
+
+        p.DrawCircle(midpoint.x, midpoint.y, 15, mid);
+
+        p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y), snColor);
+        p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y), enColor);
         var p1 = new Point((Math.cos(angle)*height+midpoint.x),(Math.sin(angle)*height+midpoint.y));
         var p2 = new Point((Math.cos(angle+Math.PI)*height+midpoint.x),(Math.sin(angle+Math.PI)*height+midpoint.y));
 
         var p3 = new Point((Math.cos(angle+Math.PI/2)*height+midpoint.x),(Math.sin(angle+Math.PI/2)*height+midpoint.y));
         var p4 = new Point((Math.cos(angle-Math.PI/2)*height+midpoint.x),(Math.sin(angle-Math.PI/2)*height+midpoint.y));
-        p.DrawLine(p1.x,p1.y,p2.x,p2.y);
-        p.DrawLine(p3.x,p3.y,p1.x,p1.y);
-        p.DrawLine(p4.x,p4.y,p1.x,p1.y);
+        p.DrawLine(p1.x,p1.y,p2.x,p2.y, mid);
+        p.DrawLine(p3.x,p3.y,p1.x,p1.y, mid);
+        p.DrawLine(p4.x,p4.y,p1.x,p1.y, mid);
 
         p.DrawText(midpoint.x + 20, midpoint.y, formatValue(this.targetCurrent, "A"));
     }
@@ -640,7 +686,7 @@ class CurrentSource extends Component {
 
 class FrequencySweep extends Component {
     constructor() {
-        super();
+        super('freqSweep');
         this.type = 'freqSweep';
         this.targetVoltage = 5;
         this.voltage = 5;
@@ -670,7 +716,6 @@ class FrequencySweep extends Component {
         this.stopFreq = arr[2];
         this.sweepDuration = arr[3];
     }
-
     Draw(p) {
         var startPos = this.startPos;
         var endPos = this.endPos;
@@ -682,10 +727,15 @@ class FrequencySweep extends Component {
         var height1 = 15;
         var height2 = 10;
         var angleModifier = Math.PI/2-0.3;
-        p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y));
-        p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y));
+        if (this.startNode != null && this.endNode != null) {
+            var snColor = voltageToHexColor(this.startNode.voltage);
+            var enColor = voltageToHexColor(this.endNode.voltage);
+            var mid = voltageToHexColor((this.startNode.voltage+this.endNode.voltage)/2);
+        }
+        p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y), snColor);
+        p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y), enColor);
 
-        p.DrawCircle(midpoint.x, midpoint.y, 25);
+        p.DrawCircle(midpoint.x, midpoint.y, 25, mid);
         p.DrawTextCentered(midpoint.x, midpoint.y, (this.currentFreq).toPrecision(2));
         p.DrawTextCentered(midpoint.x, midpoint.y+15, "Hz");
 
@@ -710,7 +760,7 @@ class FrequencySweep extends Component {
 
 class OpAmp extends Component {
     constructor() {
-        super();
+        super('opamp');
         this.type = 'opamp';
         this.minVoltage = -10;
         this.maxVoltage = 10;
@@ -748,6 +798,14 @@ class OpAmp extends Component {
         var sp = new Point(midpoint.x - Math.cos(a)*gridSize, midpoint.y - Math.sin(a)*gridSize); //point on line from startPos to endPos, start of triangle
         var ep = new Point(midpoint.x + Math.cos(a)*gridSize, midpoint.y + Math.sin(a)*gridSize);
 
+        try {
+            var plusInputColor = voltageToHexColor(this.posInputWire.startNode.voltage);
+            var negInputColor = voltageToHexColor(this.negInputWire.startNode.voltage);
+            var avgColor = voltageToHexColor(  (this.posInputWire.startNode.voltage + this.negInputWire.startNode.voltage+this.outputVoltageSource1n.targetVoltage)/3  );
+            var outputColor = voltageToHexColor(this.outputVoltageSource1n.targetVoltage);
+        }catch(e){
+
+        }
 
         //Draw line for + and - input pins to triangle
         var l1_1 = new Point(this.startPos.x + Math.cos(a1)*gridSize, this.startPos.y + Math.sin(a1)*gridSize);
@@ -758,8 +816,8 @@ class OpAmp extends Component {
         this.posInputWire.endPos = new Point(l1_1.x+1, l1_1.y+1);
         this.negInputWire.startPos = l2_1;
         this.negInputWire.endPos = new Point(l2_1.x+1, l2_1.y+1);
-        p.DrawLine(l1_1.x, l1_1.y, l1_2.x, l1_2.y);
-        p.DrawLine(l2_1.x, l2_1.y, l2_2.x, l2_2.y);
+        p.DrawLine(l1_1.x, l1_1.y, l1_2.x, l1_2.y, plusInputColor);
+        p.DrawLine(l2_1.x, l2_1.y, l2_2.x, l2_2.y, negInputColor);
         var l1_2 = new Point(l1_2.x + Math.cos(a)*5, l1_2.y + Math.sin(a)*5);
         p.DrawTextCentered(l1_2.x + Math.cos(a)*4, l1_2.y + Math.sin(a)*4, "+");
         p.DrawTextCentered(l2_2.x + Math.cos(a)*4, l2_2.y + Math.sin(a)*4, "-");
@@ -768,11 +826,11 @@ class OpAmp extends Component {
         var t1 = new Point(sp.x + Math.cos(a1)*gridSize*1.8, sp.y + Math.sin(a1)*gridSize*1.8);
         var t2 = new Point(sp.x - Math.cos(a1)*gridSize*1.8, sp.y - Math.sin(a1)*gridSize*1.8);
         var t3 = ep;
-        p.DrawTriangle(t1.x, t1.y, t2.x, t2.y, t3.x, t3.y);
+        p.DrawTriangle(t1.x, t1.y, t2.x, t2.y, t3.x, t3.y, avgColor);
 
 
         //Draw output line
-        p.DrawLine(ep.x, ep.y, this.endPos.x, this.endPos.y);
+        p.DrawLine(ep.x, ep.y, this.endPos.x, this.endPos.y, outputColor);
         this.outputVoltageSource1n.startPos = new Point(this.endPos.x, this.endPos.y);
         this.outputVoltageSource1n.endPos = midpoint;
     }
@@ -861,11 +919,9 @@ class OpAmp extends Component {
     }
 }
 
-
-
 class Diode extends Component {
     constructor() {
-        super();
+        super('diode');
         this.type = 'diode';
         this.thresholdVoltage = 0.7;
         this.breakdownVoltage = 1000000000;
@@ -874,15 +930,18 @@ class Diode extends Component {
         this.inBreakdownMode = false;
 
         this.voltageSource2n = new VoltageSource2n();
-        this.resistor = new Resistor();
-        this.resistor.resistance = 1000000000;
-
+        this.resistorParallel = new Resistor();
+        this.resistorParallel.resistance = 1000000000;
+        this.internalResistor = new Resistor();
+        this.internalResistor.resistance = 0.01;
 
         this.voltageSource2n.parentComponent = this;
-        this.resistor.parentComponent = this;
+        this.resistorParallel.parentComponent = this;
+        this.internalResistor.parentComponent = this;
 
         components.push(this.voltageSource2n);
-        components.push(this.resistor);
+        components.push(this.resistorParallel);
+        components.push(this.internalResistor);
     }
     GetEncodedDataString() {
         return this.type+" "+this.name+" "+"_"+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
@@ -897,8 +956,16 @@ class Diode extends Component {
         var p1 = new Point(this.startPos.x + len*Math.cos(a), this.startPos.y + len*Math.sin(a));
         var p2 = new Point(this.endPos.x - len*Math.cos(a), this.endPos.y - len*Math.sin(a));
         
-        p.DrawLine(this.startPos.x, this.startPos.y, p1.x, p1.y);
-        p.DrawLine(this.endPos.x, this.endPos.y, p2.x, p2.y);
+        if (this.resistorParallel != null && this.resistorParallel.startNode != null && this.resistorParallel.endNode != null) {
+            var snColor = voltageToHexColor(this.resistorParallel.startNode.voltage);
+            var enColor = voltageToHexColor(this.resistorParallel.endNode.voltage);
+            var mid = voltageToHexColor((this.resistorParallel.startNode.voltage+this.resistorParallel.endNode.voltage)/2);
+            this.internalResistor.startNode.drawGraphics = false;
+        }
+
+
+        p.DrawLine(this.startPos.x, this.startPos.y, p1.x, p1.y, snColor);
+        p.DrawLine(this.endPos.x, this.endPos.y, p2.x, p2.y, enColor);
 
         var a1 = a + Math.PI/2; //angle to + terminal  (90 deg/ perpendicular to angle a)
 
@@ -906,30 +973,33 @@ class Diode extends Component {
         var p4 = new Point(p1.x - size*Math.cos(a1), p1.y - size*Math.sin(a1));
         var p5 = new Point(p2.x + size*Math.cos(a1), p2.y + size*Math.sin(a1));
         var p6 = new Point(p2.x - size*Math.cos(a1), p2.y - size*Math.sin(a1));
-        p.DrawLine(p3.x, p3.y, p4.x, p4.y);//back line
-        p.DrawLine(p5.x, p5.y, p6.x, p6.y);//front line
+        p.DrawLine(p3.x, p3.y, p4.x, p4.y, mid);//back line
+        p.DrawLine(p5.x, p5.y, p6.x, p6.y, mid);//front line
 
-        p.DrawLine(p3.x, p3.y, p2.x, p2.y);//angles
-        p.DrawLine(p4.x, p4.y, p2.x, p2.y);
+        p.DrawLine(p3.x, p3.y, p2.x, p2.y, mid);//angles
+        p.DrawLine(p4.x, p4.y, p2.x, p2.y, mid);
 
         if (this.breakdownVoltage < 100000000)
         {
             var a2 = a1 + Math.PI/4;
-            p.DrawLine(p5.x, p5.y, p5.x + size*Math.cos(a2)/2, p5.y + size*Math.sin(a2)/2);
-            p.DrawLine(p6.x, p6.y, p6.x - size*Math.cos(a2)/2, p6.y - size*Math.sin(a2)/2);
+            p.DrawLine(p5.x, p5.y, p5.x + size*Math.cos(a2)/2, p5.y + size*Math.sin(a2)/2, mid);
+            p.DrawLine(p6.x, p6.y, p6.x - size*Math.cos(a2)/2, p6.y - size*Math.sin(a2)/2, mid);
         }
 
         this.voltageSource2n.startPos = this.startPos;
-        this.voltageSource2n.endPos = this.endPos;
-        this.resistor.startPos = this.startPos;
-        this.resistor.endPos = this.endPos;
+        this.voltageSource2n.endPos = new Point(midpoint.x+1, midpoint.y);
+        this.internalResistor.startPos = new Point(midpoint.x+1, midpoint.y);
+        this.internalResistor.endPos = this.endPos;
+        this.resistorParallel.startPos = this.startPos;
+        this.resistorParallel.endPos = this.endPos;
     }
     GetInputs(){
-        return [["Threshold Voltage", formatValue(this.thresholdVoltage,"V")],  ["Breakdown Voltage", formatValue(this.breakdownVoltage,"V")]];
+        return [["Threshold Voltage", formatValue(this.thresholdVoltage,"V")],  ["Breakdown Voltage", formatValue(this.breakdownVoltage,"V")], ["Internal Resistance", formatValue(this.internalResistor.resistance, "Ω")]];
     }
     SetValues(arr = []){
         this.thresholdVoltage = arr[0];
         this.breakdownVoltage = arr[1];
+        this.internalResistor.resistance = arr[2];
     }
 
     RecordData()
@@ -940,7 +1010,7 @@ class Diode extends Component {
         }
         this.voltageData.shift(); //remove the first element in the array ( [0,1,2,3,4,5]  ->  [1,2,3,4,5])
         this.currentData.shift();
-        this.voltageData.push(this.resistor.voltage); //push a new value onto the back
+        this.voltageData.push(this.resistorParallel.voltage); //push a new value onto the back
         this.currentData.push(this.voltageSource2n.current);
     }
     Update(currentTime, timeStep) {
@@ -970,13 +1040,13 @@ class Diode extends Component {
             }
         } else {
             //if the voltage source is off, should it be on?
-            if (this.resistor.voltage > this.thresholdVoltage-.01)
+            if (this.resistorParallel.voltage > this.thresholdVoltage-.01)
             {
                 //It should be on! 
                 this.inActiveMode = true;
                 this.voltageSource2n.enabled = true;
                 this.voltageSource2n.voltage = -this.thresholdVoltage;
-            } else if (this.resistor.voltage < -this.breakdownVoltage)
+            } else if (this.resistorParallel.voltage < -this.breakdownVoltage)
             {
                 //Uhhu! breakdown! voltage too high!
                 this.inBreakdownMode = true;
@@ -990,4 +1060,17 @@ class Diode extends Component {
         this.voltageSource2n.Delete();
         removeComponentFromList(components, this.voltageSource2n);
     }
+}
+
+
+
+
+
+
+
+
+function voltageToHexColor(v)
+{
+    var abs = (v)*25;
+    return rgbToHex(255-abs, 255+abs, 255-Math.abs(abs));
 }
