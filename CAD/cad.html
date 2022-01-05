@@ -1,0 +1,62 @@
+</html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gunther</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+    <div id="Header" class = "header">
+        <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('../index.html')">Home</div>
+        <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('../resume.html')" >Resume</div>
+        <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
+        <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
+        <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
+    </div>
+    <div id = 'background'>
+        <canvas id = 'glCanvas' width = 500 height = 500></canvas>
+        <div> 
+            FOV: 0 <input id='fovSlider' type = "range" min='1' max='180' value = '45' step='.1'>180
+        </div>
+        <div> 
+            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100'>100
+        </div>
+        <div> 
+            zNear: 0 <input id='znearSlider' type = "range" min='0' max='5' value='1.5' step = '.1'> 5
+        </div>
+        <div> 
+            xtrans: -20 <input id='xtransSlider' type = "range" min='-20' max='20' step='.1'>20
+        </div>
+        <div> 
+            ytrans: -20 <input id='ytransSlider' type = "range" min='-20' max='20' step='.1'>20
+        </div>
+        <div> 
+            ztrans: -20 <input id='ztransSlider' type = "range" min='-20' max='20' step='.1'>20
+        </div>
+        <div> 
+            x1: 0<input id='x1Slider' type = "range" min='0' max='2' step='.05'>2
+        </div>
+        <div> 
+            y1: -5<input id='y1Slider' type = "range" min='-5' max='5' step='.1'>5
+        </div>
+        <div> 
+            z1: -5<input id='z1Slider' type = "range" min='-5' max='5' step='.1'>5
+        </div>
+    </div>
+    
+</body>
+
+<script src="myMath.js"></script>
+
+<script src="../painter.js"></script>
+<script src="../point.js"></script>
+<script src="../utilities.js"></script>
+<script src="object.js"></script>
+<script src="shader.js"></script>
+<script src="player.js"></script>
+<script src="cad.js"></script>
+<script src="../script.js"></script>
+</html>

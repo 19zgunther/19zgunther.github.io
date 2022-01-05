@@ -22,6 +22,10 @@ class Point { //oh yea.... and I use this as a VECTOR sometimes so HAVE FUN tryi
     {
         return new Point(this.x, this.y);
     }
+    toString()
+    {
+        return "X: " + this.x  + "   Y: " +this.y;
+    }
 }
 
 function distBetweenPoints(p1,p2) {

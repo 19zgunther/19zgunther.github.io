@@ -8,6 +8,8 @@ class Node {
         this.endComponents = []; //components which end at this node
         this.voltage = null;
 
+        this.drawGraphics = true;
+
         this.forwardingAddress = -1; //has this node already been reduced? If so, leave a forwarding address for the other node.
         this.forwardingVoltage = 0;
 

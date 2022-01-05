@@ -760,9 +760,7 @@ function Calculate( numCalcOn ) {
 
     CalcCurrents();
 
-
-    Calculate(numCalcOn + 1)
-
+    Calculate(numCalcOn + 1);
 }
 
 
