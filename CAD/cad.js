@@ -8,13 +8,14 @@ var zFar = document.getElementById('zfarSlider').value;
 
 //web gl stuff
 var gl;
-var shaderProgram;
-var programInfo;
 
 //Other
 var player = new Player();
+var mode = "default";                  //sketch, extrude, ... modes
+var currentSketchObject = null; //current sketch object
 var pressedKeys = {};
 var tick = 0;
+
 
 var mouseCanvasPos = new vec4();
 
@@ -44,6 +45,18 @@ function mouseMove(event)
     mouseCanvasPos.y = event.clientY - rect.top;
     //console.log(mouseCanvasPos.toString());
 }
+function create_sketch_button_press()
+{
+    mode = "sketch";
+}
+function move_player_home_button_press()
+{
+    player.slideToPositionAndRotation();
+}
+
+
+
+
 
 function setup() {
     glCanvasElement.style.width = 900;
@@ -55,27 +68,22 @@ function setup() {
     //const gl = glCanvasElement.getContext("webgl");
 
     // Only continue if WebGL is available and working
-    gl = glCanvasElement.getContext("webgl");
-    if (gl === null) {
-        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
-        return;
+    if (gl == null)
+    {
+        gl = glCanvasElement.getContext("webgl");
+        if (gl === null) {
+            alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+            return;
+        } else {
+            console.log("GL defined ")
+        }
     }
 
-    //creaitng the shader program
-    shaderProgram = initShaderProgram(gl, vsSource, fsSource);
-    programInfo = {
-        program: shaderProgram,
-        attribLocations: {
-          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-          normalLocation: gl.getAttribLocation(shaderProgram, 'aNormalVector'),
-          colorLocation: gl.getAttribLocation(shaderProgram, 'aColor'),
-        },
-        uniformLocations: {
-          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
-          objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
-        },
-    };
+    InitShader(gl)
+
+    //creaitng the shader programs
+    //[defaultShaderProgram, defaultProgramInfo] = initShaderProgram(gl);
+    //[gridShaderProgram, gridProgramInfo] = initGridShaderProgram(gl);
 }
 
 
@@ -85,28 +93,42 @@ function main() {
     //Init vertex and indices buffer
     //var buffers = initBuffers(vertices, normals, indices);
 
-    //Make Perspective Matrix
-    FOV = (Math.PI/180.0) * document.getElementById('fovSlider').value;
-    aspect = glCanvasElement.width/glCanvasElement.height;
-    zNear = document.getElementById('znearSlider').value;
-    zFar = document.getElementById('zfarSlider').value;
-    var projectionMatrix = new mat4();
-    projectionMatrix.makePerspective(FOV, aspect, zNear, zFar);
 
-    //Get view matrix from player
-    player.update(pressedKeys);
-    var viewMatrix = player.getViewMatrix();
-    
-    //create default object transform matrix for now
-    var objectMatrix = new mat4();
-    objectMatrix.makeTranslation(0,0,0);
+    switch (mode)
+    {
+        case "default" || "":
+            //Make Perspective Matrix
+            FOV = (Math.PI/180.0) * document.getElementById('fovSlider').value;
+            aspect = glCanvasElement.width/glCanvasElement.height;
+            zNear = document.getElementById('znearSlider').value;
+            zFar = document.getElementById('zfarSlider').value;
+            var projectionMatrix = new mat4();
+            projectionMatrix.makePerspective(FOV, aspect, zNear, zFar);
 
-    //Create default object rotation matrix
-    var rotMat = (new mat4()).makeRotation(0,0,0);
-    objectMatrix = objectMatrix.mul(rotMat);
+            //Get view matrix from player
+            player.update(pressedKeys);
+            var viewMatrix = player.getViewMatrix();
+            
+            //Render!
+            drawLite(gl, projectionMatrix, viewMatrix);
+            break;
+        case "sketch":
+            //Make Perspective Matrix
+            aspect = glCanvasElement.width/glCanvasElement.height;
+            var projectionMatrix = new mat4();
+            var zoom = Number(document.getElementById("orthogonalZoomSlider").value)/10;
+            if (isNaN(zoom)) { zoom = 1;}
+            projectionMatrix.makeOrthogonal(aspect, zoom);
+
+            //Get view matrix from player
+            player.update(pressedKeys);
+            var viewMatrix = player.getViewMatrix();
+            
+            //Render!
+            drawLite(gl, projectionMatrix, viewMatrix);
+            break;
+    }
     
-    //Render!
-    drawLite(gl, projectionMatrix, viewMatrix);
 }
 
 
@@ -151,25 +173,37 @@ function drawLite(gl, projectionMatrix, viewMatrix)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
+    var g = new Grid(new vec4(0,0,-3), new vec4(0,0,Math.PI/2));
+    g.draw(gl, projectionMatrix, viewMatrix);
+
     var b = new Body();
-    b.draw(gl, programInfo, projectionMatrix, viewMatrix);
+    b.draw(gl, projectionMatrix, viewMatrix);
 
     var c = new Compass();
-    c.draw(gl, programInfo, projectionMatrix, viewMatrix);
+    c.draw(gl, projectionMatrix, viewMatrix);
 
     var s = new Sketch();
-    s.draw(gl, programInfo, projectionMatrix, viewMatrix);
-
-    var g = new Grid(new vec4(0,0,-3), new vec4(0,0,Math.PI/2));
-    g.draw(gl, programInfo, projectionMatrix, viewMatrix);
+    s.draw(gl, projectionMatrix, viewMatrix);
 
 
-    //var pVec = player.getScreenNormalVector();
+    
+    var pVec = (player.getScreenNormalVector()).scaleToUnit();
+    pVec.x = -pVec.x;
+    pVec.y = -pVec.y;
+    pVec.z = -pVec.z;
+    
+    var norm = g.getNormalVector();
+
+    console.log( pVec.toString() + "  " + norm.toString());
+
+    c.translateMat.makeTranslation( player.getPosition().sub(new vec4(0,0,1,0)) )
+    c.rotateMat.makeRotation(0,0,0);
+    DrawDefault(gl, projectionMatrix, viewMatrix, c.translateMat.mul(c.rotateMat), c.indices, c.buffers, false);
     //c.setPosition(pVec);
     //c.translateMat.makeTranslation(pVec);
     //DrawLines(gl, programInfo, projectionMatrix, viewMatrix, (new mat4()).makeRotation(0,0,0,).mul(c.translateMat), c.indices, c.buffers);
 
-
+    /*
     var mouse = new vec4( (mouseCanvasPos.x - glCanvasElement.width/2)/(glCanvasElement.height/2), -(mouseCanvasPos.y - glCanvasElement.height/2)/(glCanvasElement.height/2)  );
     var aspect = glCanvasElement.width/glCanvasElement.height;
 
@@ -188,7 +222,10 @@ function drawLite(gl, projectionMatrix, viewMatrix)
     c.setPosition(pVec);
     //c.translateMat.makeTranslation(pVec);
     DrawLines(gl, programInfo, projectionMatrix, viewMatrix, (new mat4()).makeRotation(0,0,0,).mul(c.translateMat), c.indices, c.buffers);
-
+    */
     //console.log(mouse.toString());
 
 }
+
+
+

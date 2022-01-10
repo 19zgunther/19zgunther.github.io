@@ -13,14 +13,6 @@ class Painter {
     {
         if (color == null)
         {
-            /*
-            var tempFill = this.GetFillColor();
-            var tempStroke = this.GetStrokeColor();
-            this.SetFillColor('white');
-            this.SetStrokeColor('white');
-            this.DrawRectFilled(0,0,this.canvas.width,this.canvas.height);
-            this.SetFillColor(tempFill);
-            this.SetStrokeColor(tempStroke);*/
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         } else {
             var tempFill = this.GetFillColor();

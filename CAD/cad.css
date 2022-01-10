@@ -1,0 +1,46 @@
+
+
+/*general*/
+*{
+    border-radius: 2px;
+    transition: background-color 0.25s;
+}
+
+.tab {
+    margin-left:40px;
+}
+
+
+
+/*Hover Drop Down components*/
+.hoverDropDown {
+    position: relative;
+    display: inline-block;
+    width: fit-content;
+    height: fit-content;
+    padding: 5px;
+    background-color: rgb(50,50,50);
+    
+}
+.hoverDropDown:hover {
+    background-color: rgb(90,90,90);
+}
+
+.hoverDropDownContent {
+    display: none;
+    position: relative;
+    min-width: 160px;
+    background-color: rgb(70,70,70);
+}
+
+
+.hoverDropDown:hover .hoverDropDownContent {
+    display: block;
+}
+.hoverDropDownContent:hover {
+    background-color: rgb(80,80,80);
+}
+
+
+
+/*slider*/

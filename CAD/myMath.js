@@ -61,15 +61,15 @@ class mat4 {
         this.f32a[15] = 0;
         return this;
     }
-    makeOrthogonal(aspect)
+    makeOrthogonal(aspect, zoom = 1)
     {
-        this.f32a[0] = 1/aspect;
+        this.f32a[0] = (1/aspect) * zoom;
         this.f32a[4] = 0;
         this.f32a[8] = 0;
         this.f32a[12] = 0;
 
         this.f32a[1] = 0;
-        this.f32a[5] = 1;
+        this.f32a[5] = zoom;
         this.f32a[9] = 0;
         this.f32a[13] = 0;
 
@@ -149,7 +149,7 @@ class mat4 {
             this.f32a[1] = 0;
             this.f32a[5] = x.y;
             this.f32a[9] = 0;
-            this.f32a[13] = 1;
+            this.f32a[13] = 0;
 
             this.f32a[2] = 0;
             this.f32a[6] = 0;
@@ -298,8 +298,9 @@ class mat4 {
     {
         return this.f32a;
     }
-    print()
+    toString()
     {
+        //return this.print();
         var s = "";
         var vals = [];
         for (var i=0; i<16; i++)
@@ -310,9 +311,12 @@ class mat4 {
         s += vals[1] + " " + vals[5] + " " + vals[9] + " " + vals[13] + "\n";
         s += vals[2] + " " + vals[6] + " " + vals[10] + " " + vals[14] + "\n";
         s += vals[3] + " " + vals[7] + " " + vals[11] + " " + vals[15] + "\n";
-        console.log(s);
+        return s;
     }
-
+    print()
+    {
+        console.log(this.toString());
+    }
     invert()
     {
         //Alrighty this is math I don't really care for but I need so here goes nothing
@@ -392,6 +396,7 @@ class vec4 {
 
     sub(x,y,z,a)
     {
+        //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);
         if (x instanceof vec4)
         {
             return new vec4(this.x-x.x, this.y-x.y, this.z-x.z, this.a-x.a);
@@ -404,12 +409,18 @@ class vec4 {
         }
     }
 
-    mul(x,y,z,a)
+    mul(x,y=null,z=null,a=null)
     {
+        //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);
         if (x instanceof vec4)
         {
+            //multiply by vector
             return new vec4(this.x*x.x, this.y*x.y, this.z*x.z, this.a*x.a);
+        } else if ( !isNaN(Number(x)) && y == null && z == null && a == null) {
+            //multiply by scalar
+            return new vec4(this.x*x, this.y*x, this.z*x, this.a*x);
         } else {
+            //multiple by all scalars
             if (isNaN(x)) { x = 0;}
             if (isNaN(y)) { y = 0;}
             if (isNaN(z)) { z = 0;}
@@ -420,6 +431,8 @@ class vec4 {
 
     mulScalar(n)
     {
+        //depricated
+        console.error("vec4.mulScalar is depricated. Just use mul() and pass 1 Number.");
         return new vec4(this.x*n, this.y*n, this.z*n, this.a*n);
     }
 
@@ -446,6 +459,7 @@ class vec4 {
         this.y = this.y/L;
         this.z = this.z/L;
         this.a = this.a/L;
+        return this;
     }
 
     toString()
@@ -453,7 +467,20 @@ class vec4 {
         var p = 3;
         return "[ "+this.x.toPrecision(p)+", "+this.y.toPrecision(p)+", "+this.z.toPrecision(p)+", "+this.a.toPrecision(p)+" ]";
     }
+
+    equals(otherVec4)
+    {
+        if (otherVec4 instanceof vec4 && otherVec4.x == this.x && otherVec4.y == this.y && otherVec4.z == this.z && otherVec4.a == this.a)
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 
 
+function distanceBetweenPoints(v1,v2) //ONLY is for x y z NO a.
+{
+    return Math.sqrt(  Math.abs(Math.pow(v1.x-v2.x,2)) + Math.abs(Math.pow(v1.y-v2.y,2)) + Math.abs(Math.pow(v1.z-v2.z,2))  );
+}

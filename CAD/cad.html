@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gunther</title>
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="cad.css">
 </head>
 <body>
     <div id="Header" class = "header">
@@ -17,16 +18,44 @@
         <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
     </div>
     <div id = 'background'>
+        <div class = 'topbar'></div>
+
+        <br>
+
+        <!-- Camera Settings Dropdown -->
+        <div class = "hoverDropDown" style = "display:inline-block">
+            Camera Settings
+            <div style = "position: fixed; width: fit-content; height: fit-content;">
+                <div class = "hoverDropDownContent" > 
+                    Orthogonal View Variables
+                    <div class = 'tab' style = "font-size: smaller;">
+                        Zoom:  0 <input id='orthogonalZoomSlider' type = "range" min='1' max='100' value = '.5' step='.1'>10
+                    </div>
+                </div>
+                <div class = "hoverDropDownContent" > 
+                    Perspective View Variables
+                    <div class = 'tab' style = "font-size: smaller;"> 
+                            FOV: 0 <input id='fovSlider' type = "range" min='1' max='180' value = '45' step='.1'>180
+                            <br>
+                            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100'>100
+                            <br>
+                            zNear: 0 <input id='znearSlider' type = "range" min='0' max='5' value='1.5' step = '.1'> 5
+                            <br>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <!-- Canvas! -->
         <canvas id = 'glCanvas' width = 500 height = 500></canvas>
-        <div> 
-            FOV: 0 <input id='fovSlider' type = "range" min='1' max='180' value = '45' step='.1'>180
-        </div>
-        <div> 
-            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100'>100
-        </div>
-        <div> 
-            zNear: 0 <input id='znearSlider' type = "range" min='0' max='5' value='1.5' step = '.1'> 5
-        </div>
+        <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = create_sketch_button_press()>Create Sketch</div>
+        
+        <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = move_player_home_button_press()>Move to home position</div>
+
+
+        
         <div> 
             xtrans: -20 <input id='xtransSlider' type = "range" min='-20' max='20' step='.1'>20
         </div>

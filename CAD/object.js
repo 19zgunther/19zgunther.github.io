@@ -47,6 +47,15 @@ class Object {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
     }
+    getPosition()
+    {
+        return this.position;
+    }
+    getRotation()
+    {
+        return this.rotation;
+    }
+
     setData(vertices, normals, colors, indices)
     {
         if (vertices instanceof Array)
@@ -74,9 +83,9 @@ class Object {
         this.objectMat = this.translateMat.mul(this.rotateMat);
         this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
-    draw(gl, programInfo, projectionMatrix, viewMatrix)
+    draw(gl, projectionMatrix, viewMatrix)
     {
-        DrawTriangles(gl, programInfo, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
+        DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
     }
 }
 
@@ -89,7 +98,7 @@ class Grid extends Object{
 
         this.gridScale = 0.25;
         this.majorLineDivisor = 10;     //How many minor lines between major lines?
-        this.numLines = 30;             //number of lines in each direction
+        this.numLines = 50;             //number of lines in each direction
 
         this.majorLineColor = new vec4(.3, .3, .3, 1);
         this.minorLineColor = new vec4(.7, .7, .7, 1);
@@ -167,9 +176,18 @@ class Grid extends Object{
         //Update the buffers
         this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
-    draw(gl, programInfo, projectionMatrix, viewMatrix)
+    getNormalVector()
     {
-        DrawLines(gl, programInfo, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
+        return this.rotateMat.mul(new vec4(0,1,0));
+    }
+    draw(gl, projectionMatrix, viewMatrix)
+    {
+        var dist = distanceBetweenPoints( player.getPosition(), this.getPosition() );
+
+        var scaleVector = new vec4(1,1,1,1);
+
+
+        DrawGrid(gl, projectionMatrix, viewMatrix, this.objectMat, scaleVector,  this.indices, this.buffers, false);
     }
 }
 
@@ -193,7 +211,7 @@ class Compass extends Object{
         lines.push([pos1, pos2]);
     }
 
-    draw(gl, programInfo, projectionMatrix, viewMatrix)
+    draw(gl, projectionMatrix, viewMatrix)
     {
         var aspect = glCanvasElement.width/glCanvasElement.height;
 
@@ -201,7 +219,7 @@ class Compass extends Object{
         this.rotateMat.makeRotation(this.rotation);
         this.rotateMat = player.getRotationMatrix();
         //this.objectMat = this.translateMat.mul(player.getRotationMatrix());
-        DrawLines(gl, programInfo, new mat4().makeOrthogonal(aspect), this.translateMat, this.rotateMat, this.indices, this.buffers);
+        DrawDefault(gl, new mat4().makeOrthogonal(aspect), this.translateMat, this.rotateMat, this.indices, this.buffers, false);
     }
 }
 
@@ -232,7 +250,7 @@ class Sketch {
         lines.push([pos1, pos2]);
     }
 
-    draw(gl, programInfo, projectionMatrix, viewMatrix)
+    draw(gl, projectionMatrix, viewMatrix)
     {
         //this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
         //var objMat = new mat4();
@@ -240,142 +258,17 @@ class Sketch {
        // objMat.makeTranslation(this.);
         //this.positionMat.makeTranslation(this.position);
         //this.rotationMat.makeRotation(this.rotation);
-        DrawLines(gl, programInfo, projectionMatrix, viewMatrix, this.positionMat.mul(this.rotationMat), this.indices, this.buffers);
+        DrawDefault(gl, projectionMatrix, viewMatrix, this.positionMat.mul(this.rotationMat), this.indices, this.buffers, false);
     }
 }
 
 
 class Body extends Object {
-    draw(gl, programInfo, projectionMatrix, viewMatrix)
+    draw(gl, projectionMatrix, viewMatrix)
     {
-        DrawTriangles(gl, programInfo, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
+        DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
     }
 }
 
 
 
-
-function DrawLines(gl, programInfo, projectionMatrix, viewMatrix, objectMatrix, indices, buffers)
-{
-    {
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
-        gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
-    }
-    {
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
-        gl.vertexAttribPointer(programInfo.attribLocations.normalLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.normalLocation);
-    }
-    {
-        const numComponents = 4;  // pull out 4 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colors);
-        gl.vertexAttribPointer(programInfo.attribLocations.colorLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.colorLocation);
-    }
-
-    //var pp = player.getPosition();
-    //var objMat = (new mat4()).makeTranslation(pp.x,pp.y,pp.z);
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
-
-    // Set the shader uniforms
-    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
-
-
-    const vertexCount = indices.length;
-    
-    //gl.uniform4fv(programInfo.uniformLocations.colorVector, (new vec4(0,0,0,0)).getFloat32Array());
-    //gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.edges);
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.edges);
-    //gl.uniform4fv(programInfo.uniformLocations.colorVector, (new vec4(.1,.1,.1,0.9)).getFloat32Array());
-    gl.drawElements(gl.LINES, vertexCount, gl.UNSIGNED_SHORT, 0);
-}
-
-
-
-function DrawTriangles(gl, programInfo, projectionMatrix, viewMatrix, objectMatrix, indices, buffers)
-{
-    //VERTICES
-    {
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
-        gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
-    }
-    //NORMALS
-    {
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
-        gl.vertexAttribPointer(programInfo.attribLocations.normalLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.normalLocation);
-    }
-    //COLORS
-    {
-        const numComponents = 4;  // pull out 4 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colors);
-        gl.vertexAttribPointer(programInfo.attribLocations.colorLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.colorLocation);
-    }
-
-    //INDICES
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-
-
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
-
-    // Set the shader uniforms
-    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
-
-
-    const vertexCount = indices.length;
-    
-    //gl.uniform4fv(programInfo.uniformLocations.colorVector, (new vec4(0,0,0,0)).getFloat32Array());
-    gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.edges);
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.edges);
-    //gl.uniform4fv(programInfo.uniformLocations.colorVector, (new vec4(.1,.1,.1,0.9)).getFloat32Array());
-    //gl.drawElements(gl.LINES, vertexCount, gl.UNSIGNED_SHORT, 0);
-}

@@ -148,12 +148,12 @@ function getNewNodeName() { //returns the lowest unused node name.
 }
 
 
-function formatValue(numeric_value, suffix)
+function formatValue(numeric_value, suffix, precision = 3)
 {
     if (numeric_value == null || numeric_value == NaN) { return NaN; }
     if (Math.abs(numeric_value) < 0.000000000001) { return "0"+suffix; }
     var value = numeric_value;
-    s = ['P','M','k','','m','u','n','p'];
+    s = ['G','M','k','','m','u','n','p'];
     start_index = 3;
 
     while (Math.abs(value) < 1  &&   start_index != 0   &&   start_index != 7 )
@@ -169,7 +169,7 @@ function formatValue(numeric_value, suffix)
     }
     if (suffix != NaN && suffix != null)
     {
-        return value + s[start_index] + suffix;
+        return value.toPrecision(precision) + s[start_index] + suffix;
     } else {
         return value + s[start_index];
     }
@@ -182,7 +182,7 @@ function parseStringValue(string_value)
     //  We run through until we find a suffix character, copy the first part of the string (the number part) over to 'o'.
     //   Then we make o a number, and multiply or divide it by 1000 until s_index is 3 (no suffix)
     if (string_value == null) {return null;}
-    s = ['P','M','k','','m','u','n','p'];
+    s = ['G','M','k','','m','u','n','p'];
     s_index = 3;
     ind = string_value.length;
     for (var i=0; i<string_value.length; i++)

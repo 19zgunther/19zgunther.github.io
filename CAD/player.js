@@ -6,82 +6,107 @@ class Player
         this.walkSpeed = 0.2;
         this.runSpeed = 0.8;
         this.rotSpeed = 0.05;
-        this.pos = new vec4(0,0,0);
-        this.rot = new vec4(0,0,0);
+        this.pos = new vec4(0,0,0,0);
+        this.rot = new vec4(0,0,0,0);
         
         this.translationMat = new mat4();
         this.rotationMat = new mat4();
         this.viewMatrix = new mat4();
+
+        this.sliding = false;
+        this.slideTargetPos = new vec4();                    
+        this.slideTargetPos = new vec4();
 
         this.update();
     }
 
     update(pressedKeys)
     {
-        if (pressedKeys == null) {return;}
+        if (pressedKeys == null) {
+            console.error("player.update( ) was passed null. needs 'pressedKeys'.");
+            return;
+        }
+        
+        console.log(this.rot.toString());
 
         var movement = new vec4();
-
-        var speed = this.walkSpeed;
-        if (pressedKeys['Control'])
-        {
-            speed = this.runSpeed;
-        }
-        //Update Position
-        if (pressedKeys['w'])
-        {
-            movement.x -= Math.sin(this.rot.y)*speed;
-            movement.z += Math.cos(this.rot.y)*speed;
-        }
-        if (pressedKeys['s'])
-        {
-            movement.x += Math.sin(this.rot.y)*speed;
-            movement.z -= Math.cos(this.rot.y)*speed;
-        }
-        if (pressedKeys['d'])
-        {
-            movement.x -= Math.cos(this.rot.y)*speed;
-            movement.z -= Math.sin(this.rot.y)*speed;
-        }
-        if (pressedKeys['a'])
-        {
-            movement.x += Math.cos(this.rot.y)*speed;
-            movement.z += Math.sin(this.rot.y)*speed;
-        }
-        if (pressedKeys[' '])
-        {
-            movement.y -= speed;
-        }
-        if (pressedKeys['Shift'])
-        {
-            movement.y += speed;
-        }
-
-        //movement = this.rotationMat.mul(movement);
-        
         var rot = new vec4();
 
-        //Update Rotation
-        if (pressedKeys['ArrowUp'])
-        {
-            rot.z -= this.rotSpeed;
-            //this.rot.z -= Math.cos(this.rot.y) * this.rotSpeed;
-            //this.rot.x += Math.sin(this.rot.y) * this.rotSpeed;
+        if (this.sliding == false) {
+
+            var speed = this.walkSpeed;
+            if (pressedKeys['Control'])
+            {
+                speed = this.runSpeed;
+            }
+            //Update Position
+            if (pressedKeys['w'])
+            {
+                movement.x -= Math.sin(this.rot.y)*speed;
+                movement.z += Math.cos(this.rot.y)*speed;
+            }
+            if (pressedKeys['s'])
+            {
+                movement.x += Math.sin(this.rot.y)*speed;
+                movement.z -= Math.cos(this.rot.y)*speed;
+            }
+            if (pressedKeys['d'])
+            {
+                movement.x -= Math.cos(this.rot.y)*speed;
+                movement.z -= Math.sin(this.rot.y)*speed;
+            }
+            if (pressedKeys['a'])
+            {
+                movement.x += Math.cos(this.rot.y)*speed;
+                movement.z += Math.sin(this.rot.y)*speed;
+            }
+            if (pressedKeys[' '])
+            {
+                movement.y -= speed;
+            }
+            if (pressedKeys['Shift'])
+            {
+                movement.y += speed;
+            }        
+            
+
+            //Update Rotation
+            if (pressedKeys['ArrowUp'])
+            {
+                rot.z -= this.rotSpeed;
+            }
+            if (pressedKeys['ArrowDown'])
+            {
+                rot.z += this.rotSpeed;
+            }
+            if (pressedKeys['ArrowLeft'])
+            {
+                rot.y -= this.rotSpeed;
+            }
+            if (pressedKeys['ArrowRight'])
+            {
+                rot.y += this.rotSpeed;
+            }
+        } else {
+            //Implement sliding...
+
+            var posDif = this.slideTargetPos.sub(this.pos);
+            movement = (posDif).mul(.1);
+
+            console.log(this.slideTargetPos.toString() +" - " + this.pos.toString()+" = " + (this.slideTargetPos.sub(this.pos)).toString() + "  ==  " + movement.toString());
+
+            rot = (this.slideTargetRot.sub(this.rot)).mul(.2);
+
+            if (posDif.getLength() < 0.05)
+            {
+                this.pos = this.slideTargetPos;
+                this.rot = this.slideTargetRot;
+                this.sliding = false;
+                console.log("sliding = false");
+            }
+            
         }
-        if (pressedKeys['ArrowDown'])
-        {
-            rot.z += this.rotSpeed;
-            //this.rot.z += Math.cos(this.rot.y) * this.rotSpeed;
-            //this.rot.x -= Math.sin(this.rot.y) * this.rotSpeed;
-        }
-        if (pressedKeys['ArrowLeft'])
-        {
-            rot.y -= this.rotSpeed;
-        }
-        if (pressedKeys['ArrowRight'])
-        {
-            rot.y += this.rotSpeed;
-        }
+
 
         //Update Matrices
         this.rot = this.rot.add(rot);
@@ -90,7 +115,6 @@ class Player
         var rotMat3 = rotMat1.mul(rotMat2);
 
         
-        //this.rot = this.rot.add(rotMat3.mul(new vec4(1,1,0,0)));
 
 
 
@@ -102,19 +126,21 @@ class Player
         this.translationMat = new mat4().makeTranslation(this.pos);
         this.rotationMat = rotMat2.mul(rotMat1);
         this.viewMatrix = this.rotationMat.mul(this.translationMat);
-        //this.viewMatrix = rotMat2.mul(rotMat1.mul(this.translationMat));
-        //this.viewMatrix = rotMat3.mul(this.translationMat);
-        //this.viewMatrix = (r).mul(this.translationMat);
-        //this.viewMatrix = (new mat4().makeRotation(this.rot)).mul(this.translationMat);
     }
 
-    setPosition(pos)
+    setPosition(pos = new vec4())
     {
         this.pos = pos;
     }
-    setRotation(rot)
+    setRotation(rot = new vec4())
     {
         this.rot = rot;
+    }
+    slideToPositionAndRotation(targetPos = new vec4(), targetRot = new vec4())
+    {
+        this.slideTargetPos = targetPos;
+        this.slideTargetRot = targetRot;
+        this.sliding = true;
     }
 
     getViewMatrix()

@@ -7,7 +7,7 @@ function UpdateDisplay(p) {
         console.error("UpdateDisplay needs a Painter object to run");
         return;
     }
-    p.Clear('black'); //clear the entire screen
+    p.Clear(); //clear the entire screen
     p.SetFillColor('white');
     p.SetStrokeColor('white');
     p.SetTextColor('white');
@@ -72,7 +72,7 @@ function UpdateDisplay(p) {
     
     if (selectedComponent != null)
     {
-        SelectedComponentElement.innerHTML = "Selected Comp: " + selectedComponent.toString(); 
+        SelectedComponentElement.innerHTML = "Selected Comp: " + selectedComponent.type + "  " + selectedComponent.name; 
     } else {
         SelectedComponentElement.innerHTML = "Selected Comp: None";
     }

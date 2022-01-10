@@ -97,6 +97,16 @@ function mouseMoved(event) {
     //mousePos.x = event.clientX;
     ///mousePos.y = event.clientY;
     mousePos = screenPointToCanvas(new Point(event.clientX, event.clientY), CircuitCanvasElement);
+
+    if (movingComponentPoint != null && movingComponentPoint != "")
+    {
+        console.log(movingComponentPoint);
+        if (!running) {
+            FindNodes();
+            RemoveWires();
+        }
+        Update();
+    }
 }
 
 //Input Functions

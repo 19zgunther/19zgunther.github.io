@@ -64,7 +64,7 @@ class Plot {
        
         //This will be used for drawing the vertical bars (time scale stuff)   50 because it's a nice number of pixels.
         var baseHorizontalDivision = 50*this.horizontalModifier;
-        p.DrawText(pos.x+10, pos.y+height-10, formatValue( (timeStep*baseHorizontalDivision).toPrecision(2), 's') + " per division");
+        p.DrawText(pos.x+10, pos.y+height-10, formatValue( Number((timeStep*baseHorizontalDivision).toPrecision(2)), 's') + " per division");
 
 
         var data = this.component.voltageData

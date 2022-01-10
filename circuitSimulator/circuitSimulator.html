@@ -29,7 +29,10 @@
                 </div>
             </div>
         </div>
-        <div style = "display:flex;">
+
+        
+        <div style = "display:flex; flex-wrap: wrap;">
+            <!-- General Settings -->
             <div style="margin:20px; width:fit-content; background-color: rgb(64, 64, 64);">
                 <div style = "margin:10px;">
                     <div style = "user-select: none;">
@@ -60,7 +63,8 @@
                 </div>
             </div>
             
-            <div style="margin:20px; width:fit-content;  background-color: rgb(64, 64, 64);">
+            <!-- Drawmode and component info -->
+            <div style="margin:20px; width:400px;  background-color: rgb(64, 64, 64);">
                 <div style = "margin:10px;">
                     <div id = "drawMode" style = "user-select: none;">
                         Draw Mode:
@@ -89,6 +93,8 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Component Specific Variables  & Input -->
             <div id = "inputGrid" style="margin:20px; width:fit-content;  background-color: rgb(64, 64, 64);">
                 <div style="margin:10px;">
                     <div style="display:flex">
@@ -121,6 +127,7 @@
             </div>
         </div>
 
+        <!-- Component Selector Box -->
         <div style="margin:20px; margin-top: 0; width:fit-content;  background-color: rgb(64, 64, 64);">
             <div style = "display:flex; flex-wrap:wrap;">
                 <div style = "margin: auto; padding:5px;">
@@ -165,8 +172,10 @@
             </div>
         </div>
 
+        <!-- Main Canvas -->
         <canvas id = "circuitCanvas" , onmousemove = mouseMoved(event) , onmousedown = mousePressed(event) onmouseup = mouseReleased(event) , width = 1000 , height = 700></canvas>
         
+        <!-- Description and such -->
         <div style = "margin:auto; padding:20px; justify-content: center; justify-self: center; width:80%;">
             <div style="font-weight: bold;">
                 Key Bindings:
