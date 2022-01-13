@@ -6,7 +6,7 @@ class Player
         this.walkSpeed = 0.2;
         this.runSpeed = 0.8;
         this.rotSpeed = 0.05;
-        this.pos = new vec4(0,0,0,0);
+        this.pos = new vec4(5,5,5,0);
         this.rot = new vec4(0,0,0,0);
         
         this.translationMat = new mat4();
@@ -17,7 +17,7 @@ class Player
         this.slideTargetPos = new vec4();                    
         this.slideTargetPos = new vec4();
 
-        this.update();
+        this.update({});
     }
 
     update(pressedKeys)
@@ -27,8 +27,6 @@ class Player
             return;
         }
         
-        console.log(this.rot.toString());
-
         var movement = new vec4();
         var rot = new vec4();
 
@@ -119,11 +117,11 @@ class Player
 
 
         //movement = rotMat3.mul(movement);
-        this.pos.x += movement.x;
-        this.pos.y += movement.y;
-        this.pos.z += movement.z;
+        this.pos.x -= movement.x;
+        this.pos.y -= movement.y;
+        this.pos.z -= movement.z;
 
-        this.translationMat = new mat4().makeTranslation(this.pos);
+        this.translationMat = (new mat4()).makeTranslation(new vec4(-this.pos.x, -this.pos.y, -this.pos.z));
         this.rotationMat = rotMat2.mul(rotMat1);
         this.viewMatrix = this.rotationMat.mul(this.translationMat);
     }
@@ -172,7 +170,7 @@ class Player
         //var pVec = this.getRotationMatrixInv().mul(pVec);
         //var pVec = pVec.sub(this.getPosition());
         //return pVec;
-        return ( this.getRotationMatrixInv().mul( new vec4(0,0,-1) ) ).sub( this.getPosition() )
+        return ( this.getRotationMatrixInv().mul( new vec4(0,0,-1) ) ) 
     }
 }
 

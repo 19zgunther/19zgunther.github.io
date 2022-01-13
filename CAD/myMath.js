@@ -84,56 +84,40 @@ class mat4 {
         this.f32a[15] = 1;
         return this;
     }
-    makeTranslation(x,y,z)
+    makeTranslation(x,y=0,z=0)
     {
         if (x instanceof vec4)
         {
-            //COLUMN MAJOR ALIGNMENT
-            this.f32a[0] = 1;
-            this.f32a[4] = 0;
-            this.f32a[8] = 0;
-            this.f32a[12] = x.x;
-
-            this.f32a[1] = 0;
-            this.f32a[5] = 1;
-            this.f32a[9] = 0;
-            this.f32a[13] = x.y;
-
-            this.f32a[2] = 0;
-            this.f32a[6] = 0;
-            this.f32a[10] = 1;
-            this.f32a[14] = x.z;
-
-            this.f32a[3] = 0;
-            this.f32a[7] = 0;
-            this.f32a[11] = 0;
-            this.f32a[15] = 1;
-        } else {
-            if (x == null || isNaN(x)) { x = 0;}
-            if (y == null || isNaN(y)) { y = 0;}
-            if (z == null || isNaN(z)) { z = 0;}
-
-            //COLUMN MAJOR ALIGNMENT
-            this.f32a[0] = 1;
-            this.f32a[4] = 0;
-            this.f32a[8] = 0;
-            this.f32a[12] = x;
-
-            this.f32a[1] = 0;
-            this.f32a[5] = 1;
-            this.f32a[9] = 0;
-            this.f32a[13] = y;
-
-            this.f32a[2] = 0;
-            this.f32a[6] = 0;
-            this.f32a[10] = 1;
-            this.f32a[14] = z;
-
-            this.f32a[3] = 0;
-            this.f32a[7] = 0;
-            this.f32a[11] = 0;
-            this.f32a[15] = 1;
+            y = x.y;
+            z = x.z;
+            x = x.x;
         }
+
+        if (x == null || isNaN(x)) { x = 0;}
+        if (y == null || isNaN(y)) { y = 0;}
+        if (z == null || isNaN(z)) { z = 0;}
+
+        //COLUMN MAJOR ALIGNMENT
+        this.f32a[0] = 1;
+        this.f32a[4] = 0;
+        this.f32a[8] = 0;
+        this.f32a[12] = x;
+
+        this.f32a[1] = 0;
+        this.f32a[5] = 1;
+        this.f32a[9] = 0;
+        this.f32a[13] = y;
+
+        this.f32a[2] = 0;
+        this.f32a[6] = 0;
+        this.f32a[10] = 1;
+        this.f32a[14] = z;
+
+        this.f32a[3] = 0;
+        this.f32a[7] = 0;
+        this.f32a[11] = 0;
+        this.f32a[15] = 1;
+        
         return this;
     }
     makeScale(x,y,z,a)
@@ -436,6 +420,16 @@ class vec4 {
         return new vec4(this.x*n, this.y*n, this.z*n, this.a*n);
     }
 
+    dot(vec)
+    {
+        if (vec instanceof vec4 == false)
+        {
+            console.error("vec4.dot() was passed a non vec4.")
+            return null;
+        }
+        return this.x*vec.x + this.y*vec.y + this.z*vec.z + this.a*vec.a;
+    }
+
     getFloat32Array()
     {
         return new Float32Array([this.x,this.y,this.z,this.a]);
@@ -462,6 +456,14 @@ class vec4 {
         return this;
     }
 
+    round(val = 1)
+    {   
+        this.x = Math.round(this.x/val)*val;
+        this.y = Math.round(this.y/val)*val;
+        this.z = Math.round(this.z/val)*val;
+        return this;
+    }
+
     toString()
     {
         var p = 3;
@@ -483,4 +485,38 @@ class vec4 {
 function distanceBetweenPoints(v1,v2) //ONLY is for x y z NO a.
 {
     return Math.sqrt(  Math.abs(Math.pow(v1.x-v2.x,2)) + Math.abs(Math.pow(v1.y-v2.y,2)) + Math.abs(Math.pow(v1.z-v2.z,2))  );
+}
+
+
+function vectorFromPointToPlane(planePoint, planeNormal, pointPosition, unitVecFromPoint)
+{
+    //u = x + (n dot (p-x))/(n dot v) * v
+
+    //NOTE: this function is designed so you can "hit" plane from BOTH SIDES.
+    //console.log("pointPosition: " + pointPosition.toString() + "\nunitVecFromPoint: "+unitVecFromPoint.toString()+"\nplaneNormal: "+planeNormal.toString()+"\nplanePoint: "+planePoint.toString());
+
+    var denom = planeNormal.dot(unitVecFromPoint);
+    if (denom > 0.000001)
+    {
+        var p0l0 = planePoint.sub(pointPosition);
+        var t = ( p0l0.dot(planeNormal)) / denom;
+        var p = pointPosition.add(  unitVecFromPoint.mul(t)  );
+        p.a = 1;
+        return p;
+    } else {
+        planeNormal.x = -planeNormal.x;
+        planeNormal.y = -planeNormal.y;
+        planeNormal.z = -planeNormal.z;
+        var denom = planeNormal.dot(unitVecFromPoint);
+        if (denom > 0.000001)
+        {
+            var p0l0 = planePoint.sub(pointPosition);
+            var t = ( p0l0.dot(planeNormal)) / denom;
+            var p = pointPosition.add(  unitVecFromPoint.mul(t)  );
+            p.a = 1;
+            return p;
+        } else {
+            return null;
+        }
+    }
 }

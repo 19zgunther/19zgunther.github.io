@@ -4,12 +4,15 @@
 *{
     border-radius: 2px;
     transition: background-color 0.25s;
+    padding: inherit;
 }
 
 .tab {
     margin-left:40px;
 }
-
+#glCanvas {
+    width:90%;
+}
 
 
 /*Hover Drop Down components*/
@@ -18,7 +21,6 @@
     display: inline-block;
     width: fit-content;
     height: fit-content;
-    padding: 5px;
     background-color: rgb(50,50,50);
     
 }

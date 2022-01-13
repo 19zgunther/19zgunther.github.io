@@ -11,7 +11,7 @@
     height: max(calc(fit-content),100%);
     width:100%;
     position: relative;
-    background-color:rgb(10,10,10);
+    background-color:rgb(40,40,40);
     z-index: 0;
 }
 .header {
@@ -23,6 +23,7 @@
     background-color:rgb(20, 20, 20);
     z-index: 100000;
     border-radius: 0px;
+    padding:0px;
 }
 .HeaderButton {
     cursor: pointer;

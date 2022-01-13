@@ -7,12 +7,17 @@ var defaultProgramInfo;
 var gridShaderProgram;
 var gridProgramInfo;
 
+var textShaderProgram;
+var textProgramInfo;
+
 
 function InitShader(gl)
 {
     [defaultShaderProgram, defaultProgramInfo] =  initDefaultShaderProgram(gl);
     [gridShaderProgram, gridProgramInfo] =  initGridShaderProgram(gl);
+    [textShaderProgram, textProgramInfo] =  initTextShaderProgram(gl);
 }
+
 
 // creates a shader of the given type, uploads the source and compiles it.
 function loadShader(gl, type, source) {
@@ -157,6 +162,133 @@ function initGridShaderProgram(gl)
     return [shaderProgram, programInfo];
 }
 
+function initTextShaderProgram_OLD(gl) {
+    const vsSource = `
+    attribute vec4 aVertexPosition;
+    attribute vec2 aTextureCoords;
+
+    uniform mat4 uProjectionMatrix;
+    uniform mat4 uViewMatrix;
+    uniform mat4 uObjectMatrix;
+
+    varying highp vec2 texCoord;
+
+    void main() {
+        vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
+        gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
+        texCoord = aTextureCoords;
+    }
+    `;
+    const fsSource = `
+    precision mediump float;
+
+    varying vec2 texCoord;
+
+    uniform sampler2D uSampler;
+    uniform vec4 uColor;
+
+    void main() {
+        //gl_FragColor = texture2D(uSampler, texCoord);
+
+        if (texture2D(uSampler, texCoord).x > 0.5)
+        {
+            gl_FragColor = uColor;
+        } else {
+            return;
+            ///gl_FragColor = vec4(0,0,0,0);   
+        }
+    }
+    `;
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    // Create the shader program
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    // If creating the shader program failed, alert
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+        return null;
+    }
+
+
+    const programInfo = {
+        program: shaderProgram,
+        attribLocations: {
+          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+          textureCoordsLocation: gl.getAttribLocation(shaderProgram, 'aTextureCoords'),
+        },
+        uniformLocations: {
+          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
+          objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
+          uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
+          colorVector: gl.getUniformLocation(shaderProgram, 'uColor'),
+        },
+    };
+
+
+    return [shaderProgram, programInfo]
+}
+
+function initTextShaderProgram(gl) {
+    const vsSource = `
+    attribute vec4 aVertexPosition;
+
+    uniform mat4 uProjectionMatrix;
+    uniform mat4 uViewMatrix;
+    uniform mat4 uObjectMatrix;
+    uniform vec4 uTextOffset;
+
+    void main() {
+        vec4 vPos = vec4(aVertexPosition.x + uTextOffset.x, aVertexPosition.y + uTextOffset.y, aVertexPosition.z + uTextOffset.z, 1.0);
+        gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
+    }
+    `;
+    const fsSource = `
+    precision mediump float;
+    uniform vec4 uColorVector;
+    void main() {
+        gl_FragColor = uColorVector;
+    }
+    `;
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    // Create the shader program
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    // If creating the shader program failed, alert
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+        return null;
+    }
+
+
+    const programInfo = {
+        program: shaderProgram,
+        attribLocations: {
+          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+        },
+        uniformLocations: {
+          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
+          objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
+          colorVector: gl.getUniformLocation(shaderProgram, 'uColorVector'),
+          textOffset: gl.getUniformLocation(shaderProgram, 'uTextOffset'),
+        },
+    };
+
+
+    return [shaderProgram, programInfo]
+}
+
 
 
 
@@ -169,6 +301,10 @@ function initGridShaderProgram(gl)
 function DrawDefault(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, drawTriangles = true)
 {
     var programInfo = defaultProgramInfo;
+
+    // Tell WebGL to use our program when drawing
+    gl.useProgram(programInfo.program);
+
     {
         const numComponents = 3  // pull out 3 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -208,9 +344,6 @@ function DrawDefault(gl, projectionMatrix, viewMatrix, objectMatrix, indices, bu
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
-
     // Set the shader uniforms
     gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
     gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
@@ -226,12 +359,13 @@ function DrawDefault(gl, projectionMatrix, viewMatrix, objectMatrix, indices, bu
     }
 }
 
-
-
-
 function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, indices, buffers, drawTriangles = true)
 {
     var programInfo = gridProgramInfo;
+
+    // Tell WebGL to use our program when drawing
+    gl.useProgram(programInfo.program);
+
     {
         const numComponents = 3  // pull out 3 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -268,9 +402,6 @@ function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, i
 
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
 
     // Set the shader uniforms
     gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
@@ -287,11 +418,13 @@ function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, i
     }
 }
 
-
-/*
-function DrawTriangles(gl, programInfo, projectionMatrix, viewMatrix, objectMatrix, indices, buffers)
+function DrawText_OLD(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, color = new vec4(1,100,0,1))
 {
-    //VERTICES
+    var programInfo = textProgramInfo;
+
+    // Tell WebGL to use our program when drawing
+    gl.useProgram(programInfo.program);
+
     {
         const numComponents = 3  // pull out 3 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -303,51 +436,95 @@ function DrawTriangles(gl, programInfo, projectionMatrix, viewMatrix, objectMatr
         gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
     }
-    //NORMALS
+    // tell webgl how to pull out the texture coordinates from buffer
+    {
+        const num = 2; // every coordinate composed of 2 values
+        const type = gl.FLOAT; // the data in the buffer is 32 bit float
+        const normalize = false; // don't normalize
+        const stride = 0; // how many bytes to get from one set to the next
+        const offset = 0; // how many bytes inside the buffer to start from
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoords);
+        gl.vertexAttribPointer(programInfo.attribLocations.textureCoordsLocation, num, type, normalize, stride, offset);
+        gl.enableVertexAttribArray(programInfo.attribLocations.textureCoordsLocation);
+    }
+
+    // Tell WebGL we want to affect texture unit 0
+    gl.activeTexture(gl.TEXTURE0);
+
+    // Bind the texture to texture unit 0
+    gl.bindTexture(gl.TEXTURE_2D, buffers.texture);
+
+    // Tell the shader we bound the texture to texture unit 0
+    gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
+
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+
+    gl.getExtension('EXT_frag_depth');
+
+    // Set the shader uniforms
+    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
+    gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
+    gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.colorVector, color.getFloat32Array());
+
+    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+}
+
+
+function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textColor = new vec4(255,0,0,255), text = "0123456789")
+{
+    var programInfo = textProgramInfo;
+
+    // Tell WebGL to use our program when drawing
+    gl.useProgram(programInfo.program);
+
+
+    //Bind Vertices
     {
         const numComponents = 3  // pull out 3 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
         const normalize = false;  // don't normalize
         const stride = 0;         // how many bytes to get from one set of values to the next
         const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
-        gl.vertexAttribPointer(programInfo.attribLocations.normalLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.normalLocation);
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
+        gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
+        gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
     }
-    //COLORS
-    {
-        const numComponents = 4;  // pull out 4 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colors);
-        gl.vertexAttribPointer(programInfo.attribLocations.colorLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.colorLocation);
-    }
-
-    //INDICES
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-
-
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
 
     // Set the shader uniforms
     gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
     gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
     gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.colorVector, textColor.getFloat32Array());
 
+    //For each letter...
+    for (var i=0; i<127; i++)
+    {
+        /*
+        var letter = text[i];
+        var ascii = letter.charCodeAt(0)-48;
 
-    const vertexCount = indices.length;
-    
-    //gl.uniform4fv(programInfo.uniformLocations.colorVector, (new vec4(0,0,0,0)).getFloat32Array());
-    gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.edges);
-    //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.edges);
-    //gl.uniform4fv(programInfo.uniformLocations.colorVector, (new vec4(.1,.1,.1,0.9)).getFloat32Array());
-    //gl.drawElements(gl.LINES, vertexCount, gl.UNSIGNED_SHORT, 0);
-}*/
+        if (ascii < 0 || ascii > 9) {
+            continue;
+        }
+
+        const indices = numberIndices[ascii];
+
+        //Bind Indices
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+        */
+        var ascii = i;
+
+        if (asciiIndices[i] == null ) { continue; }
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(asciiIndices[ascii]), gl.DYNAMIC_DRAW);
+
+        //Set Position (move over a 0.5)
+        gl.uniform4fv(programInfo.uniformLocations.textOffset, ( new vec4(i/2,0,0,0) ).getFloat32Array());
+
+        gl.drawElements(gl.TRIANGLES, asciiIndices[ascii].length, gl.UNSIGNED_SHORT, 0);
+    }
+}

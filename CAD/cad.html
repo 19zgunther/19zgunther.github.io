@@ -1,6 +1,7 @@
 </html>
 
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,15 +10,16 @@
     <link rel="stylesheet" href="../style.css">
     <link rel="stylesheet" href="cad.css">
 </head>
-<body>
-    <div id="Header" class = "header">
+<body style = 'padding:0px; border-radius: 0px;'>
+    
+    <div id="Header" class = "header" style = 'padding:0%'>
         <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('../index.html')">Home</div>
         <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('../resume.html')" >Resume</div>
         <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
         <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
         <div id="logicSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../logicSimulator/logicSimulator.html')">Logic Simulator</div>
     </div>
-    <div id = 'background'>
+    <div id = 'background' style = 'padding: 3px;'>
         <div class = 'topbar'></div>
 
         <br>
@@ -27,19 +29,25 @@
             Camera Settings
             <div style = "position: fixed; width: fit-content; height: fit-content;">
                 <div class = "hoverDropDownContent" > 
-                    Orthogonal View Variables
+                    <div>
+                        <input id = 'orthogonalViewCheckbox' type="checkbox" oninput = updateCameraSettings(this)>
+                        Orthogonal View
+                    </div>
                     <div class = 'tab' style = "font-size: smaller;">
-                        Zoom:  0 <input id='orthogonalZoomSlider' type = "range" min='1' max='100' value = '.5' step='.1'>10
+                        Zoom:  0 <input id='orthogonalZoomSlider' type = "range" min='1' max='100' value = '.5' step='.1' oninput = updateCameraSettings(this)>10
                     </div>
                 </div>
                 <div class = "hoverDropDownContent" > 
-                    Perspective View Variables
+                    <div>
+                        <input id = 'perspectiveViewCheckbox' type="checkbox" checked oninput = updateCameraSettings(this)>
+                        Perspective View
+                    </div>
                     <div class = 'tab' style = "font-size: smaller;"> 
-                            FOV: 0 <input id='fovSlider' type = "range" min='1' max='180' value = '45' step='.1'>180
+                            FOV: 0 <input id='fovSlider' type = "range" min='1' max='180' value = '45' step='.1' oninput = updateCameraSettings(this)>180
                             <br>
-                            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100'>100
+                            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100' oninput = updateCameraSettings(this)>100
                             <br>
-                            zNear: 0 <input id='znearSlider' type = "range" min='0' max='5' value='1.5' step = '.1'> 5
+                            zNear: 0 <input id='znearSlider' type = "range" min='0' max='5' value='1.5' step = '.1' oninput = updateCameraSettings(this)> 5
                             <br>
                     </div>
                 </div>
@@ -49,7 +57,8 @@
         <br>
 
         <!-- Canvas! -->
-        <canvas id = 'glCanvas' width = 500 height = 500></canvas>
+        <canvas id = 'glCanvas' width = 600 height = 500></canvas>
+
         <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = create_sketch_button_press()>Create Sketch</div>
         
         <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = move_player_home_button_press()>Move to home position</div>
@@ -74,12 +83,12 @@
         <div> 
             z1: -5<input id='z1Slider' type = "range" min='-5' max='5' step='.1'>5
         </div>
+
     </div>
-    
+
 </body>
 
 <script src="myMath.js"></script>
-
 <script src="../painter.js"></script>
 <script src="../point.js"></script>
 <script src="../utilities.js"></script>
@@ -88,4 +97,5 @@
 <script src="player.js"></script>
 <script src="cad.js"></script>
 <script src="../script.js"></script>
+
 </html>
