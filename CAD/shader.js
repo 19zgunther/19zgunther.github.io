@@ -242,9 +242,10 @@ function initTextShaderProgram(gl) {
     uniform mat4 uViewMatrix;
     uniform mat4 uObjectMatrix;
     uniform vec4 uTextOffset;
+    uniform vec4 uScaleVector;
 
     void main() {
-        vec4 vPos = vec4(aVertexPosition.x + uTextOffset.x, aVertexPosition.y + uTextOffset.y, aVertexPosition.z + uTextOffset.z, 1.0);
+        vec4 vPos = vec4(aVertexPosition.x + uTextOffset.x, aVertexPosition.y + uTextOffset.y, aVertexPosition.z + uTextOffset.z, 1.0) * uScaleVector;
         gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
     }
     `;
@@ -281,6 +282,7 @@ function initTextShaderProgram(gl) {
           viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
           objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
           colorVector: gl.getUniformLocation(shaderProgram, 'uColorVector'),
+          scaleVector: gl.getUniformLocation(shaderProgram, 'uScaleVector'),
           textOffset: gl.getUniformLocation(shaderProgram, 'uTextOffset'),
         },
     };
@@ -472,7 +474,7 @@ function DrawText_OLD(gl, projectionMatrix, viewMatrix, objectMatrix, indices, b
 }
 
 
-function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textColor = new vec4(255,0,0,255), text = "0123456789")
+function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textColor = new vec4(255,0,0,255), text = "default_text", textScale = new vec4(1,1,1,1))
 {
     var programInfo = textProgramInfo;
 
@@ -497,34 +499,26 @@ function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textC
     gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
     gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
     gl.uniform4fv(programInfo.uniformLocations.colorVector, textColor.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.scaleVector, textScale.getFloat32Array());
 
     //For each letter...
-    for (var i=0; i<127; i++)
+    var xpos = 0;
+    for (var i=0; i<text.length; i++)
     {
-        /*
         var letter = text[i];
-        var ascii = letter.charCodeAt(0)-48;
+        var ascii = letter.charCodeAt(0);
 
-        if (ascii < 0 || ascii > 9) {
-            continue;
-        }
-
-        const indices = numberIndices[ascii];
+        const indices = asciiIndices[ascii];
 
         //Bind Indices
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
-        */
-        var ascii = i;
-
-        if (asciiIndices[i] == null ) { continue; }
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(asciiIndices[ascii]), gl.DYNAMIC_DRAW);
-
+        
         //Set Position (move over a 0.5)
-        gl.uniform4fv(programInfo.uniformLocations.textOffset, ( new vec4(i/2,0,0,0) ).getFloat32Array());
+        gl.uniform4fv(programInfo.uniformLocations.textOffset, ( new vec4(xpos,0,0,0) ).getFloat32Array());
 
         gl.drawElements(gl.TRIANGLES, asciiIndices[ascii].length, gl.UNSIGNED_SHORT, 0);
+
+        xpos += asciiWidths[ascii] + 0.05;
     }
 }
