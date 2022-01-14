@@ -89,8 +89,6 @@ class Object {
 }
 
 
-
-
 class Grid extends Object{
     constructor(position = new vec4(), rotation = new vec4(), gridScale = 1) {
         super(position, rotation);
@@ -189,7 +187,6 @@ class Grid extends Object{
 }
 
 
-
 class Compass extends Object{
     constructor(position, rotation){
         super(position, rotation);
@@ -212,16 +209,13 @@ class Compass extends Object{
     {
         var aspect = glCanvasElement.width/glCanvasElement.height;
 
-        this.rotation = player.getRotation();
+        this.rotation = camera.getRotation();
         this.rotateMat.makeRotation(this.rotation);
-        this.rotateMat = player.getRotationMatrix();
-        //this.objectMat = this.translateMat.mul(player.getRotationMatrix());
+        this.rotateMat = camera.getRotationMatrix();
+        //this.objectMat = this.translateMat.mul(camera.getRotationMatrix());
         DrawDefault(gl, new mat4().makeOrthogonal(aspect), this.translateMat, this.rotateMat, this.indices, this.buffers, false);
     }
 }
-
-
-
 
 
 class Sketch extends Object{
@@ -239,20 +233,12 @@ class Sketch extends Object{
 
     }
 
-
-
     addLine(pos1, pos2) {
         lines.push([pos1, pos2]);
     }
 
     draw(gl, projectionMatrix, viewMatrix)
     {
-        //this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
-        //var objMat = new mat4();
-        //var aspect = glCanvasElement.width/glCanvasElement.height;
-       // objMat.makeTranslation(this.);
-        //this.positionMat.makeTranslation(this.position);
-        //this.rotationMat.makeRotation(this.rotation);
         DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers, false);
     }
 }
@@ -266,119 +252,8 @@ class Body extends Object {
 }
 
 
-
-
-const a_vertices = [0,0,0,  2,10,0,  3,10,0,  1,0,0,    4,0,0, 2,10,0, 3,10,0, 5,0,0,    1,5,0, 4,5,0, 4,4,0, 1,4,0 ];
-const a_indices = [0,1,2, 0,2,3,  4,5,6,  4,6,7,  8,9,10, 8,10,11];
-
-
-function GenerateTextures() {
-
-    const canvas = document.createElement("canvas");
-    canvas.setAttribute('id', 'tempCanvas');
-    //document.getElementById("background").appendChild(canvas);
-    const p = new Painter(canvas);
-
-    var textSize = 45;
-
-    canvas.width = textSize;
-    canvas.height = textSize*255;
-    p.Clear();
-    p.SetTextSize(textSize-1);
-    p.SetTextColor('white');
-
-    var totalHeight = 0;
-    for(var i=0; i<255; i++)
-    {
-        var s = String.fromCharCode(i);
-        totalHeight += textSize;
-        p.DrawText(0,totalHeight,s);
-    }
-
-    var i = 55;
-    p.DrawLine(0, textSize*(i-1)+4, 10, textSize*(i-1)+4, 'blue');
-    p.DrawLine(0, textSize*i+4, 10, textSize*i+4, 'red');
-    textSize
-
-    textureImageData = canvas.getContext('2d').getImageData(0,0,canvas.width, canvas.height);
-
-    console.log(textureImageData);
-
-}
-var textureImageData = null;
-
-GenerateTextures();
-
-
-
-
-
-
-class Text_OLD {
-    constructor(pos = new vec4(0,-300,0), rot = new vec4())
-    {
-        this.position = pos;
-        this.rotation = rot;
-        
-        this.translateMat = null;
-        this.rotateMat = null;
-        this.objectMat = null;
-        this.buffers = null;
-
-        this.vertices = [0,500,0,  2,500,0,  2,0,0, 0,0,0 ];
-        this.indices = [0,1,2, 0,2,3];
-        this.textureCoords = [0,0, 1,0, 1,1, 0,1,];
-
-        this.refresh();
-    }
-
-    setPosition(position)
-    {
-        if (position instanceof vec4)
-        {
-            this.position = position;
-            this.translateMat.makeTranslation(this.position);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
-        } else {
-            console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
-        }
-    }
-    setRotation(rotation)
-    {
-        if (rotation instanceof vec4)
-        {
-            this.rotation = rotation;
-            this.rotateMat.makeTranslation(this.rotation);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
-        } else {
-            console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
-        }
-    }
-    getPosition()
-    {
-        return this.position;
-    }
-    getRotation()
-    {
-        return this.rotation;
-    }
-    refresh()
-    {   //refreshes all matrices and buffers
-        this.translateMat = new mat4().makeTranslation(this.position);
-        this.rotateMat = new mat4().makeRotation(this.rotation);
-        this.objectMat = this.translateMat.mul(this.rotateMat);
-        this.buffers = initBuffersTexture(this.vertices, this.textureCoords, this.indices, textureImageData);
-    }
-
-    draw(gl, projectionMatrix, viewMatrix)
-    {
-        DrawText(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers, this.color);
-    }
-
-}
-
 class Text {
-    constructor(pos = new vec4(), rot = new vec4(), text = "default_text", textColor = new vec4(255,100,150,255))
+    constructor(pos = new vec4(), rot = new vec4(), text = "default_text", textColor = new vec4(0,0,0,255), shouldBake = false)
     {
         this.position = pos;
         this.rotation = rot;
@@ -390,9 +265,17 @@ class Text {
         
         this.text = text;
         this.textColor = textColor;
-        this.textScale = new vec4(.3,.3,.3,1);
+        this.textScale = new vec4(1,1,1,1);
+        this.spacing = 0.1; //Distance between letters
+
+        this.baked = false; //Boolean storing whether or not we have "baked" the vertices & indices.
 
         this.refresh();
+
+        if (shouldBake)
+        {
+            this.bake();
+        }
     }
 
     setPosition(position)
@@ -425,9 +308,23 @@ class Text {
     {
         return this.rotation;
     }
-    setText(text = "")
+    setText(text = "", shouldBake = false)
     {
         this.text = text;
+        this.baked = false;
+        if (shouldBake)
+        {
+            this.bake();
+        }
+    }
+    setTextScale(x=new vec4(1,1,1,1),y=1,z=1)
+    {
+        if (x instanceof vec4)
+        {
+            this.textScale = x.copy();
+        } else {
+            this.textScale = new vec4(x,y,z,1);
+        }
     }
     refresh()
     {   //refreshes all matrices and buffers
@@ -436,10 +333,54 @@ class Text {
         this.objectMat = this.translateMat.mul(this.rotateMat);
         this.buffers = initBuffersForText(asciiVertices, asciiIndices[0]);
     }
+    bake()
+    {   
+        var xPosOffset = 0;
+        this.vertices = [];
+        this.indices = [];
 
+        //for each letter
+        for (var i=0; i<this.text.length; i++)
+        {
+            var asciiIndex = this.text[i].charCodeAt(0);
+            var oldIndices = asciiIndices[asciiIndex];
+            if (oldIndices != null)
+            {
+
+                var oldIndiceToNewIndice = {};
+
+                for (var j=0; j<oldIndices.length; j++)
+                {
+                    //for each old indice
+                    var newInd = oldIndiceToNewIndice[ oldIndices[j] ];
+                    if (newInd == null)
+                    {
+                        //if null, we haven't encountered this oldIndice before
+                        oldIndiceToNewIndice[oldIndices[j]] = this.vertices.length/3;
+                        newInd = this.vertices.length/3;
+                        this.vertices.push( asciiVertices[oldIndices[j]*3 + 0] + xPosOffset );           //
+                        this.vertices.push( asciiVertices[oldIndices[j]*3 + 1] );
+                        this.vertices.push( asciiVertices[oldIndices[j]*3 + 2] );
+                    }
+
+                    //Now, we have the newInd and the corrosponding vertice is in var vertices
+                    this.indices.push(newInd);
+                }
+                xPosOffset += this.spacing + asciiWidths[asciiIndex];
+            }
+        }
+
+        this.buffers = initBuffers(this.vertices, null, [255,0,0,255], this.indices);
+        this.baked = true;
+    }
     draw(gl, projectionMatrix, viewMatrix)
     {
-        DrawText(gl, projectionMatrix, viewMatrix, this.objectMat, this.buffers, new vec4(0,0,255,255), this.text, this.textScale);
+        if (this.baked == true)
+        {
+            DrawBakedText(gl, projectionMatrix, viewMatrix, this.objectMat, this.buffers, this.indices, this.textColor, this.textScale);
+        } else {
+            DrawText(gl, projectionMatrix, viewMatrix, this.objectMat, this.buffers, this.textColor, this.text, this.textScale, this.spacing);
+        }
     }
 }
 
@@ -450,7 +391,7 @@ class Text {
 
 
 
-
+//This is all used for Text. It contains all of the triangles necessary for creating each ascii shape
 const asciiVertices = [
     0,-0.2,0,0,-0.1,0,0,0,0,0,0.1,0,0,0.2,0,0,0.3,0,0,0.4,0,0,0.5,0,0,0.6,0,0,0.7,0,0,0.8,0,0.1,
     -0.2,0,0.1,-0.1,0,0.1,0,0,0.1,0.1,0,0.1,0.2,0,0.1,0.3,0,0.1,0.4,0,0.1,0.5,0,0.1,0.6,0,0.1,0.7,
@@ -571,20 +512,46 @@ const asciiIndices = [
     [7,51,50,50,6,7,3,47,46,46,2,3,3,39,50,50,14,3], //z         //122
 
     //Spectials 123-126
-    [25,36,35,35,24,25,24,14,16,16,27,24,32,43,42,42,31,32,32,20,18,18,29,32,16,6,18,27,17,16,17,29,18], //{
-    [1,10,21,21,12,1],                                                                                  // |
-    [2,3,13,13,14,3,13,25,27,27,16,13,10,21,20,20,9,10,21,31,29,29,18,21,29,39,27,16,28,27,18,28,29], //}
+    [25,36,35,35,24,25,24,14,16,16,27,24,32,43,42,42,31,32,32,20,18,18,29,32,16,6,18,27,17,16,17,29,18],    // {
+    [1,10,21,21,12,1],                                                                                      // |
+    [2,3,13,13,14,3,13,25,27,27,16,13,10,21,20,20,9,10,21,31,29,29,18,21,29,39,27,16,28,27,18,28,29],       // }
     [17,5,6,6,18,28,28,40,39,17,27,39], //~
 
-    null//127
+    null, null, null, //127-129
+    null, null, null, null, null, null, null, null, null, null, //130-139
+    null, null, null, null, null, null, null, null, null, null, //140-149
+    null, null, null, null, null, null, null, null, null, null, //150-159
+    null, null, null, null, null, null, null, null, null, null, //160-169
+    null, null, null, null, null, null, //170-175
+    [9,21,32,32,42,9,21,18,8,8,9,21,8,41,29,29,18,8,29,32,42,42,41,29],  //176 - Degree Symbol
+    null, null, null, //177-179 
+    null, null, null, null, null, null, null, null, null, null, //180-189
+    null, null, null, null, null, null, null, null, null, null, //190-199
+    null, null, null, null, null, null, null, null, null, null, //200-209
+    null, null, null, null, null, null, null, null, null, null, //210-219
+    null, null, null, null, null, null, null, null, null, null, //220-229
+    null, null, null, null, null, null, null, null, null, null, //230-239
+    null, null, null, null, null, null, null, null,  //240-247
+    [9,21,32,32,42,9,21,18,8,8,9,21,8,41,29,29,18,8,29,32,42,42,41,29], // Degree Symbol - 248
+    null, //249
+    null, null, null, null, null, null, null, null, null, null, //250-259
+    //
 ];
 
 const asciiWidths = [
     0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.1, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.2, 0.3, 0.2, 0.3, 0.1, 0.4, 0.4, 0.3, 0.4,
     0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.1, 0.1, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.3, 0.2, 0.2, 0.4, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4,
     0.4, 0.4, 0.4, 0.2, 0.3, 0.4, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.3, 0.1, 0.3, 0.3, 0.4,
-];
 
+    0.4,0.4,//128,129
+    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4, //130-169
+    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4, //170-209
+    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4, //210-247
+    0.3,
+    0.4,//249
+    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,//250-259
+
+];
 
 function computeAsciiWidths_ONLY_NEEDED_ONCE() {
     var widths = [];
@@ -628,6 +595,8 @@ function computeAsciiWidths_ONLY_NEEDED_ONCE() {
 
     console.log(widths);
 }
+
+
 
 
 
@@ -759,4 +728,117 @@ const spectial_123_126 = [
     [2,46,45,45,1,2], // _
 
 ];
+*/
+
+
+/*
+const a_vertices = [0,0,0,  2,10,0,  3,10,0,  1,0,0,    4,0,0, 2,10,0, 3,10,0, 5,0,0,    1,5,0, 4,5,0, 4,4,0, 1,4,0 ];
+const a_indices = [0,1,2, 0,2,3,  4,5,6,  4,6,7,  8,9,10, 8,10,11];
+
+
+function GenerateTextures() {
+
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute('id', 'tempCanvas');
+    //document.getElementById("background").appendChild(canvas);
+    const p = new Painter(canvas);
+
+    var textSize = 45;
+
+    canvas.width = textSize;
+    canvas.height = textSize*255;
+    p.Clear();
+    p.SetTextSize(textSize-1);
+    p.SetTextColor('white');
+
+    var totalHeight = 0;
+    for(var i=0; i<255; i++)
+    {
+        var s = String.fromCharCode(i);
+        totalHeight += textSize;
+        p.DrawText(0,totalHeight,s);
+    }
+
+    var i = 55;
+    p.DrawLine(0, textSize*(i-1)+4, 10, textSize*(i-1)+4, 'blue');
+    p.DrawLine(0, textSize*i+4, 10, textSize*i+4, 'red');
+    textSize
+
+    textureImageData = canvas.getContext('2d').getImageData(0,0,canvas.width, canvas.height);
+
+    console.log(textureImageData);
+
+}
+var textureImageData = null;
+
+GenerateTextures();
+
+*/
+
+
+/*
+
+class Text_OLD {
+    constructor(pos = new vec4(0,-300,0), rot = new vec4())
+    {
+        this.position = pos;
+        this.rotation = rot;
+        
+        this.translateMat = null;
+        this.rotateMat = null;
+        this.objectMat = null;
+        this.buffers = null;
+
+        this.vertices = [0,500,0,  2,500,0,  2,0,0, 0,0,0 ];
+        this.indices = [0,1,2, 0,2,3];
+        this.textureCoords = [0,0, 1,0, 1,1, 0,1,];
+
+        this.refresh();
+    }
+
+    setPosition(position)
+    {
+        if (position instanceof vec4)
+        {
+            this.position = position;
+            this.translateMat.makeTranslation(this.position);
+            this.objectMat = this.translateMat.mul(this.rotateMat);
+        } else {
+            console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
+        }
+    }
+    setRotation(rotation)
+    {
+        if (rotation instanceof vec4)
+        {
+            this.rotation = rotation;
+            this.rotateMat.makeTranslation(this.rotation);
+            this.objectMat = this.translateMat.mul(this.rotateMat);
+        } else {
+            console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
+        }
+    }
+    getPosition()
+    {
+        return this.position;
+    }
+    getRotation()
+    {
+        return this.rotation;
+    }
+    refresh()
+    {   //refreshes all matrices and buffers
+        this.translateMat = new mat4().makeTranslation(this.position);
+        this.rotateMat = new mat4().makeRotation(this.rotation);
+        this.objectMat = this.translateMat.mul(this.rotateMat);
+        this.buffers = initBuffersTexture(this.vertices, this.textureCoords, this.indices, textureImageData);
+    }
+
+    draw(gl, projectionMatrix, viewMatrix)
+    {
+        DrawText(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers, this.color);
+    }
+
+}
+
 */

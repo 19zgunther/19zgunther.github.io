@@ -1,26 +1,33 @@
+const glCanvasElement = document.getElementById("glCanvas");
 
-var glCanvasElement = document.getElementById("glCanvas");
 
+
+//web gl stuff
+var gl;
 var FOV = (Math.PI/180.0) * document.getElementById('fovSlider').value;
 var aspect = glCanvasElement.width/glCanvasElement.height;
 var zNear = document.getElementById('znearSlider').value;
 var zFar = document.getElementById('zfarSlider').value;
 var zoom = document.getElementById('orthogonalZoomSlider').value;
+var projectionMatrix = new mat4();
 
-//web gl stuff
-var gl;
+
 
 //Other
 var run = false;
-var player = new Player();
+var camera = new Camera();
 var viewType = 'perspective' //perspective or orthogonal
 var mode = "default";                  //sketch, extrude, ... modes
 var currentSketchObject = null; //current sketch object
 var pressedKeys = {};
 var tick = 0;
 
+var objects = [];
+
 
 var mouseCanvasPos = new vec4();
+
+
 
 setup();
 document.addEventListener('keydown', keyPressed);
@@ -29,11 +36,22 @@ document.addEventListener('mousemove', mouseMove);
 var interval = setInterval(main, 1000/30);
 
 
+
 function keyPressed(event)
 {
     var keyCode = event.key;
     pressedKeys[keyCode] = true;
     console.log(keyCode);
+
+    if (keyCode == "Escape" || keyCode == "X"|| keyCode == "x")
+    {
+        if (createSketchMenuIsOpen)
+        {
+            disable_create_sketch_menu();
+        }
+
+
+    }
 }
 function keyReleased(event)
 {
@@ -48,14 +66,6 @@ function mouseMove(event)
     mouseCanvasPos.y = event.clientY - rect.top;
     //console.log(mouseCanvasPos.toString());
 }
-function create_sketch_button_press()
-{
-    mode = "sketch";
-}
-function move_player_home_button_press()
-{
-    player.slideToPositionAndRotation();
-}
 
 
 
@@ -68,11 +78,25 @@ function updateCameraSettings(element = null)
     zFar = document.getElementById('zfarSlider').value;
     zoom = document.getElementById('orthogonalZoomSlider').value/100;
 
-    if (element == null) {return;}
-    switch(element.id)
+
+    if (element != null)
     {
-        case 'orthogonalViewCheckbox': document.getElementById('perspectiveViewCheckbox').checked = false; viewType = 'orthogonal'; break;
-        case 'perspectiveViewCheckbox': document.getElementById('orthogonalViewCheckbox').checked = false; viewType = 'perspective'; break;
+        switch(element.id)
+        {
+            case 'orthogonalViewCheckbox': document.getElementById('perspectiveViewCheckbox').checked = false; 
+                document.getElementById('orthogonalViewCheckbox').checked = true; 
+                viewType = 'orthogonal'; break;
+            case 'perspectiveViewCheckbox': document.getElementById('orthogonalViewCheckbox').checked = false; 
+                document.getElementById('perspectiveViewCheckbox').checked = true;
+                viewType = 'perspective'; break;
+        }
+    }
+
+    if (viewType == 'orthogonal')
+    {
+        projectionMatrix.makeOrthogonal(zoom, aspect, zNear, zFar);
+    } else{
+        projectionMatrix.makePerspective(FOV, aspect, zNear, zFar);
     }
 }
 
@@ -99,8 +123,25 @@ function setup() {
         }
     }
     updateCameraSettings();
+
+    projectionMatrix.makePerspective(FOV, aspect, zNear, zFar);
+
     InitShader(gl);
     run = true;
+
+    //var m = (new mat4()).setValues([1,5,9,12, 4,3,18,4, 7,7,7,7, 4,8,3,6]);
+    //var inv = m.invert();
+    //console.log("inverse: \n" + inv.toString());
+    //conso le.log (  (m.mul(inv)).toString() );
+
+    
+    objects.push(   new Grid(new vec4(50,0,50), new vec4(0,0,0))  );
+    objects.push(   new Grid(new vec4(50,50,0), new vec4(0,0,Math.PI/2))  );
+    objects.push(   new Grid(new vec4(0,50,50), new vec4(Math.PI/2,0,0))  );
+    objects.push(   new Body()      );
+    objects.push(   new Compass()   );
+    objects.push(   new Sketch(new vec4(1,1,1,1))     );
+    objects.push(   new Text(new vec4(0,2,0), new vec4(), 'Hello world! - 12345678!@#$%^&*()', new vec4(), true)  );
 }
 
 
@@ -114,7 +155,7 @@ function main() {
     //Init vertex and indices buffer
     //var buffers = initBuffers(vertices, normals, indices);
 
-    var projectionMatrix = new mat4();
+    /*projectionMatrix = new mat4();
     switch (viewType)
     {
         
@@ -124,15 +165,15 @@ function main() {
             break;
         case "orthogonal":
             //Make Perspective Matrix
-            projectionMatrix.makeOrthogonal(aspect, zoom);
+            projectionMatrix.makeOrthogonal(zoom, aspect, zNear, zFar);
             break;
         default:
             console.error("Unknown viewType. Should be 'perspective' or 'orthogonal'.");
             return;
-    }
-    //Get view matrix from player
-    player.update(pressedKeys);
-    var viewMatrix = player.getViewMatrix();
+    }*/
+    //Get view matrix from camera
+    camera.update(pressedKeys);
+    var viewMatrix = camera.getViewMatrix();
     
     //Render!
     drawLite(gl, projectionMatrix, viewMatrix);    
@@ -180,7 +221,6 @@ function initBuffersForText(vertices, indices)
         indices: indicesBuffer,
     };
 }
-
 
 function initBuffersTexture(vertices, textureCoords, indices, textureImageData) {
     const verticesBuffer = gl.createBuffer();
@@ -260,36 +300,60 @@ function drawLite(gl, projectionMatrix, viewMatrix)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
+    for (var i=0; i<objects.length; i++)
+    {
+        objects[i].draw(gl, projectionMatrix, viewMatrix);
+    }
+
+
     var g = new Grid(new vec4(50,0,50), new vec4(0,0,0));
     g.draw(gl, projectionMatrix, viewMatrix);
-    g = new Grid(new vec4(50,50,0), new vec4(0,0,Math.PI/2));
-    g.draw(gl, projectionMatrix, viewMatrix);
-    g = new Grid(new vec4(00,50,50), new vec4(Math.PI/2,0,0));
-    g.draw(gl, projectionMatrix, viewMatrix);
-
-    var b = new Body(new vec4(0,0,0));
-    b.draw(gl, projectionMatrix, viewMatrix);
-
-    var c = new Compass();
-    c.draw(gl, projectionMatrix, viewMatrix);
-
-    var s = new Sketch(new vec4(1,1,1));
-    s.draw(gl, projectionMatrix, viewMatrix);
-
-
-    var pointOnPlane = vectorFromPointToPlane(g.getPosition(), g.getNormalVector(), player.getPosition(), player.getScreenNormalVector() );
+    var pointOnPlane = vectorFromPointToPlane(g.getPosition(), g.getNormalVector(), camera.getPosition(), camera.getScreenNormalVector() );
     if (pointOnPlane != null) {
         pointOnPlane.round(2);
-        var t = (new mat4).makeTranslation(  pointOnPlane  );
-        DrawDefault(gl, projectionMatrix, viewMatrix, t, s.indices, s.buffers, false);
+        var s = new Sketch(pointOnPlane);
+        s.draw(gl,projectionMatrix,viewMatrix);
+        //DrawDefault(gl, projectionMatrix, viewMatrix, s.translateMat, s.indices, s.buffers, false);
     }
+
+
+    //gl_pos = perspective * view * object * vertPos;
+    var m = mouseCanvasPos;
+    var gl_pos = new vec4(2*m.x/glCanvasElement.width - 1, -(2*m.y/glCanvasElement.height - 1), 0);
+    //console.log("gl_pos: " + gl_pos.toString());
+    
+
+
+    var point = (( (projectionMatrix.mul(viewMatrix)).invert() ).mul(gl_pos) ).add(camera.getPosition());
+    var point2 = ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  );
+
+    var s;// = new Sketch(point);
+    //s.rotateMat = camera.getRotationMatrixInv();
+    //s.draw(gl,projectionMatrix,viewMatrix);
+    s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  )    );
+    s.draw(gl, projectionMatrix, viewMatrix);
+    s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-10) )  )    );
+    s.draw(gl, projectionMatrix, viewMatrix);
+
+    
+    /*
+    var point = (( ((viewMatrix)).invert() ).mul(gl_pos) ).add(camera.getPosition());
+    var point2 = ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  );
+
+    var s;// = new Sketch(point);
+    //s.rotateMat = camera.getRotationMatrixInv();
+    //s.draw(gl,projectionMatrix,viewMatrix);
+    s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  )    );
+    s.draw(gl, projectionMatrix, viewMatrix);
+    s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-10) )  )    );
+    s.draw(gl, projectionMatrix, viewMatrix);*/
+    
+
 
     
    // b.setData(v,[],[0,0,0,0],i2);
     //b.draw(gl, projectionMatrix, viewMatrix);
 
-    var t = new Text( new vec4(0,2,0) );
-    t.draw(gl, projectionMatrix, viewMatrix);
 }
 
 

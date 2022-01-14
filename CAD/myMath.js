@@ -61,8 +61,9 @@ class mat4 {
         this.f32a[15] = 0;
         return this;
     }
-    makeOrthogonal(aspect, zoom = 1)
+    makeOrthogonal(zoom, aspect, near, far)
     {
+        var range = 1.0/(far);
         this.f32a[0] = (1/aspect) * zoom;
         this.f32a[4] = 0;
         this.f32a[8] = 0;
@@ -75,8 +76,8 @@ class mat4 {
 
         this.f32a[2] = 0;
         this.f32a[6] = 0;
-        this.f32a[10] = -.00001;
-        this.f32a[14] = 0;
+        this.f32a[10] = range;
+        this.f32a[14] = 1;
 
         this.f32a[3] = 0;
         this.f32a[7] = 0;
@@ -301,8 +302,14 @@ class mat4 {
     {
         console.log(this.toString());
     }
-    invert()
+    copy()
     {
+        var m = new mat4();
+        m.setValues( this.getFloat32Array() );
+        return m;
+    }
+    invert()
+    {        
         //Alrighty this is math I don't really care for but I need so here goes nothing
         
         /*
@@ -311,26 +318,136 @@ class mat4 {
         2  6  10  14
         3  7  11  15
         */
+        var mat = this.copy();
+        var mat2 = (new mat4()).makeIdentity();
+        /*
+        console.log("mat2\n" + mat2.toString());
 
-        var mat2 = new mat4().makeIdentity();
 
-        var row = 0;
-        var column = 0;
 
-        while(true) //always a good start
+        for (var column = 0; column < 4; column ++)
         {
-            if ( this.f32a[row*4 + column] == 0)
+            for (var row = 3; row > column; row--)
             {
+                var index = column*4 + row;
                 
+                if (mat.f32a[index] == 0) //if the index is already 0, just continue. We don't need to reduce it!
+                {
+                    continue;
+                } else {
+                    //so, at index column row, we have a value we need to reduce.
+                    //lets find a different non-zero index in this column
+                    var row2 = -1;
+                    for(var r2 = row-1; r2 >= 0; r2--)
+                    {
+                        if (mat.f32a[column*4 + r2] != 0) 
+                        {
+                            row2 = r2;
+                            break;
+                        }
+                    }
+                    if (row2 == -1)
+                    {
+                        console.error("Cannot find inverse of matrix. Error: no above row to reduce with!");
+                        return;
+                    }
+                    
+                    //now, we have 2 row indexes, and we want to remove the item from the bottom row (higher row #)
+                    //Formula: valToRemove + otherVal*X = 0    -->   X = -valToRemove/otherVal
+                    var X = -mat.f32a[column*4 + row]/mat.f32a[column*4 + row2];
+
+                    for (var column2 = 0; column2 < 4; column2++) //Now, for each column, add the val in row2 * X to row
+                    {
+                        mat.f32a[column2*4 + row] += X * mat.f32a[column2*4 + row2];
+                        mat2.f32a[column2*4 + row] += X * mat2.f32a[column2*4 + row2];
+                    }
+                }
+                
+                console.log("C: "+column+"  R: "+row+"\n"+mat.toString());
+
             }
-
-
-
-
-            
-
         }
 
+        //At this point, we should have removed the bottom left triangle and set that to 0. Now, lets scale each row so the diagonal (topleft-bottomright) only has 1's
+        for (var i=0; i<4; i++)
+        {
+            var val = mat.f32a[i*4+i];
+            if (val == 0) //if the diagonal index (row i, column i) is not already == 1
+            {
+                console.error("Cannot find inverse of matrix. Error: cannot get diagonal of 1's! Wil divide by zero.");
+                return;
+            }
+
+            //Get 1 in diagonal spot
+            for (var c=0; c<4; c++)
+            {
+                mat.f32a[c*4 + i] = mat.f32a[c*4 + i]/val;
+                mat2.f32a[c*4 + i] = mat2.f32a[c*4 + i]/val;
+            }
+        }
+
+        console.log("After getting 1's: \n"+mat.toString());
+
+        //Now, we've reduced to the point where we have a diagonal of 1's with nothing below/left of it.
+        //cleanup upper side!
+        for (var i=3; i>0; i--)
+        {
+            for (var r2 = i-1; r2 >=0; r2--)
+            {
+                // mat[col=i, row=r2] + X*1 = 0    (the 1 comes from index=i*4 + i, the diagonal)
+                var X = -mat.f32a[i*4 + r2];
+
+                var c2 = i;
+                mat.f32a[c2*4 + r2] += X * mat.f32a[c2*4 + i];
+                mat2.f32a[c2*4 + r2] += X * mat2.f32a[c2*4 + i];
+                
+            }
+        }
+
+        console.log("Final: \n"+mat.toString());
+        console.log("inverse: \n" + mat2.toString());
+        */
+
+        for(var c = 0; c<4; c++)
+        {
+            //console.log("C: "+c+" \n"+mat.toString()+"\n"+mat2.toString());
+            if (mat.f32a[c*4 + c] == 0)
+            {
+                console.error("Cannot Invert Matrix: Diagonal has a 0. Cannot divide by zero");
+                return;
+            }
+
+            //divide entire row to get 1.
+            var X = mat.f32a[c*4 + c];
+            for (var c2 = 0; c2 < 4; c2++)
+            {
+                mat.f32a[c2*4 + c] = mat.f32a[c2*4 + c]/X;
+                mat2.f32a[c2*4 + c] = mat2.f32a[c2*4 + c]/X;
+            }
+
+            //console.log("After Div Row by X: " +X+"\n"+mat.toString()+"\n"+mat2.toString());
+
+
+            //remove all vals in column other than in row c
+            var otherRow = -1;
+            for (var r=0; r<4; r++)
+            {
+                if (r != c && mat.f32a[c*4 + r] != 0)
+                {
+                    //otherIndexVal + 1*X = 0   -->   X = -otherIndexVal
+                    var X = mat.f32a[c*4 + r];
+                    for (var c2=0; c2<4; c2++)
+                    {
+                        mat.f32a[c2*4 + r] += -X * mat.f32a[c2*4+c];
+                        mat2.f32a[c2*4 + r] += -X * mat2.f32a[c2*4+c];
+                    }
+                }
+                //console.log("After Clearing R: " +r+"\n"+mat.toString()+"\n"+mat2.toString());
+            }
+        }
+
+        //console.log("REsult: \n"+mat.toString()+"\n"+mat2.toString());
+        return mat2;
     }
 }
 
@@ -520,3 +637,4 @@ function vectorFromPointToPlane(planePoint, planeNormal, pointPosition, unitVecF
         }
     }
 }
+

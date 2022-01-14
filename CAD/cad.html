@@ -34,7 +34,7 @@
                         Orthogonal View
                     </div>
                     <div class = 'tab' style = "font-size: smaller;">
-                        Zoom:  0 <input id='orthogonalZoomSlider' type = "range" min='1' max='100' value = '.5' step='.1' oninput = updateCameraSettings(this)>10
+                        Zoom:  0 <input id='orthogonalZoomSlider' type = "range" min='1' max='100' value = '20' step='.1' oninput = updateCameraSettings(this)>100
                     </div>
                 </div>
                 <div class = "hoverDropDownContent" > 
@@ -43,11 +43,11 @@
                         Perspective View
                     </div>
                     <div class = 'tab' style = "font-size: smaller;"> 
-                            FOV: 0 <input id='fovSlider' type = "range" min='1' max='180' value = '45' step='.1' oninput = updateCameraSettings(this)>180
+                            FOV: 5 <input id='fovSlider' type = "range" min='5' max='180' value = '45' step='.1' oninput = updateCameraSettings(this)>180
                             <br>
-                            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100' oninput = updateCameraSettings(this)>100
+                            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100' value ='100' oninput = updateCameraSettings(this)>100
                             <br>
-                            zNear: 0 <input id='znearSlider' type = "range" min='0' max='5' value='1.5' step = '.1' oninput = updateCameraSettings(this)> 5
+                            zNear: 0 <input id='znearSlider' type = "range" min='.1' max='5' value='1.5' step = '.1' oninput = updateCameraSettings(this)> 5
                             <br>
                     </div>
                 </div>
@@ -56,10 +56,49 @@
 
         <br>
 
+        <!--Create Sketch Menu-->
+        <div id = 'createSketchMenu' style = 'display:none; position:fixed; width:fit-content; min-width: 100; min-height: 100; height:fit-content; background-color: grey;'>
+            <div style="display: flex; flex-direction: row; flex-wrap: wrap; width:100%;">
+                <div style="display: flex; flex-direction: column;">
+                    <div style = 'font-size: larger; font-weight: bolder;'>
+                        Create Sketch
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
+                    <div class='button' style='width:fit-content; min-width: 5px;' onclick = disable_create_sketch_menu()>
+                        X
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: row; flex-wrap: wrap;">
+                <div style="display: flex; flex-direction: column;">
+                    <div class="button" id = 'xzPlane' onclick = create_sketch_menu_plane_onclick(this)>
+                        XZ Plane
+                    </div>
+                    <div class="button" id = 'xyPlane' onclick = create_sketch_menu_plane_onclick(this)>
+                        XY Plane
+                    </div>
+                    <div class="button" id = 'yzPlane' onclick = create_sketch_menu_plane_onclick(this)>
+                        YZ Plane
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
+                    <canvas id = 'createSketchCanvas' width= '100' height = '100' style="background-color: white; justify-self: right; margin: auto;"></canvas>
+                </div>
+            </div>
+            <div class='button' onclick = create_sketch_menu_create_onclick(this) style='width: 80%;'>
+                Create Sketch
+            </div>
+
+
+
+        </div>
+
         <!-- Canvas! -->
         <canvas id = 'glCanvas' width = 600 height = 500></canvas>
 
-        <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = create_sketch_button_press()>Create Sketch</div>
+        <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = enable_create_sketch_menu()>Create Sketch</div>
         
         <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = move_player_home_button_press()>Move to home position</div>
 
@@ -94,8 +133,9 @@
 <script src="../utilities.js"></script>
 <script src="object.js"></script>
 <script src="shader.js"></script>
-<script src="player.js"></script>
+<script src="camera.js"></script>
 <script src="cad.js"></script>
+<script src="sketchMain.js"></script>
 <script src="../script.js"></script>
 
 </html>

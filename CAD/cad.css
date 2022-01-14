@@ -45,4 +45,19 @@
 
 
 
-/*slider*/
+/*button*/
+
+.button {
+    background-color:#555555;
+    height: fit-content;
+    width:fit-content;
+    min-width: 100px;
+    justify-content: center;
+
+    margin: 3px;
+    opacity: 90%;
+}
+
+.button:hover {
+    opacity: 100%;
+}

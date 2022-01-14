@@ -162,7 +162,8 @@ function initGridShaderProgram(gl)
     return [shaderProgram, programInfo];
 }
 
-function initTextShaderProgram_OLD(gl) {
+//Unused at the moment
+function initTextureShaderProgram(gl) {
     const vsSource = `
     attribute vec4 aVertexPosition;
     attribute vec2 aTextureCoords;
@@ -233,6 +234,7 @@ function initTextShaderProgram_OLD(gl) {
 
     return [shaderProgram, programInfo]
 }
+
 
 function initTextShaderProgram(gl) {
     const vsSource = `
@@ -341,9 +343,6 @@ function DrawDefault(gl, projectionMatrix, viewMatrix, objectMatrix, indices, bu
         gl.enableVertexAttribArray(programInfo.attribLocations.colorLocation);
     }
 
-    //var pp = player.getPosition();
-    //var objMat = (new mat4()).makeTranslation(pp.x,pp.y,pp.z);
-
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
     // Set the shader uniforms
@@ -420,7 +419,9 @@ function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, i
     }
 }
 
-function DrawText_OLD(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, color = new vec4(1,100,0,1))
+
+//Unused at the moment
+function DrawTexture(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, color = new vec4(1,100,0,1))
 {
     var programInfo = textProgramInfo;
 
@@ -474,14 +475,14 @@ function DrawText_OLD(gl, projectionMatrix, viewMatrix, objectMatrix, indices, b
 }
 
 
-function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textColor = new vec4(255,0,0,255), text = "default_text", textScale = new vec4(1,1,1,1))
+function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textColor = new vec4(255,0,0,255), text = "default_text", textScale = new vec4(1,1,1,1), spacing = 0.1)
 {
     var programInfo = textProgramInfo;
 
     // Tell WebGL to use our program when drawing
     gl.useProgram(programInfo.program);
 
-
+    
     //Bind Vertices
     {
         const numComponents = 3  // pull out 3 values per iteration
@@ -517,8 +518,46 @@ function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textC
         //Set Position (move over a 0.5)
         gl.uniform4fv(programInfo.uniformLocations.textOffset, ( new vec4(xpos,0,0,0) ).getFloat32Array());
 
-        gl.drawElements(gl.TRIANGLES, asciiIndices[ascii].length, gl.UNSIGNED_SHORT, 0);
+        if (indices == null) { console.error("Cannot find ascii char - code: " + ascii); continue;}
+        gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
-        xpos += asciiWidths[ascii] + 0.05;
+        xpos += asciiWidths[ascii] + spacing;
     }
+}
+
+function DrawBakedText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, indices, textColor = new vec4(255,0,0,255), textScale = new vec4(1,1,1,1))
+{
+    var programInfo = textProgramInfo;
+
+    // Tell WebGL to use our program when drawing
+    gl.useProgram(programInfo.program);
+
+    
+    //Bind Vertices
+    {
+        const numComponents = 3  // pull out 3 values per iteration
+        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
+        const normalize = false;  // don't normalize
+        const stride = 0;         // how many bytes to get from one set of values to the next
+        const offset = 0;         // how many bytes inside the buffer to start from
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
+        gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
+        gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
+    }
+
+    // Set the shader uniforms
+    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
+    gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
+    gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.colorVector, textColor.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.scaleVector, textScale.getFloat32Array());
+
+
+
+    //Bind Indices
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    
+
+    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+    
 }
