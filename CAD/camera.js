@@ -19,7 +19,6 @@ class Camera
 
         this.update({});
     }
-
     update(pressedKeys)
     {
         if (pressedKeys == null) {
@@ -27,9 +26,10 @@ class Camera
             return;
         }
         
+
         var movement = new vec4();
         var rot = new vec4();
-
+        //For normal moving and such
         if (this.sliding == false) {
 
             var speed = this.walkSpeed;
@@ -91,7 +91,7 @@ class Camera
             var posDif = this.slideTargetPos.sub(this.pos);
             movement = (posDif).mul(-.1);
 
-            console.log(this.slideTargetPos.toString() +" - " + this.pos.toString()+" = " + (this.slideTargetPos.sub(this.pos)).toString() + "  ==  " + movement.toString());
+            //console.log(this.slideTargetPos.toString() +" - " + this.pos.toString()+" = " + (this.slideTargetPos.sub(this.pos)).toString() + "  ==  " + movement.toString());
 
             rot = (this.slideTargetRot.sub(this.rot)).mul(.2);
 
@@ -100,11 +100,40 @@ class Camera
                 this.pos = this.slideTargetPos;
                 this.rot = this.slideTargetRot;
                 this.sliding = false;
-                console.log("sliding = false");
+                //console.log("sliding = false");
             }
             
         }
 
+        //If we're editing a sketch, we want our position and rotation to be fixed relative to the plane we're editing
+        /*if (typeof editingSketch != 'undefined') //Make sure the file with the sketch vairables has been defined
+        {
+            if (editingSketch && this.sliding == false && currentSketch != null)
+            {
+                movement = new vec4();
+                rot = new vec4();
+
+                if (pressedKeys['w'])
+                {
+                    movement.y -= 0.1;
+                }
+                if (pressedKeys['s'])
+                {
+                    movement.y += 0.1;
+                }
+                if (pressedKeys['d'])
+                {
+                    movement.x -= 0.1;
+                }
+                if (pressedKeys['a'])
+                {
+                    movement.x += 0.1;
+                }
+
+                movement = currentSketch.grid.getRotationMatrix().mul(movement);
+
+            }  
+        }*/
 
         //Update Matrices
         this.rot = this.rot.add(rot);
@@ -125,7 +154,6 @@ class Camera
         this.rotationMat = rotMat2.mul(rotMat1);
         this.viewMatrix = this.rotationMat.mul(this.translationMat);
     }
-
     setPosition(pos = new vec4())
     {
         this.pos = pos;

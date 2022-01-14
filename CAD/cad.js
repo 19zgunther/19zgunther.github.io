@@ -22,7 +22,9 @@ var currentSketchObject = null; //current sketch object
 var pressedKeys = {};
 var tick = 0;
 
+var grids = [];
 var objects = [];
+var compass;
 
 
 var mouseCanvasPos = new vec4();
@@ -134,12 +136,16 @@ function setup() {
     //console.log("inverse: \n" + inv.toString());
     //conso le.log (  (m.mul(inv)).toString() );
 
+    compass = new Compass();
+
+
+    grids.push(   new Grid(new vec4(50,50,0), new vec4(0,0,00))  );
+    grids.push(   new Grid(new vec4(0,50,50), new vec4(0,Math.PI/2,0))  );
+    grids.push(   new Grid(new vec4(50,0,50), new vec4(0,0,Math.PI/2))  );
     
-    objects.push(   new Grid(new vec4(50,0,50), new vec4(0,0,0))  );
-    objects.push(   new Grid(new vec4(50,50,0), new vec4(0,0,Math.PI/2))  );
-    objects.push(   new Grid(new vec4(0,50,50), new vec4(Math.PI/2,0,0))  );
+
     objects.push(   new Body()      );
-    objects.push(   new Compass()   );
+    //objects.push(   new Compass()   );
     objects.push(   new Sketch(new vec4(1,1,1,1))     );
     objects.push(   new Text(new vec4(0,2,0), new vec4(), 'Hello world! - 12345678!@#$%^&*()', new vec4(), true)  );
 }
@@ -300,40 +306,66 @@ function drawLite(gl, projectionMatrix, viewMatrix)
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
+    //Draw each grid
+    for (var i=0; i<grids.length; i++)
+    {
+        grids[i].draw(gl, projectionMatrix, viewMatrix);
+    }
+
+    //Draw Each object
     for (var i=0; i<objects.length; i++)
     {
         objects[i].draw(gl, projectionMatrix, viewMatrix);
     }
 
+    //Draw Compass
+    compass.draw(gl,projectionMatrix,viewMatrix);
 
-    var g = new Grid(new vec4(50,0,50), new vec4(0,0,0));
-    g.draw(gl, projectionMatrix, viewMatrix);
-    var pointOnPlane = vectorFromPointToPlane(g.getPosition(), g.getNormalVector(), camera.getPosition(), camera.getScreenNormalVector() );
-    if (pointOnPlane != null) {
-        pointOnPlane.round(2);
-        var s = new Sketch(pointOnPlane);
-        s.draw(gl,projectionMatrix,viewMatrix);
-        //DrawDefault(gl, projectionMatrix, viewMatrix, s.translateMat, s.indices, s.buffers, false);
+
+
+    //var g = new Grid(new vec4(50,0,50), new vec4(0,0,0));
+    
+    if (currentSketch != null) {
+
+        //g.draw(gl, projectionMatrix, viewMatrix);
+        /*
+        var g = currentSketch.grid;
+        var pointOnPlane = vectorFromPointToPlane(g.getPosition(), g.getNormalVector(), camera.getPosition(), camera.getScreenNormalVector() );
+        //console.log(g.getPosition()+"\n"+g.getNormalVector()+"\n"+camera.getPosition()+"\n"+camera.getScreenNormalVector()+"\n"+pointOnPlane)
+        if (pointOnPlane != null) {
+            pointOnPlane.round(2);
+            var s = new Sketch(pointOnPlane);
+            s.draw(gl,projectionMatrix,viewMatrix);
+        } else {
+            console.log("pointOnPlane == null");
+        }
+        */
+
+        var m = mouseCanvasPos;
+        var gl_pos = new vec4(2*m.x/glCanvasElement.width - 1, -(2*m.y/glCanvasElement.height - 1), 0);
+        //var point = (( (projectionMatrix.mul(viewMatrix)).invert() ).mul(gl_pos) ).add(camera.getPosition());
+        var point = (( (projectionMatrix.mul(viewMatrix)).invert() ).mul(gl_pos).add(camera.getPosition()) );
+        var pos = currentSketch.grid.getIntersectionPoint(point, camera.getScreenNormalVector(),.1);
+        console.log(pos);
+        var s= new Sketch(pos);
+        s.draw(gl, projectionMatrix, viewMatrix);
+
+        /*
+        //var point2 = ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  );
+        pointOnPlane = vectorFromPointToPlane(g.getPosition(), g.getNormalVector(), camera.getPosition(), point.scaleToUnit());
+
+        var s;// = new Sketch(point);
+        //s.rotateMat = camera.getRotationMatrixInv();
+        //s.draw(gl,projectionMatrix,viewMatrix);
+        //s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  )    );
+        //s.draw(gl, projectionMatrix, viewMatrix);
+        //s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-10) )  )    );
+        //s.draw(gl, projectionMatrix, viewMatrix);
+
+        s = new Sketch (pointOnPlane.mul(-1));
+        s.draw(gl, projectionMatrix, viewMatrix);*/
     }
 
-
-    //gl_pos = perspective * view * object * vertPos;
-    var m = mouseCanvasPos;
-    var gl_pos = new vec4(2*m.x/glCanvasElement.width - 1, -(2*m.y/glCanvasElement.height - 1), 0);
-    //console.log("gl_pos: " + gl_pos.toString());
-    
-
-
-    var point = (( (projectionMatrix.mul(viewMatrix)).invert() ).mul(gl_pos) ).add(camera.getPosition());
-    var point2 = ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  );
-
-    var s;// = new Sketch(point);
-    //s.rotateMat = camera.getRotationMatrixInv();
-    //s.draw(gl,projectionMatrix,viewMatrix);
-    s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-5) )  )    );
-    s.draw(gl, projectionMatrix, viewMatrix);
-    s = new Sketch(   ( point.copy() ).add(   camera.getRotationMatrixInv().mul(  new vec4(0,0,-10) )  )    );
-    s.draw(gl, projectionMatrix, viewMatrix);
 
     
     /*

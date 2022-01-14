@@ -22,6 +22,8 @@ class Object {
         this.colors = [1,0,0,1, 0,1,0,1, 0,0,1,1,];
         this.indices = [0,1,2];
 
+        this.enableDraw = true;
+
         this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
 
@@ -41,7 +43,7 @@ class Object {
         if (rotation instanceof vec4)
         {
             this.rotation = rotation;
-            this.rotateMat.makeTranslation(this.rotation);
+            this.rotateMat.makeRotation(this.rotation);
             this.objectMat = this.translateMat.mul(this.rotateMat);
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
@@ -54,6 +56,10 @@ class Object {
     getRotation()
     {
         return this.rotation;
+    }
+    getRotationMatrix()
+    {
+        return this.rotateMat;
     }
     setData(vertices, normals, colors, indices)
     {
@@ -84,6 +90,7 @@ class Object {
     }
     draw(gl, projectionMatrix, viewMatrix)
     {
+        if (!this.enableDraw) {return;}
         DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
     }
 }
@@ -99,6 +106,8 @@ class Grid extends Object{
 
         this.majorLineColor = new vec4(.3, .3, .3, 1);
         this.minorLineColor = new vec4(.7, .7, .7, 1);
+
+        this.normalVector = this.rotateMat.mul(new vec4(0,0,-1));
     
         this._generateData();
     }
@@ -115,14 +124,14 @@ class Grid extends Object{
             var i = j*this.gridScale - this.numLines * this.gridScale;
             //lines parallel to x 
             p.x = i;
-            p.y = 0;
-            p.z = -this.numLines*this.gridScale;
+            p.y = -this.numLines*this.gridScale;
+            p.z = 0;
 
             this.vertices.push(p.x);
             this.vertices.push(p.y);
             this.vertices.push(p.z);
 
-            p.z = this.numLines*this.gridScale;
+            p.y = this.numLines*this.gridScale;
 
             this.vertices.push(p.x);
             this.vertices.push(p.y);
@@ -134,8 +143,8 @@ class Grid extends Object{
 
             //lines parallel to z
             p.x = -this.numLines*this.gridScale;
-            p.y = 0;
-            p.z = i;
+            p.y = i;
+            p.z = 0;
 
             this.vertices.push(p.x);
             this.vertices.push(p.y);
@@ -173,12 +182,37 @@ class Grid extends Object{
         //Update the buffers
         this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
+    setRotation(rotation)
+    {
+        if (rotation instanceof vec4)
+        {
+            this.rotation = rotation;
+            this.rotateMat.makeRotation(this.rotation);
+            this.objectMat = this.translateMat.mul(this.rotateMat);
+            this.normalVector = this.rotateMat.mul(new vec4(0,0,-1));
+        } else {
+            console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
+        }
+    }
     getNormalVector()
     {
-        return this.rotateMat.mul(new vec4(0,1,0));
+        return this.normalVector;
+    }
+    getIntersectionPoint(position = new vec4(), directionVector = new vec4(), snapScale = null)
+    {
+        var v = vectorFromPointToPlane(this.position, this.normalVector, position, directionVector);
+        if (snapScale != null) {
+            v = (new mat4()).makeRotation(this.rotation.mul(-1)).mul(v);
+            v.x = Math.round(v.x/snapScale) * snapScale;
+            v.y = Math.round(v.y/snapScale) * snapScale;
+            v.z = Math.round(v.z/snapScale) * snapScale;
+            v = this.rotateMat.mul(v);
+        }
+        return v;
     }
     draw(gl, projectionMatrix, viewMatrix)
     {
+        if (!this.enableDraw) {return;}
 
         var scaleVector = new vec4(1,1,1,1);
 
@@ -198,7 +232,7 @@ class Compass extends Object{
                );
 
         var aspect = glCanvasElement.width/glCanvasElement.height;
-        this.setPosition(new vec4(-0.92*aspect,0.87,0));
+        this.setPosition(new vec4(-0.92*aspect,0.87,-1));
     }
 
     addLine(pos1, pos2) {
@@ -207,39 +241,10 @@ class Compass extends Object{
 
     draw(gl, projectionMatrix, viewMatrix)
     {
-        var aspect = glCanvasElement.width/glCanvasElement.height;
-
+        if (!this.enableDraw) {return;}
         this.rotation = camera.getRotation();
-        this.rotateMat.makeRotation(this.rotation);
         this.rotateMat = camera.getRotationMatrix();
-        //this.objectMat = this.translateMat.mul(camera.getRotationMatrix());
-        DrawDefault(gl, new mat4().makeOrthogonal(aspect), this.translateMat, this.rotateMat, this.indices, this.buffers, false);
-    }
-}
-
-
-class Sketch extends Object{
-    constructor(position = new vec4(), rotation = new vec4()) {
-        super(position, rotation);
-
-        this.lines = [];
-
-        this.vertices = [0,0,0,  1,0,0, -1,0,0,  0,1,0,  0,-1,0,  0,0,1,  0,0,-1];
-        this.normals = [0,1,0,  0,1,0,  0,1,0,  0,1,0,   0,1,0,   0,1,0,  0,1,0];
-        this.colors = [0,0,0,1, 1,0,0,1,, 1,0,0,1, 0,1,0,1, 0,1,0,1, 0,0,1,1, 0,0,1,1,];
-        this.indices = [0,1, 0,2, 0,3, 0,4, 0,5, 0,6];
-
-        this.refresh();
-
-    }
-
-    addLine(pos1, pos2) {
-        lines.push([pos1, pos2]);
-    }
-
-    draw(gl, projectionMatrix, viewMatrix)
-    {
-        DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers, false);
+        DrawDefault(gl, new mat4().makeOrthogonal(1,aspect,0,100), this.translateMat, this.rotateMat, this.indices, this.buffers, false);
     }
 }
 
@@ -247,6 +252,7 @@ class Sketch extends Object{
 class Body extends Object {
     draw(gl, projectionMatrix, viewMatrix)
     {
+        if (!this.enableDraw) {return;}
         DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
     }
 }
@@ -269,6 +275,8 @@ class Text {
         this.spacing = 0.1; //Distance between letters
 
         this.baked = false; //Boolean storing whether or not we have "baked" the vertices & indices.
+
+        this.enableDraw = true;
 
         this.refresh();
 
@@ -375,6 +383,7 @@ class Text {
     }
     draw(gl, projectionMatrix, viewMatrix)
     {
+        if (!this.enableDraw) {return;}
         if (this.baked == true)
         {
             DrawBakedText(gl, projectionMatrix, viewMatrix, this.objectMat, this.buffers, this.indices, this.textColor, this.textScale);

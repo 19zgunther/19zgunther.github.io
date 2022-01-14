@@ -64,6 +64,7 @@ class mat4 {
     makeOrthogonal(zoom, aspect, near, far)
     {
         var range = 1.0/(far);
+
         this.f32a[0] = (1/aspect) * zoom;
         this.f32a[4] = 0;
         this.f32a[8] = 0;
