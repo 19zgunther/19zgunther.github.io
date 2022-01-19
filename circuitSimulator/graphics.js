@@ -7,6 +7,10 @@ function UpdateDisplay(p) {
         console.error("UpdateDisplay needs a Painter object to run");
         return;
     }
+
+    var drawComponentValues = LabelComponentValuesCheckboxElement.checked;
+    var drawComponentNames = LabelComponentNamesCheckboxElement.checked;
+
     p.Clear(); //clear the entire screen
     p.SetFillColor('white');
     p.SetStrokeColor('white');
@@ -22,7 +26,7 @@ function UpdateDisplay(p) {
         } else {
             p.SetStrokeWidth(1);
         }
-        components[i].Draw(p);
+        components[i].Draw(p, drawComponentNames, drawComponentValues);
     }
     
     p.SetStrokeWidth(1);

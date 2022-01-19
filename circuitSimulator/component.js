@@ -4,6 +4,8 @@ function createNewComponent(drawMode)
 {
     switch(drawMode)
     {
+        case "text": return new Text();
+
         case "wire": return new Wire();
         case "resistor": return new Resistor();
         case "switch": return new Switch();
@@ -29,7 +31,6 @@ class Component {
         this.startPos = new Point(0,0);
         this.endPos = new Point(0,0);
         this.type = type //can be wire, resistor, capacitor, voltageSource1n, voltageSource2n, or currentSource, or inductor
-
 
         this.name = getNewComponentName(this.type);
 
@@ -219,7 +220,7 @@ class Resistor extends Component {
     SetValues(arr = []){
         this.resistance = arr[0];
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
         if (this.parentComponent != null) { return; }
         var startPos = this.startPos; 
         var endPos = this.endPos;
@@ -266,7 +267,10 @@ class Resistor extends Component {
         while (angle < -Math.PI/2) {
             angle += Math.PI
         }
-        p.DrawTextRotatedCentered(midpoint.x, midpoint.y, formatValue(this.resistance, this.GetStringSuffix()), angle );
+
+        if (labelComponentValues) {
+            p.DrawTextRotatedCentered(midpoint.x, midpoint.y, formatValue(this.resistance, this.GetStringSuffix()), angle );
+        }
 
         if (labelComponentNames == true) {
             //fill(255,255,255);
@@ -309,7 +313,7 @@ class Capacitor extends Component {
     SetValues(arr = []){
         this.capacitance = arr[0];
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
         var startPos = this.startPos;
         var endPos = this.endPos;
         var dist = Math.sqrt(Math.pow(startPos.x-endPos.x,2) + Math.pow(startPos.y-endPos.y,2));
@@ -342,7 +346,10 @@ class Capacitor extends Component {
         p.DrawLine(p1.x,p1.y,p2.x,p2.y);
         p.SetStrokeColor(temp);
 
-        p.DrawText(midpoint.x+height+2, midpoint.y, formatValue(this.capacitance, this.GetStringSuffix()) );
+        if (labelComponentValues)
+        {
+            p.DrawText(midpoint.x+height+2, midpoint.y, formatValue(this.capacitance, this.GetStringSuffix()) );
+        }
     }
     RecordData()
     {
@@ -384,7 +391,7 @@ class Inductor extends Component {
     SetValues(arr = []){
         this.inductance = arr[0];
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
         //draws inductor on canvas
         var startPos = this.startPos;  //comp = a resistor Component object
         var endPos = this.endPos;
@@ -452,7 +459,10 @@ class Inductor extends Component {
             p.DrawLine(p1.x,p1.y,p4.x,p4.y);
         }
         */
-        p.DrawText(midpoint.x+10, midpoint.y, formatValue(this.inductance, this.GetStringSuffix()) );
+
+        if (labelComponentValues) {
+            p.DrawText(midpoint.x+10, midpoint.y, formatValue(this.inductance, this.GetStringSuffix()) );   
+        }
 
 
 
@@ -501,7 +511,7 @@ class VoltageSource1n extends Component {
         this.targetVoltage = arr[0];
         this.frequency = arr[1];
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
         if (this.parentComponent != null) { return; }
         var color = voltageToHexColor(this.voltage);
         p.DrawLine(this.startPos.x,this.startPos.y,this.endPos.x,this.endPos.y, color);
@@ -519,11 +529,13 @@ class VoltageSource1n extends Component {
 
             }
         } else {
-            if (this.startPos.y > this.endPos.y) //slope down, so draw number below.
-            {
-                p.DrawTextCentered(this.endPos.x, this.endPos.y-8, formatValue(this.targetVoltage, this.GetStringSuffix()));
-            } else {
-                p.DrawTextCentered(this.endPos.x, this.endPos.y+8, formatValue(this.targetVoltage, this.GetStringSuffix()));
+            if (labelComponentValues) {
+                if (this.startPos.y > this.endPos.y) //slope down, so draw number below.
+                {
+                    p.DrawTextCentered(this.endPos.x, this.endPos.y-8, formatValue(this.targetVoltage, this.GetStringSuffix()));
+                } else {
+                    p.DrawTextCentered(this.endPos.x, this.endPos.y+8, formatValue(this.targetVoltage, this.GetStringSuffix()));
+                }
             }
         }
         
@@ -571,7 +583,7 @@ class VoltageSource2n extends Component {
         this.targetVoltage = arr[0];
         this.frequency = arr[1];
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
         if (this.parentComponent != null) { return; }
         var startPos = this.startPos;
         var endPos = this.endPos;
@@ -599,13 +611,17 @@ class VoltageSource2n extends Component {
             var p4 = new Point((Math.cos(angle-angleModifier+Math.PI)*height2+midpoint.x),(Math.sin(angle-angleModifier+Math.PI)*height2+midpoint.y));
             p.DrawLine(p1.x,p1.y,p2.x,p2.y, enColor);
             p.DrawLine(p3.x,p3.y,p4.x,p4.y, snColor);
-            p.DrawTextCentered(midpoint.x+25, midpoint.y, formatValue(this.targetVoltage, this.GetStringSuffix()) );
+            if (labelComponentValues) {
+                p.DrawTextCentered(midpoint.x+25, midpoint.y, formatValue(this.targetVoltage, this.GetStringSuffix()) );
+            }
         } else {
             //ac - draw circle..?
             len = (dist/2) - 25;
             p.DrawCircle(midpoint.x, midpoint.y, 25, mid);
-            p.DrawTextCentered(midpoint.x, midpoint.y, formatValue(this.frequency, "Hz"));
-            p.DrawTextCentered(midpoint.x+35, midpoint.y, formatValue(this.targetVoltage, this.GetStringSuffix()) );
+            if (labelComponentValues) {
+                p.DrawTextCentered(midpoint.x, midpoint.y, formatValue(this.frequency, "Hz"));
+                p.DrawTextCentered(midpoint.x+35, midpoint.y, formatValue(this.targetVoltage, this.GetStringSuffix()) );
+            }
         }
 
         p.DrawLine(startPos.x,startPos.y, (Math.cos(angle)*len+startPos.x), (Math.sin(angle)*len+startPos.y), snColor);
@@ -641,7 +657,7 @@ class CurrentSource extends Component {
         this.targetCurrent = arr[0];
         this.frequency = arr[1];
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
         var startPos = this.startPos;
         var endPos = this.endPos;
         var dist = Math.sqrt(Math.pow(startPos.x-endPos.x,2) + Math.pow(startPos.y-endPos.y,2));
@@ -673,7 +689,9 @@ class CurrentSource extends Component {
         p.DrawLine(p3.x,p3.y,p1.x,p1.y, mid);
         p.DrawLine(p4.x,p4.y,p1.x,p1.y, mid);
 
-        p.DrawText(midpoint.x + 20, midpoint.y, formatValue(this.targetCurrent, "A"));
+        if (labelComponentValues) {
+            p.DrawText(midpoint.x + 20, midpoint.y, formatValue(this.targetCurrent, "A"));
+        }   
     }
     Update(currentTime, timeStep) {
         if (this.frequency != 0) {
@@ -716,7 +734,7 @@ class FrequencySweep extends Component {
         this.stopFreq = arr[2];
         this.sweepDuration = arr[3];
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
         var startPos = this.startPos;
         var endPos = this.endPos;
         var dist = Math.sqrt(Math.pow(startPos.x-endPos.x,2) + Math.pow(startPos.y-endPos.y,2));
@@ -736,11 +754,12 @@ class FrequencySweep extends Component {
         p.DrawLine(endPos.x,endPos.y, (Math.cos(angle+Math.PI)*len+endPos.x), (Math.sin(angle+Math.PI)*len+endPos.y), enColor);
 
         p.DrawCircle(midpoint.x, midpoint.y, 25, mid);
-        p.DrawTextCentered(midpoint.x, midpoint.y, (this.currentFreq).toPrecision(2));
-        p.DrawTextCentered(midpoint.x, midpoint.y+15, "Hz");
+        if (labelComponentValues) {
+            p.DrawTextCentered(midpoint.x, midpoint.y, (this.currentFreq).toPrecision(2));
+            p.DrawTextCentered(midpoint.x, midpoint.y+15, "Hz");
 
-        p.DrawText(midpoint.x+30, midpoint.y, formatValue(this.targetVoltage, "V"));
-
+            p.DrawText(midpoint.x+30, midpoint.y, formatValue(this.targetVoltage, "V"));
+        }
 
     }
     Update(currentTime, timeStep) {
@@ -786,7 +805,7 @@ class OpAmp extends Component {
     GetEncodedDataString() {
         return this.type+" "+this.name+" "+"_"+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
 
         //p.DrawLine(this.startPos.x,this.startPos.y,this.endPos.x,this.endPos.y, '#222222');
         
@@ -819,8 +838,10 @@ class OpAmp extends Component {
         p.DrawLine(l1_1.x, l1_1.y, l1_2.x, l1_2.y, plusInputColor);
         p.DrawLine(l2_1.x, l2_1.y, l2_2.x, l2_2.y, negInputColor);
         var l1_2 = new Point(l1_2.x + Math.cos(a)*5, l1_2.y + Math.sin(a)*5);
-        p.DrawTextCentered(l1_2.x + Math.cos(a)*4, l1_2.y + Math.sin(a)*4, "+");
-        p.DrawTextCentered(l2_2.x + Math.cos(a)*4, l2_2.y + Math.sin(a)*4, "-");
+        if (labelComponentValues) {
+            p.DrawTextCentered(l1_2.x + Math.cos(a)*4, l1_2.y + Math.sin(a)*4, "+");
+            p.DrawTextCentered(l2_2.x + Math.cos(a)*4, l2_2.y + Math.sin(a)*4, "-");
+        }
 
         //draw triangle
         var t1 = new Point(sp.x + Math.cos(a1)*gridSize*1.8, sp.y + Math.sin(a1)*gridSize*1.8);
@@ -946,7 +967,7 @@ class Diode extends Component {
     GetEncodedDataString() {
         return this.type+" "+this.name+" "+"_"+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
     }
-    Draw(p) {
+    Draw(p, labelComponentNames = false, labelComponentValues = false) {
 
         var a = Math.atan2(this.startPos.y-this.endPos.y, this.startPos.x-this.endPos.x) + Math.PI; //angle from startPos to endPos
         var midpoint = findMidpoint(this.startPos, this.endPos);
@@ -1062,6 +1083,34 @@ class Diode extends Component {
     }
 }
 
+
+
+class Text extends Component {
+    constructor() {
+        super('text');
+        this.type = 'text';
+        this.color = 'white';
+        this.text = 'default_text';
+    }
+    GetEncodedDataString() {
+        return this.type+" "+this.name+" "+"_"+" "+this.startPos.x+" "+this.startPos.y+" "+this.endPos.x+" "+this.endPos.y+" ";
+    }
+    Draw(p) {
+        p.DrawTextCentered(this.startPos.x, this.startPos.y, this.text, this.color);
+    }
+    Update()
+    {
+        this.endPos.x = this.startPos.x + 1;
+        this.endPos.y = this.startPos.y + 1;
+    }
+
+    GetInputs(){
+        return [["Text", this.text],] ;
+    }
+    SetValues(arr = []){
+        this.text = arr[0];
+    }
+}
 
 
 

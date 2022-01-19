@@ -12,6 +12,8 @@ var CircuitCanvasElement = document.getElementById("circuitCanvas");
 //checkboxes
 var LabelNodesCheckboxElement = document.getElementById("labelNodesCheckbox");
 var LabelNodeValuesCheckboxElement = document.getElementById('labelNodeValuesCheckbox');
+var LabelComponentValuesCheckboxElement = document.getElementById('labelComponentValuesCheckbox');
+var LabelComponentNamesCheckboxElement = document.getElementById('labelComponentNamesCheckbox');
 var ColorComponentsCheckboxElement = document.getElementById("colorComponentsCheckbox");
 
 //buttons
@@ -59,8 +61,8 @@ var shouldUpdateNodes = true;
 
 
 //MISC variables
-var updateInterval = setInterval(Update,50);
-var calcUpdateInterval = setInterval(Calculate,50);
+var updateInterval = setInterval(Update,100);
+var calcUpdateInterval = setInterval(Calculate,100);
 var running = true;
 var drawMode = "";
 var movingComponentPoint = ""; //can be "start" (move startPos),"end" (move endPos), "mid" (move entire component aka both points equally) or "" (do not move anything)
@@ -71,7 +73,7 @@ var labelNodes = true; //should we draw the node names and values?
 var editingComponentValue = false;
 
 //Circuit Analysis Variables
-var timeStep = 0.000000001; //(1 nS)
+var timeStep = 0.000000001; //(1nS)
 var calcCyclesPerCall = 1000;
 var currentTime = 0;
 var matrixA = [];
@@ -217,9 +219,17 @@ function keyPressed(event) {
         numInputs = selectedComponent.GetInputs().length;
         var arr = [];
         for (var i=0; i<numInputs; i++) {
+
+            if (selectedComponent.type == 'text')
+            {
+
+                arr.push(GridInputElements[i].value);
+                continue;
+            }
+
             //Parse string value from GridInputElement
             var output = parseStringValue( GridInputElements[i].value );
-            if (output != null && isNaN(Number(output)) == false)
+            if ((output != null && isNaN(Number(output)) == false))
             {
                 arr.push(Number(output));
             } else {
@@ -273,6 +283,7 @@ function keyPressed(event) {
             LoadCircuit("voltageSource2n 571646 320 260 320 160 5V 0Hz resistor 811385 320 160 400 160 1000Ω capacitor 596668 400 160 400 260 1uF wire 803844 400 260 320 260 voltageSource1n 190279 320 260 320 300 0V 0Hz plot 596668");
             shouldUpdateNodes = true;
             break;
+        case 't': drawMode = "text"; break;
         case "w": drawMode = "wire"; break;
         case "r": drawMode = "resistor"; break;
         case "s": drawMode = "switch"; break;
@@ -331,6 +342,19 @@ function simulationSpeedSliderChanged()
     console.log("Calc Interval = "+val+"ms");
     clearInterval(calcUpdateInterval);
     calcUpdateInterval = setInterval(Calculate, val );
+}
+function simulationTimeStepChanged()
+{
+    var ts = parseStringValue(document.getElementById('timeStepTextbox').value);
+    if (ts != null && isNaN(ts) == false && ts < 1 && ts >= 0.000000001)
+    {
+        timeStep = ts;
+        ResetButtonClick();
+    } else {
+        console.error("invalid timestep.")
+    }
+    document.getElementById('timeStepTextbox').value = formatValue(timeStep, 'S');
+
 }
 function AddPlotButtonClick()
 {
@@ -413,6 +437,7 @@ function setup() {
     simulationSpeedSliderChanged();
 
 
+    document.getElementById('timeStepTextbox').value = formatValue(timeStep, 'S');
 
     //Calculate();
     //Update();
@@ -491,6 +516,7 @@ function Update() {
     UpdateDisplay(painter); //this updates the entire display (in graphics file)
     plotManager.Draw(painter);
 }
+
 
 
 function PrintCircuit() {
@@ -792,7 +818,7 @@ function FindNodes() {
 
     for(var i=0; i<components.length; i++)
     {
-        if (components[i].type == 'opamp' || components[i].type == 'diode') {
+        if (components[i].type == 'opamp' || components[i].type == 'diode' || components[i].type == 'text') {
             continue;
         } else if (components[i].startPos.equals(components[i].endPos))
         {
