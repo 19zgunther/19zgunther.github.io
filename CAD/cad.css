@@ -6,7 +6,6 @@
     padding: inherit;
     color: white;
     transition: opacity 0.1s, background-color 0.1s;
-    font-family: Arial;
 }
 
 .tab {

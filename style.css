@@ -15,6 +15,7 @@
     z-index: 0;
 }
 .header {
+    font-family:'Times New Roman', Times, serif;
     position:sticky;
     display:flex; 
     flex-direction:row;

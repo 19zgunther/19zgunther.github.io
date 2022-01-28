@@ -1518,3 +1518,56 @@ function CalcCurrents() {
 
 }
 
+
+
+
+
+function invertMatrix() {
+        //Alrighty this is math I don't really care for but I need so here goes nothing
+        /*
+        0  4  8   12
+        1  5  9   13
+        2  6  10  14
+        3  7  11  15
+        */
+        var mat = this.copy();
+        var mat2 = (new mat4()).makeIdentity();
+
+        for(var c = 0; c<4; c++)
+        {
+            //console.log("C: "+c+" \n"+mat.toString()+"\n"+mat2.toString());
+            if (mat.f32a[c*4 + c] == 0)
+            {
+                console.error("Cannot Invert Matrix: Diagonal has a 0. Cannot divide by zero");
+                return;
+            }
+
+            //divide entire row to get 1.
+            var X = mat.f32a[c*4 + c];
+            for (var c2 = 0; c2 < 4; c2++)
+            {
+                mat.f32a[c2*4 + c] = mat.f32a[c2*4 + c]/X;
+                mat2.f32a[c2*4 + c] = mat2.f32a[c2*4 + c]/X;
+            }
+
+            //remove all vals in column other than in row c
+            var otherRow = -1;
+            for (var r=0; r<4; r++)
+            {
+                if (r != c && mat.f32a[c*4 + r] != 0)
+                {
+                    //otherIndexVal + 1*X = 0   -->   X = -otherIndexVal
+                    var X = mat.f32a[c*4 + r];
+                    for (var c2=0; c2<4; c2++)
+                    {
+                        mat.f32a[c2*4 + r] += -X * mat.f32a[c2*4+c];
+                        mat2.f32a[c2*4 + r] += -X * mat2.f32a[c2*4+c];
+                    }
+                }
+                //console.log("After Clearing R: " +r+"\n"+mat.toString()+"\n"+mat2.toString());
+            }
+        }
+
+        //console.log("REsult: \n"+mat.toString()+"\n"+mat2.toString());
+        return mat2;
+}
