@@ -11,13 +11,148 @@ var textShaderProgram;
 var textProgramInfo;
 
 
+
+
+//BUFFERS//////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+function initBuffers(vertices, normals, colors, indices) {
+    const verticesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    const normalsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
+
+    const colorsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+    const indicesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+
+    return {
+        vertices: verticesBuffer,
+        normals: normalsBuffer,
+        colors: colorsBuffer,
+        indices: indicesBuffer,
+    };
+}
+
+function initBuffersForText(vertices, indices)
+{
+    const verticesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    const indicesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+
+    return {
+        vertices: verticesBuffer,
+        indices: indicesBuffer,
+    };
+}
+
+function initBuffersTexture(vertices, textureCoords, indices, textureImageData) {
+    const verticesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+
+    const textureCoordsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
+
+    const indicesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+
+
+    const textureBuffer = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, textureBuffer);
+
+
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const border = 0;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    //gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, srcFormat, srcType, pixel);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, textureImageData.width, textureImageData.height, border, srcFormat, srcType, textureImageData.data);
+    //gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    
+    /*const image = new Image();
+    image.onload = function() {
+        gl.bindTexture(gl.TEXTURE_2D, textureBuffer);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, srcFormat, srcType, image);
+
+        // WebGL1 has different requirements for power of 2 images
+        // vs non power of 2 images so check if the image is a
+        // power of 2 in both dimensions.
+        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+            // Yes, it's a power of 2. Generate mips.
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else {
+            // No, it's not a power of 2. Turn off mips and set
+            // wrapping to clamp to edge
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        }
+    };
+    image.src = textureURL;*/
+
+    return {
+        vertices: verticesBuffer,
+        textureCoords: textureCoordsBuffer,
+        indices: indicesBuffer,
+        texture: textureBuffer,
+    };
+}
+
+function updateBuffers(buffers = null, vertices = null, normals = null, colors = null, indices = null)
+{
+    if (buffers == null)
+    {
+        return initBuffers(vertices, normals, colors, indices);
+    }    
+    if (buffers[vertices] != null && buffers[vertices] != false && buffers[vertices] != -1 && vertices != null)
+    {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+    }
+    if (buffers[normals] != null && buffers[normals] != false && buffers[normals] != -1 && normals != null)
+    {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.DYNAMIC_DRAW);
+    }
+    if (buffers[colors] != null && buffers[colors] != false && buffers[colors] != -1 && colors != null)
+    {
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colors);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.DYNAMIC_DRAW);
+    }
+    if (buffers[indices] != null && buffers[indices] != false && buffers[indices] != -1 && indices != null)
+    {
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.DYNAMIC_DRAW);
+    }
+    return buffers;
+}
+
+//Init shaders//////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 function InitShader(gl)
 {
     [defaultShaderProgram, defaultProgramInfo] =  initDefaultShaderProgram(gl);
     [gridShaderProgram, gridProgramInfo] =  initGridShaderProgram(gl);
     [textShaderProgram, textProgramInfo] =  initTextShaderProgram(gl);
 }
-
 
 // creates a shader of the given type, uploads the source and compiles it.
 function loadShader(gl, type, source) {
@@ -102,7 +237,6 @@ function initGridShaderProgram(gl)
 {
     const vsSource = `
     attribute vec4 aVertexPosition;
-    attribute vec4 aNormalVector;
     attribute vec4 aColor;
 
     uniform mat4 uProjectionMatrix;
@@ -110,18 +244,19 @@ function initGridShaderProgram(gl)
     uniform mat4 uObjectMatrix;
     uniform vec4 uScaleVector;
 
+    uniform vec4 uColorModVector;
+
     varying highp vec4 color;
 
     void main() {
         vec4 vPos = vec4(aVertexPosition.x*uScaleVector.x, aVertexPosition.y*uScaleVector.y, aVertexPosition.z*uScaleVector.z, 1.0);
         gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
-        color = aNormalVector;
-        color = aColor;
+        color = aColor * uColorModVector;
     }
     `;
     const fsSource = `
     precision mediump float;
-
+    
     varying vec4 color;
 
     void main() {
@@ -148,7 +283,7 @@ function initGridShaderProgram(gl)
         program: shaderProgram,
         attribLocations: {
           vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-          normalLocation: gl.getAttribLocation(shaderProgram, 'aNormalVector'),
+          //normalLocation: gl.getAttribLocation(shaderProgram, 'aNormalVector'),
           colorLocation: gl.getAttribLocation(shaderProgram, 'aColor'),
         },
         uniformLocations: {
@@ -156,10 +291,68 @@ function initGridShaderProgram(gl)
           viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
           objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
           scaleVector: gl.getUniformLocation(shaderProgram, 'uScaleVector'),
+          colorModVector: gl.getUniformLocation(shaderProgram, 'uColorModVector'),
         },
     };
 
     return [shaderProgram, programInfo];
+}
+
+function initTextShaderProgram(gl) {
+    const vsSource = `
+    attribute vec4 aVertexPosition;
+
+    uniform mat4 uProjectionMatrix;
+    uniform mat4 uViewMatrix;
+    uniform mat4 uObjectMatrix;
+    uniform vec4 uTextOffset;
+    uniform vec4 uScaleVector;
+
+    void main() {
+        vec4 vPos = vec4(aVertexPosition.x + uTextOffset.x, aVertexPosition.y + uTextOffset.y, aVertexPosition.z + uTextOffset.z, 1.0) * uScaleVector;
+        gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
+    }
+    `;
+    const fsSource = `
+    precision mediump float;
+    uniform vec4 uColorVector;
+    void main() {
+        gl_FragColor = uColorVector;
+    }
+    `;
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    // Create the shader program
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    // If creating the shader program failed, alert
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+        return null;
+    }
+
+
+    const programInfo = {
+        program: shaderProgram,
+        attribLocations: {
+          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+        },
+        uniformLocations: {
+          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
+          objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
+          colorVector: gl.getUniformLocation(shaderProgram, 'uColorVector'),
+          scaleVector: gl.getUniformLocation(shaderProgram, 'uScaleVector'),
+          textOffset: gl.getUniformLocation(shaderProgram, 'uTextOffset'),
+        },
+    };
+
+
+    return [shaderProgram, programInfo]
 }
 
 //Unused at the moment
@@ -236,72 +429,16 @@ function initTextureShaderProgram(gl) {
 }
 
 
-function initTextShaderProgram(gl) {
-    const vsSource = `
-    attribute vec4 aVertexPosition;
-
-    uniform mat4 uProjectionMatrix;
-    uniform mat4 uViewMatrix;
-    uniform mat4 uObjectMatrix;
-    uniform vec4 uTextOffset;
-    uniform vec4 uScaleVector;
-
-    void main() {
-        vec4 vPos = vec4(aVertexPosition.x + uTextOffset.x, aVertexPosition.y + uTextOffset.y, aVertexPosition.z + uTextOffset.z, 1.0) * uScaleVector;
-        gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
-    }
-    `;
-    const fsSource = `
-    precision mediump float;
-    uniform vec4 uColorVector;
-    void main() {
-        gl_FragColor = uColorVector;
-    }
-    `;
-    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-    // Create the shader program
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    // If creating the shader program failed, alert
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-        return null;
-    }
-
-
-    const programInfo = {
-        program: shaderProgram,
-        attribLocations: {
-          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-        },
-        uniformLocations: {
-          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
-          objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
-          colorVector: gl.getUniformLocation(shaderProgram, 'uColorVector'),
-          scaleVector: gl.getUniformLocation(shaderProgram, 'uScaleVector'),
-          textOffset: gl.getUniformLocation(shaderProgram, 'uTextOffset'),
-        },
-    };
-
-
-    return [shaderProgram, programInfo]
-}
 
 
 
 
 
 
+//Render & Drawing //////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
+//Used for rendering tringles or lines
 function DrawDefault(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, drawTriangles = true)
 {
     var programInfo = defaultProgramInfo;
@@ -360,13 +497,15 @@ function DrawDefault(gl, projectionMatrix, viewMatrix, objectMatrix, indices, bu
     }
 }
 
-function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, indices, buffers, drawTriangles = true)
+function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, scaleVector = new vec4(1,1,1,1), colorModVector = new vec4(1,1,1,1))
 {
     var programInfo = gridProgramInfo;
 
     // Tell WebGL to use our program when drawing
     gl.useProgram(programInfo.program);
 
+
+    //Enable Vertices
     {
         const numComponents = 3  // pull out 3 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -378,7 +517,8 @@ function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, i
         gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
     }
-    {
+    
+    /*{
         const numComponents = 3  // pull out 3 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
         const normalize = false;  // don't normalize
@@ -388,7 +528,9 @@ function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, i
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
         gl.vertexAttribPointer(programInfo.attribLocations.normalLocation, numComponents, type, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.normalLocation);
-    }
+    }*/
+
+    //Enable Colors 
     {
         const numComponents = 4;  // pull out 4 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -409,16 +551,11 @@ function DrawGrid(gl, projectionMatrix, viewMatrix, objectMatrix, scaleVector, i
     gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
     gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
     gl.uniform4fv(programInfo.uniformLocations.scaleVector, scaleVector.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.colorModVector, colorModVector.getFloat32Array());
 
     const vertexCount = indices.length;
-    if (drawTriangles == true)
-    {
-        gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
-    } else {
-        gl.drawElements(gl.LINES, vertexCount, gl.UNSIGNED_SHORT, 0);
-    }
+    gl.drawElements(gl.LINES, vertexCount, gl.UNSIGNED_SHORT, 0);
 }
-
 
 //Unused at the moment
 function DrawTexture(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, color = new vec4(1,100,0,1))
@@ -473,7 +610,6 @@ function DrawTexture(gl, projectionMatrix, viewMatrix, objectMatrix, indices, bu
 
     gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 }
-
 
 function DrawText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, textColor = new vec4(255,0,0,255), text = "default_text", textScale = new vec4(1,1,1,1), spacing = 0.1)
 {
@@ -561,3 +697,9 @@ function DrawBakedText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, 
     gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
     
 }
+
+
+
+
+
+

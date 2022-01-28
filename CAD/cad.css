@@ -2,46 +2,64 @@
 
 /*general*/
 *{
-    border-radius: 2px;
-    transition: background-color 0.25s;
+    border-radius: 4px;
     padding: inherit;
+    color: white;
+    transition: opacity 0.1s, background-color 0.1s;
+    font-family: Arial;
 }
 
 .tab {
     margin-left:40px;
 }
-#glCanvas {
-    width:90%;
-}
 
+#glCanvas {
+    width: 90%;
+    min-width: 500px;
+    min-height: 500px;
+    height: 50%;
+    margin: auto;
+}
 
 /*Hover Drop Down components*/
-.hoverDropDown {
+.hoverDropDown_parent {
+    color: white;
     position: relative;
-    display: inline-block;
-    width: fit-content;
-    height: fit-content;
-    background-color: rgb(50,50,50);
-    
-}
-.hoverDropDown:hover {
-    background-color: rgb(90,90,90);
-}
-
-.hoverDropDownContent {
-    display: none;
-    position: relative;
-    min-width: 160px;
-    background-color: rgb(70,70,70);
-}
-
-
-.hoverDropDown:hover .hoverDropDownContent {
-    display: block;
-}
-.hoverDropDownContent:hover {
     background-color: rgb(80,80,80);
+    margin-left: 5px;
 }
+.hoverDropDown_parent:hover {
+    background-color: rgb(100,100,100);
+}
+.hoverDropDown_child {
+    display: block;
+    position: absolute;
+    white-space: nowrap;
+    background-color: rgb(90,90,90);
+    padding-top: 0%;
+    padding-bottom: 0%;
+    overflow:hidden;
+    max-height: 0;
+    z-index: 2;
+
+    -webkit-transition:max-height .2s;
+   -moz-transition:max-height .2s;
+   -o-transition:max-height .2s;
+   -ms-transition:max-height .2s;
+   transition: max-height .2s, background-color 0.2s;
+}
+.hoverDropDown_parent:hover .hoverDropDown_child {
+    display: block;
+    max-height: 500px;
+}
+.hoverDropDown_child:hover {
+    background-color: rgb(110,110,110);
+}
+.hoverDropDown_child_slider {
+    padding: 0%;
+    margin: 0%;
+}
+
 
 
 
@@ -51,13 +69,48 @@
     background-color:#555555;
     height: fit-content;
     width:fit-content;
-    min-width: 100px;
+    min-width: 50px;
     justify-content: center;
-
+    padding: 2px;
     margin: 3px;
-    opacity: 90%;
+    opacity: 80%;
 }
 
 .button:hover {
     opacity: 100%;
+}
+
+
+
+/* Sketch Menu */
+.sketchMenu_parent {
+    background-color: rgba(1,1,1,0.1);
+    position: absolute;
+    display:flex;
+}
+.sketchMenu_parent:hover{
+    background-color: rgba(1,1,1,0.05);
+}
+.sketchMenu_column {
+    display: block; 
+    background-color: rgba(1,1,1,0.2); 
+    color: inherit;
+    margin-left:5px;
+}
+.sketchMenu_column:hover {
+    background-color: rgba(1,1,1,0.4); 
+}
+.sketchMenu_cell {
+    background-color: rgba(1,1,1,0.1); 
+    min-width:fit-content; 
+    flex-wrap: nowrap; 
+    color: inherit;
+    margin-left:0px;
+    margin-right:0px;
+    margin-top:2px;
+    margin-bottom:2px;
+
+}
+.sketchMenu_cell:hover {
+    background-color: rgba(1,1,1,0.2); 
 }

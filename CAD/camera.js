@@ -6,20 +6,21 @@ class Camera
         this.walkSpeed = 0.2;
         this.runSpeed = 0.8;
         this.rotSpeed = 0.05;
-        this.pos = new vec4(5,5,5,0);
-        this.rot = new vec4(0,0,0,0);
+        this.position = new vec4(10,10,10,0);
         
-        this.translationMat = new mat4();
-        this.rotationMat = new mat4();
+        this.translationMatrix = new mat4();
+        this.rot = new vec4();
+        this.rotationMatrix = new mat4();
         this.viewMatrix = new mat4();
 
         this.sliding = false;
         this.slideTargetPos = new vec4();                    
-        this.slideTargetPos = new vec4();
+        this.slideTargetRot = new vec4();
+        this.slideTargetProjectionMatrix = null;
 
         this.update({});
     }
-    update(pressedKeys)
+    update_OLD(pressedKeys)
     {
         if (pressedKeys == null) {
             console.error("player.update( ) was passed null. needs 'pressedKeys'.");
@@ -134,15 +135,13 @@ class Camera
 
             }  
         }*/
+        
 
         //Update Matrices
         this.rot = this.rot.add(rot);
         var rotMat1 = new mat4().makeRotation(0, this.rot.y, 0);
         var rotMat2 = new mat4().makeRotation(0, 0, this.rot.z);
         var rotMat3 = rotMat1.mul(rotMat2);
-
-        
-
 
 
         //movement = rotMat3.mul(movement);
@@ -151,21 +150,177 @@ class Camera
         this.pos.z -= movement.z;
 
         this.translationMat = (new mat4()).makeTranslation(new vec4(-this.pos.x, -this.pos.y, -this.pos.z));
-        this.rotationMat = rotMat2.mul(rotMat1);
-        this.viewMatrix = this.rotationMat.mul(this.translationMat);
+        this.rotationMatrix = rotMat2.mul(rotMat1);
+        this.viewMatrix = this.rotationMatrix.mul(this.translationMat);
+
+        var detailsElement = document.getElementById('cameraPositionDetailsElement');
+        detailsElement.innerHTML = "Position: " + this.pos.toString() + "<br>Normal: "+this.getScreenNormalVector().toString();
+    }
+    update(pressedKeys)
+    {
+        if (pressedKeys == null) {
+            console.error("player.update( ) was passed null. needs 'pressedKeys'.");
+            return;
+        }
+
+        var movement = new vec4();
+        var rotation = new vec4();
+        //For normal moving and such
+        if (this.sliding == false) {
+
+            var speed = this.walkSpeed;
+            if (pressedKeys['Control'])
+            {
+                speed = this.runSpeed;
+            }
+            //Update Position
+            if (pressedKeys['w'])
+            {
+                movement.z -= speed;
+            }
+            if (pressedKeys['s'])
+            {
+                movement.z += speed;
+            }
+            if (pressedKeys['d'])
+            {
+                movement.x += speed;
+            }
+            if (pressedKeys['a'])
+            {
+                movement.x -= speed;
+            }
+            if (pressedKeys[' '])
+            {
+                movement.y += speed;
+            }
+            if (pressedKeys['Shift'])
+            {
+                movement.y -= speed;
+            }
+        
+            
+
+            //Update Rotation
+            if (pressedKeys['ArrowUp'])
+            {
+                rotation.x -= this.rotSpeed;
+            }
+            if (pressedKeys['ArrowDown'])
+            {
+                rotation.x += this.rotSpeed;
+            }
+            if (pressedKeys['ArrowLeft'])
+            {
+                rotation.y -= this.rotSpeed;
+            }
+            if (pressedKeys['ArrowRight'])
+            {
+                rotation.y += this.rotSpeed;
+            }
+
+        } else {
+            //Implement sliding...
+
+            var posDif = this.slideTargetPos.sub(this.position);
+            //console.log(this.position.toString() + "   " + posDif.toString() + "   "+this.slideTargetPos.toString());
+            movement = posDif.mul(0.1);
+
+            var rotDif = this.slideTargetRot.sub(this.rot);
+            rotation = rotDif.mul(0.1);
+
+            if (posDif.getLength() < 0.05)
+            {
+                this.position = this.slideTargetPos;
+                this.rot = this.slideTargetRot;
+                this.sliding = false;
+                console.log("sliding = false");
+            }
+
+
+            
+        }
+
+        //If we're editing a sketch, we want our position and rotation to be fixed relative to the plane we're editing
+        /*if (typeof editingSketch != 'undefined') //Make sure the file with the sketch vairables has been defined
+        {
+            if (editingSketch && this.sliding == false && currentSketch != null)
+            {
+                movement = new vec4();
+                rot = new vec4();
+
+                if (pressedKeys['w'])
+                {
+                    movement.y -= 0.1;
+                }
+                if (pressedKeys['s'])
+                {
+                    movement.y += 0.1;
+                }
+                if (pressedKeys['d'])
+                {
+                    movement.x -= 0.1;
+                }
+                if (pressedKeys['a'])
+                {
+                    movement.x += 0.1;
+                }
+
+                movement = currentSketch.grid.getRotationMatrix().mul(movement);
+
+            }  
+        }*/
+        
+        /*
+        //Update Matrices
+        this.rot = this.rot.add(rot);
+        var rotMat1 = new mat4().makeRotation(0, this.rot.y, 0);
+        var rotMat2 = new mat4().makeRotation(0, 0, this.rot.z);
+        var rotMat3 = rotMat1.mul(rotMat2);
+
+
+        //movement = rotMat3.mul(movement);
+        this.pos.x -= movement.x;
+        this.pos.y -= movement.y;
+        this.pos.z -= movement.z;
+
+        this.translationMat = (new mat4()).makeTranslation(new vec4(-this.pos.x, -this.pos.y, -this.pos.z));
+        this.rotationMatrix = rotMat2.mul(rotMat1);
+        this.viewMatrix = this.rotationMatrix.mul(this.translationMat);
+        */
+
+
+
+        this.rot = this.rot.add(rotation);
+        this.rotationMatrix = (  new mat4().makeRotation(0, 0, this.rot.x + this.rot.z)  ).mul(  new mat4().makeRotation(0,this.rot.y,0)  );
+
+        if (this.sliding == false) {
+            this.position = this.position.add((  new mat4().makeRotation(0,-this.rot.y,0).mul(movement)));
+        } else {
+            this.position = this.position.add( movement );
+        }
+
+        this.translationMatrix.makeTranslation(-this.position.x, -this.position.y, -this.position.z);
+        this.viewMatrix = this.rotationMatrix.mul(this.translationMatrix);
+
+
+        var detailsElement = document.getElementById('cameraPositionDetailsElement');
+        detailsElement.innerHTML = "Position: " + this.position.toString() +  "<br>Rotation: " + this.rot.toString() + "<br>Normal: "+this.getScreenNormalVector().toString();
     }
     setPosition(pos = new vec4())
     {
-        this.pos = pos;
+        this.position = pos;
     }
     setRotation(rot = new vec4())
     {
-        this.rot = rot;
+        //console.log("Camera does not have a well defined rotatio. Don't use this.");
+        this.rotationMatrix.makeRotation(rot.x, rot.y, rot.z);
     }
-    slideToPositionAndRotation(targetPos = new vec4(), targetRot = new vec4())
+    slideTo(targetPos = new vec4(5,5,5), targetRot = new vec4(), targetProjectionMatrix = null)
     {
         this.slideTargetPos = targetPos;
         this.slideTargetRot = targetRot;
+        this.slideTargetProjectionMatrix = targetProjectionMatrix;
         this.sliding = true;
     }
     getViewMatrix()
@@ -174,21 +329,25 @@ class Camera
     }
     getPosition()
     {
-        return this.pos;
+        return this.position;
     }
     getRotation()
     {
-        return this.rot;
+        //console.error("Camera does not have a well defined rotation. Find a different way.");
+        //var rotatedPoint = this.rotationMatrix.mul(new vec4(0,0,1));
+        //this.rotation.z =
+        return new vec4(0, this.rot.y, this.rot.x + this.rot.z);
     }
     getRotationMatrix()
     {
-        return this.rotationMat;
+        return this.rotationMatrix;
     }
     getRotationMatrixInv()
     {
+        /*
         var rotMat1 = new mat4().makeRotation(0, -this.rot.y, 0);
         var rotMat2 = new mat4().makeRotation(0, 0, -this.rot.z);
-        return rotMat1.mul(rotMat2);
+        return rotMat1.mul(rotMat2);*/
     }
     getScreenNormalVector()
     {
@@ -197,14 +356,16 @@ class Camera
         //var pVec = this.getRotationMatrixInv().mul(pVec);
         //var pVec = pVec.sub(this.getPosition());
         //return pVec;
-        return ( this.getRotationMatrixInv().mul( new vec4(0,0,-1) ) ) 
+        //var vec = ( this.getRotationMatrix() ).mul( new vec4(0,0,1) );
+
+
+        var vec = ( ( new mat4() ).makeRotation(0,this.rot.y,this.rot.x + this.rot.z) ).mul( new vec4(0,0,1,1));
+        //vec = ( ( new mat4() ).makeRotation(0,this.rot.y,0) ).mul( vec );
+
+        //vec.x = -vec.x;
+        vec.z = -vec.z;
+        //vec.y = -vec.y;
+        return vec;
     }
 }
 
-
-
-
-function move_camera_home_button_press()
-{
-    camera.slideToPositionAndRotation();
-}

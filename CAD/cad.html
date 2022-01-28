@@ -24,104 +24,125 @@
 
         <br>
 
-        <!-- Camera Settings Dropdown -->
-        <div class = "hoverDropDown" style = "display:inline-block">
-            Camera Settings
-            <div style = "position: fixed; width: fit-content; height: fit-content;">
-                <div class = "hoverDropDownContent" > 
-                    <div>
+        
+        <!--   Top Bar - Camera settings dropdown & sketch stuff & etc    -->
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap; width:100%; position:relative ; z-index: 10;">
+            <!-- Camera Settings Dropdown -->
+            <div class = "hoverDropDown_parent">
+                Camera Settings
+                <div class = 'hoverDropDown_child'>
+                    
+                    <div style = 'width: fit-content;'>
                         <input id = 'orthogonalViewCheckbox' type="checkbox" oninput = updateCameraSettings(this)>
                         Orthogonal View
                     </div>
                     <div class = 'tab' style = "font-size: smaller;">
-                        Zoom:  0 <input id='orthogonalZoomSlider' type = "range" min='1' max='100' value = '20' step='.1' oninput = updateCameraSettings(this)>100
+                        Zoom:  0 <input class = 'hoverDropDown_child_slider' id='orthogonalZoomSlider' type = "range" min='0.001' max='10' value = '.2' step='.001' oninput = updateCameraSettings(this)>100
                     </div>
-                </div>
-                <div class = "hoverDropDownContent" > 
+                
                     <div>
                         <input id = 'perspectiveViewCheckbox' type="checkbox" checked oninput = updateCameraSettings(this)>
                         Perspective View
                     </div>
                     <div class = 'tab' style = "font-size: smaller;"> 
-                            FOV: 5 <input id='fovSlider' type = "range" min='5' max='180' value = '45' step='.1' oninput = updateCameraSettings(this)>180
-                            <br>
-                            zFar: 0 <input id='zfarSlider' type = "range" min='1' max='100' value ='100' oninput = updateCameraSettings(this)>100
-                            <br>
-                            zNear: 0 <input id='znearSlider' type = "range" min='.1' max='5' value='1.5' step = '.1' oninput = updateCameraSettings(this)> 5
-                            <br>
+                        FOV: 5 <input class = 'hoverDropDown_child_slider' id='fovSlider' type = "range" min='5' max='180' value = '45' step='.1' oninput = updateCameraSettings(this)>180
+                        <br>
+                        zFar: 0 <input class = 'hoverDropDown_child_slider' id='zfarSlider' type = "range" min='1' max='100' value ='100' oninput = updateCameraSettings(this)>100
+                        <br>
+                        zNear: 0 <input class = 'hoverDropDown_child_slider' id='znearSlider' type = "range" min='.1' max='5' value='1.5' step = '.1' oninput = updateCameraSettings(this)> 5
+                        <br>
                     </div>
+                    
+                </div>
+            </div>
+            <div class = 'hoverDropDown_parent'>
+                2nd Tab
+                <div class = "hoverDropDown_child">
+                    hi
                 </div>
             </div>
         </div>
 
-        <br>
+        
 
-        <!--Create Sketch Menu-->
-        <div id = 'createSketchMenu' style = 'display:none; position:fixed; width:fit-content; min-width: 100; min-height: 100; height:fit-content; background-color: grey;'>
-            <div style="display: flex; flex-direction: row; flex-wrap: wrap; width:100%;">
-                <div style="display: flex; flex-direction: column;">
-                    <div style = 'font-size: larger; font-weight: bolder;'>
+
+        <!-- Overlays! -->
+        <div style="width: 1; height:1;">
+            <div id = 'sketchMenu' style = 'display:none;'>
+                <div class = 'sketchMenu_parent'>
+                    <div class="sketchMenu_column" >
+                        <div class ='sketchMenu_cell' onclick = exit_sketch() >
+                            Exit Sketch
+                        </div>
+                    </div>
+                    <div class="sketchMenu_column" >
+                        <div id = 'line' class ='sketchMenu_cell' onclick =sketchMenu_cellClick(this)  >
+                            Line
+                        </div>
+                        <div id = 'circle' class ='sketchMenu_cell' onclick =sketchMenu_cellClick(this) >
+                            Circle
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!--Create Sketch Menu-->
+            <div style="position: absolute; z-index: 0; width: fit-content; height: fit-content; left: 200px; top: 200px;">
+                <div id = 'createSketchMenu' style = 'z-index: 0.9; display:none; width:fit-content; min-width: 100; min-height: 100; height:fit-content; background-color: grey;'>
+                    <div style="display: flex; flex-direction: row; flex-wrap: wrap; width:100%;">
+                        <div style="display: flex; flex-direction: column;">
+                            <div style = 'font-size: larger; font-weight: bolder;'>
+                                Create Sketch
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
+                            <div class='button' style='width:fit-content; min-width: 5px;' onclick = createSketchMenu_hide()>
+                                X
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: row; flex-wrap: wrap;">
+                        <div style="display: flex; flex-direction: column;">
+                            <div class="button" id = 'xzPlane' onclick = createSketchMenu_planeButton_onclick(this)>
+                                XZ Plane
+                            </div>
+                            <div class="button" id = 'xyPlane' onclick = createSketchMenu_planeButton_onclick(this)>
+                                XY Plane
+                            </div>
+                            <div class="button" id = 'yzPlane' onclick = createSketchMenu_planeButton_onclick(this)>
+                                YZ Plane
+                            </div>
+                            <div class="button" id = 'customPlane' onclick = createSketchMenu_planeButton_onclick(this)>
+                                Custom Plane
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
+                            <canvas id = 'createSketchCanvas' width= '100' height = '100' style="background-color: white; justify-self: right; margin: auto;"></canvas>
+                        </div>
+                    </div>
+                    <div class='button' onclick = createSketchMenu_createButton_onclick(this) style='width: 80%;'>
                         Create Sketch
                     </div>
                 </div>
-
-                <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
-                    <div class='button' style='width:fit-content; min-width: 5px;' onclick = disable_create_sketch_menu()>
-                        X
-                    </div>
-                </div>
             </div>
-            <div style="display: flex; flex-direction: row; flex-wrap: wrap;">
-                <div style="display: flex; flex-direction: column;">
-                    <div class="button" id = 'xzPlane' onclick = create_sketch_menu_plane_onclick(this)>
-                        XZ Plane
-                    </div>
-                    <div class="button" id = 'xyPlane' onclick = create_sketch_menu_plane_onclick(this)>
-                        XY Plane
-                    </div>
-                    <div class="button" id = 'yzPlane' onclick = create_sketch_menu_plane_onclick(this)>
-                        YZ Plane
-                    </div>
-                </div>
-                <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
-                    <canvas id = 'createSketchCanvas' width= '100' height = '100' style="background-color: white; justify-self: right; margin: auto;"></canvas>
-                </div>
-            </div>
-            <div class='button' onclick = create_sketch_menu_create_onclick(this) style='width: 80%;'>
-                Create Sketch
-            </div>
-
-
-
         </div>
 
         <!-- Canvas! -->
-        <canvas id = 'glCanvas' width = 600 height = 500></canvas>
+        <div style="position: relative; z-index: -1; width: 100%; height: fit-content;">
+            <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown="mouseDown(event)"  onmouseup="mouseUp(event)"></canvas>
+            <div id = 'cameraPositionDetailsElement' style = 'z-index: 0.1; left:600; display:flex; position: absolute; font-size: small; width: fit-content; flex-wrap: nowrap;'>
+                Camera Position, Rotation, and <br>OTher
+            </div>
+        </div>
 
-        <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = enable_create_sketch_menu()>Create Sketch</div>
+
+
+        <div class = 'button' style='position:relative' onclick = createSketchMenu_show()>Create Sketch</div>
         
-        <div style = "width:fit-content;height: fit-content; margin:3px; background-color: green;" onclick = move_player_home_button_press()>Move to home position</div>
+        <div class = 'button'  onclick = move_camera_home_button_press()>Move to home position</div>
 
-
-        
-        <div> 
-            xtrans: -20 <input id='xtransSlider' type = "range" min='-20' max='20' step='.1'>20
-        </div>
-        <div> 
-            ytrans: -20 <input id='ytransSlider' type = "range" min='-20' max='20' step='.1'>20
-        </div>
-        <div> 
-            ztrans: -20 <input id='ztransSlider' type = "range" min='-20' max='20' step='.1'>20
-        </div>
-        <div> 
-            x1: 0<input id='x1Slider' type = "range" min='0' max='2' step='.05'>2
-        </div>
-        <div> 
-            y1: -5<input id='y1Slider' type = "range" min='-5' max='5' step='.1'>5
-        </div>
-        <div> 
-            z1: -5<input id='z1Slider' type = "range" min='-5' max='5' step='.1'>5
-        </div>
+        <!--<div style="height: 800px;">tall_boi_div</div>-->
 
     </div>
 

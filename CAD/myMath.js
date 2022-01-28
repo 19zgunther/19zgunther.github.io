@@ -276,9 +276,43 @@ class mat4 {
                 f1[3]*f2[0] + f1[7]*f2[1] + f1[11]*f2[2] + f1[15]*f2[3],
             ];
             return (new vec4).set(vals);
+        } else if (typeof mat == 'number') {
+            var newMat = new mat4();
+            for(var i=0; i<16; i++)
+            {
+                newMat.f32a[i] = this.f32a[i] * mat;
+            }
+            return newMat;
         }
-        console.error("mat4.mul() was passed Object it couldn't multiply...");
+        console.error("mat4.mul() was passed Object it couldn't multiply. Valid types: mat4, vec4, number. ");
         return null;
+    }
+    add(mat) {
+        if (mat instanceof mat4)
+        {
+            var newMat = new mat4();
+            for (var i=0; i<16; i++)
+            {
+                newMat.f32a[i] = this.f32a[i] + mat.f32a[i];
+            }
+            return newMat;
+        } else {
+            console.error("mat4.add() requires a mat4 as the argument");
+        }
+    }
+    sub(mat) {
+        
+        if (mat instanceof mat4)
+        {
+            var newMat = new mat4();
+            for (var i=0; i<16; i++)
+            {
+                newMat.f32a[i] = this.f32a[i] - mat.f32a[i];
+            }
+            return newMat;
+        } else {
+            console.error("mat4.sub() requires a mat4 as the argument");
+        }
     }
     getFloat32Array()
     {
@@ -582,9 +616,11 @@ class vec4 {
         return this;
     }
 
-    toString()
+    toString(roundToValue = 0.01)
     {
         var p = 3;
+        var s = "< " + (Math.round(this.x/roundToValue)*roundToValue).toPrecision(p)+", "+ (Math.round(this.y/roundToValue)*roundToValue).toPrecision(p)+", "+ (Math.round(this.z/roundToValue)*roundToValue).toPrecision(p)+", "+ (Math.round(this.a/roundToValue)*roundToValue).toPrecision(p)+">";
+        return s;
         return "[ "+this.x.toPrecision(p)+", "+this.y.toPrecision(p)+", "+this.z.toPrecision(p)+", "+this.a.toPrecision(p)+" ]";
     }
 
@@ -639,3 +675,16 @@ function vectorFromPointToPlane(planePoint, planeNormal, pointPosition, unitVecF
     }
 }
 
+
+
+function getRotationFromRotationMatrix(mat = new mat4().makeRotation()){
+    console.error("IDK IF THIS WORKS");
+    var rot = new vec4();
+    rot.y = Math.asin(-mat.f32a[2]);
+    const cb = Math.cos(rot.y);
+    const ca = mat.f32a[0]/cb;
+    rot.x = Math.acos(ca);
+    const cy = mat.f32a[10]/cb;
+    rot.z = Math.acos(cy);
+    return rot;
+}

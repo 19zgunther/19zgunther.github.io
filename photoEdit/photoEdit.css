@@ -1,0 +1,27 @@
+*{
+    z-index:10;
+    
+}
+
+.ParentCanvasElement {
+    z-index: 0;
+    background-color: rgba(.1,.1,.1,1);
+}
+
+.objectCanvas {
+    background-color:rgba(0,0,0,0);
+    position:fixed;
+    z-index: 5;
+}
+
+.overlayCanvas {
+    background-color: rgba(0,0,0,0);
+    position:fixed;
+    z-index: 6;
+}
+
+.parentElement {
+    width:fit-content;
+    height: fit-content;
+    z-index: 0;
+}

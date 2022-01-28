@@ -13,9 +13,9 @@ class Object {
             this.rotation = new vec4();
         }
         
-        this.translateMat = new mat4().makeTranslation(this.position);
-        this.rotateMat = new mat4().makeRotation(this.rotation);
-        this.objectMat = this.translateMat.mul(this.rotateMat);
+        this.translationMatrix = new mat4().makeTranslation(this.position);
+        this.rotationMatrix = new mat4().makeRotation(this.rotation);
+        this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
 
         this.vertices = [0,0,0, 0,0,2, 0,1,1];
         this.normals = [1,0,0, 1,0,0, 1,0,0];
@@ -26,14 +26,13 @@ class Object {
 
         this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
-
     setPosition(position)
     {
         if (position instanceof vec4)
         {
             this.position = position;
-            this.translateMat.makeTranslation(this.position);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
+            this.translationMatrix.makeTranslation(this.position);
+            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -43,8 +42,8 @@ class Object {
         if (rotation instanceof vec4)
         {
             this.rotation = rotation;
-            this.rotateMat.makeRotation(this.rotation);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
+            this.rotationMatrix.makeRotation(this.rotation);
+            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -59,7 +58,7 @@ class Object {
     }
     getRotationMatrix()
     {
-        return this.rotateMat;
+        return this.rotationMatrix;
     }
     setData(vertices, normals, colors, indices)
     {
@@ -83,9 +82,9 @@ class Object {
     }
     refresh()
     {   //refreshes all matrices and buffers
-        this.translateMat = new mat4().makeTranslation(this.position);
-        this.rotateMat = new mat4().makeRotation(this.rotation);
-        this.objectMat = this.translateMat.mul(this.rotateMat);
+        this.translationMatrix = new mat4().makeTranslation(this.position);
+        this.rotationMatrix = new mat4().makeRotation(this.rotation);
+        this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
     draw(gl, projectionMatrix, viewMatrix)
@@ -97,7 +96,7 @@ class Object {
 
 
 class Grid extends Object{
-    constructor(position = new vec4(), rotation = new vec4(), gridScale = 1) {
+    constructor(position = new vec4(), rotation = new vec4(), gridScale = 1, colorMod = new vec4(1,1,1,1)) {
         super(position, rotation);
 
         this.gridScale = gridScale;
@@ -107,7 +106,10 @@ class Grid extends Object{
         this.majorLineColor = new vec4(.3, .3, .3, 1);
         this.minorLineColor = new vec4(.7, .7, .7, 1);
 
-        this.normalVector = this.rotateMat.mul(new vec4(0,0,-1));
+        this.normalVector = this.rotationMatrix.mul(new vec4(0,0,-1));
+        this.scaleVector = new vec4(1,1,1,1);
+
+        this.colorMod = colorMod;
     
         this._generateData();
     }
@@ -180,16 +182,16 @@ class Grid extends Object{
         }
 
         //Update the buffers
-        this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
+        this.buffers = initBuffers(this.vertices, [], this.colors, this.indices);
     }
     setRotation(rotation)
     {
         if (rotation instanceof vec4)
         {
             this.rotation = rotation;
-            this.rotateMat.makeRotation(this.rotation);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
-            this.normalVector = this.rotateMat.mul(new vec4(0,0,-1));
+            this.rotationMatrix.makeRotation(this.rotation);
+            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
+            this.normalVector = this.rotationMatrix.mul(new vec4(0,0,-1));
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -206,17 +208,16 @@ class Grid extends Object{
             v.x = Math.round(v.x/snapScale) * snapScale;
             v.y = Math.round(v.y/snapScale) * snapScale;
             v.z = Math.round(v.z/snapScale) * snapScale;
-            v = this.rotateMat.mul(v);
+            v = this.rotationMatrix.mul(v);
         }
         return v;
     }
     draw(gl, projectionMatrix, viewMatrix)
     {
         if (!this.enableDraw) {return;}
-
-        var scaleVector = new vec4(1,1,1,1);
-
-        DrawGrid(gl, projectionMatrix, viewMatrix, this.objectMat, scaleVector,  this.indices, this.buffers, false);
+        //var scaleVector = new vec4(1,1,1,1);
+        //DrawGrid(gl, projectionMatrix, viewMatrix, this.objectMat, scaleVector,  this.indices, this.buffers, false);
+        DrawGrid(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers, this.scaleVector, this.colorMod);
     }
 }
 
@@ -235,16 +236,11 @@ class Compass extends Object{
         this.setPosition(new vec4(-0.92*aspect,0.87,-1));
     }
 
-    addLine(pos1, pos2) {
-        lines.push([pos1, pos2]);
-    }
-
     draw(gl, projectionMatrix, viewMatrix)
     {
         if (!this.enableDraw) {return;}
-        this.rotation = camera.getRotation();
-        this.rotateMat = camera.getRotationMatrix();
-        DrawDefault(gl, new mat4().makeOrthogonal(1,aspect,0,100), this.translateMat, this.rotateMat, this.indices, this.buffers, false);
+        this.rotationMatrix = camera.getRotationMatrix();
+        DrawDefault(gl, new mat4().makeOrthogonal(1,aspect,0,100), this.translationMatrix, this.rotationMatrix, this.indices, this.buffers, false);
     }
 }
 
@@ -264,8 +260,8 @@ class Text {
         this.position = pos;
         this.rotation = rot;
         
-        this.translateMat = null;
-        this.rotateMat = null;
+        this.translationMatrix = null;
+        this.rotationMatrix = null;
         this.objectMat = null;
         this.buffers = null;
         
@@ -291,8 +287,8 @@ class Text {
         if (position instanceof vec4)
         {
             this.position = position;
-            this.translateMat.makeTranslation(this.position);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
+            this.translationMatrix.makeTranslation(this.position);
+            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -302,8 +298,8 @@ class Text {
         if (rotation instanceof vec4)
         {
             this.rotation = rotation;
-            this.rotateMat.makeTranslation(this.rotation);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
+            this.rotationMatrix.makeTranslation(this.rotation);
+            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -336,9 +332,9 @@ class Text {
     }
     refresh()
     {   //refreshes all matrices and buffers
-        this.translateMat = new mat4().makeTranslation(this.position);
-        this.rotateMat = new mat4().makeRotation(this.rotation);
-        this.objectMat = this.translateMat.mul(this.rotateMat);
+        this.translationMatrix = new mat4().makeTranslation(this.position);
+        this.rotationMatrix = new mat4().makeRotation(this.rotation);
+        this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         this.buffers = initBuffersForText(asciiVertices, asciiIndices[0]);
     }
     bake()
@@ -793,8 +789,8 @@ class Text_OLD {
         this.position = pos;
         this.rotation = rot;
         
-        this.translateMat = null;
-        this.rotateMat = null;
+        this.translationMatrix = null;
+        this.rotationMatrix = null;
         this.objectMat = null;
         this.buffers = null;
 
@@ -810,8 +806,8 @@ class Text_OLD {
         if (position instanceof vec4)
         {
             this.position = position;
-            this.translateMat.makeTranslation(this.position);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
+            this.translationMatrix.makeTranslation(this.position);
+            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -821,8 +817,8 @@ class Text_OLD {
         if (rotation instanceof vec4)
         {
             this.rotation = rotation;
-            this.rotateMat.makeTranslation(this.rotation);
-            this.objectMat = this.translateMat.mul(this.rotateMat);
+            this.rotationMatrix.makeTranslation(this.rotation);
+            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -837,9 +833,9 @@ class Text_OLD {
     }
     refresh()
     {   //refreshes all matrices and buffers
-        this.translateMat = new mat4().makeTranslation(this.position);
-        this.rotateMat = new mat4().makeRotation(this.rotation);
-        this.objectMat = this.translateMat.mul(this.rotateMat);
+        this.translationMatrix = new mat4().makeTranslation(this.position);
+        this.rotationMatrix = new mat4().makeRotation(this.rotation);
+        this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         this.buffers = initBuffersTexture(this.vertices, this.textureCoords, this.indices, textureImageData);
     }
 
