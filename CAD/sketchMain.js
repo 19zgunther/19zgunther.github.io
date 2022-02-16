@@ -249,8 +249,11 @@ class Sketch{
         this._updateBuffers();
 
         //If the selected component have changed, update previouseComponents
-        if (this.previousComponents.length > 0 && ( this.currentComponent != this.previousComponents[this.previousComponents.length-1][0] || this.currentComponentMovingPoint != this.previousComponents[this.previousComponents.length-1][1] ) )
+        if (this.previousComponents.length > 0 && 
+            ( this.currentComponent != this.previousComponents[this.previousComponents.length-1][0] || this.currentComponentMovingPoint != this.previousComponents[this.previousComponents.length-1][1] ) &&
+            ( this.currentComponent != null && this.currentComponentMovingPoint != '' && this.currentComponentMovingPoint != null)  )
         {
+            //if previousComponents.length is greater than 0 and the currentComponent & movingPoint are non-null and not in the previousComponentslist
             this.previousComponents.push( [this.currentComponent, this.currentComponentMovingPoint] );
         }
     }
@@ -375,6 +378,9 @@ class Sketch{
 
             //Draw Lines
             DrawDefault(gl, this.projectionMatrix, this.internalViewMatrix, this.identityMatrix, this.indices, this.buffers, false);
+
+            //Draw constraints
+            this.constraintManager.draw(gl, this.projectionMatrix, this.internalViewMatrix);
         
         } else {
             //Draw Lines
@@ -478,6 +484,7 @@ class Sketch{
                         //newComp.addConstraint(coincidentalConstraint);
 
                         this.constraintManager.addCoincidentalConstraint(newComp, 'start', this.currentComponent, 'end');
+                        this.constraintManager.addDistanceConstraint(this.currentComponent, 'start', this.currentComponent, 'end');
 
                         this.currentComponent = newComp;
                         this.components.push(this.currentComponent);
@@ -573,7 +580,6 @@ class Sketch{
         this.updateMatrices()
     }
 
-
     _getMouseGridPosition(event)
     {
         var rect = glCanvasElement.getBoundingClientRect();
@@ -582,7 +588,6 @@ class Sketch{
         this.mouseGLPos = new vec4(2*this.mouseCanvasPos.x/glCanvasElement.width - 1, -(2*this.mouseCanvasPos.y/glCanvasElement.height - 1), 0);
         return this.projectionMatrixInv.mul(this.mouseGLPos).sub(this.translation).round(this.snapDist);
     }
-
     _getGridPositionFromCanvasPosition(canvasPos)
     {   
         var gl_pos = new vec4(2*canvasPos.x/glCanvasElement.width - 1, -(2*canvasPos.y/glCanvasElement.height - 1), 0);
@@ -611,13 +616,11 @@ class Sketch{
         }
         return [comp, compPoint];
     }
-
     _removeComponent(comp)
     {
         removeComponentFromList(this.components, this.currentComponent);
         this.constraintManager.removeComponent(comp);
     }
-
 
     getPosition()
     {
@@ -640,7 +643,9 @@ class Sketch{
 
 
 
+
 var nameID = 0;
+
 
 class Component {
     constructor(type = 'default_component')
@@ -651,7 +656,11 @@ class Component {
     }
     setPosition()
     {
-        console.log("Component.setPosition() - not implemented");
+        console.error("Component.setPosition() - not implemented");
+    }
+    getPosition()
+    {
+        console.error("Component.getPosition() - not implemented");
     }
     getDistToPos()
     {
@@ -678,7 +687,7 @@ class line extends Component{
         this.setPosition(endPos, 'end');
         this.setPosition(startPos, 'start');
         this.hasChanged = true;
-        this.color = new vec4(0,0,200,255);
+        this.color = new vec4(0,0,0.8,1);
     }
     setPosition(pos, pointName)
     {
@@ -709,6 +718,18 @@ class line extends Component{
             this.hasChanged = true;
         } else {
             console.error("Line.setPosition(pos, pointName) error: unknown pointName");
+        }
+    }
+    getPosition(pointName)
+    {
+        if (pointName == 'start')
+        {
+           return this.startPosition;
+        } else if (pointName == 'end')
+        {
+            return this.endPosition;
+        } else {
+            console.error("Line.getPosition( pointName) error: unknown pointName");
         }
     }
     getDistToPos(posVec, maxDist)
@@ -760,7 +781,7 @@ class circle extends Component{
         this.setPosition(otherPos, 'other');
         this.radius = .1;
         this.hasChanged = true;
-        this.color = new vec4(0,0,200,255);
+        this.color = new vec4(0,0.1,0.7,1);
     }
     setPosition(pos, pointName)
     {
@@ -779,6 +800,18 @@ class circle extends Component{
             }
         } else {
             console.error('circle.setPosition(pos, pointName) error: unknown pos type. needs vec4.');
+        }
+    }
+    getPosition(pointName)
+    {
+        if (pointName == 'center')
+        {
+           return this.centerPosition;
+        } else if (pointName == 'other')
+        {
+            return this.otherPosition;
+        } else {
+            console.error("Circle.getPosition( pointName) error: unknown pointName");
         }
     }
     getDistToPos(posVec, maxDist)
@@ -860,14 +893,29 @@ class circle extends Component{
 
 
 
+
+
 class ConstraintManager
 {
     constructor()
     {
         this.components = [];
-        this.coincidentals = [];
-    }
 
+        this.coincidentals = [];
+
+        this.color = new vec4(0.5,0.5,0.5,1);
+
+        var c = this.color;
+        this.coincidentals_v = [1,0,0,  .9,.44,0,  .44,.9,0,   0,1,0,  -.44,.9,0,  -.9,.44,0,  -1,0,0,  -.9,-.44,0,   -.44,-.9,0,   0,-1,0,  .44,-.9,0,  .9,-.44,0, ];
+        this.coincidentals_i = [0,1,  1,2,  2,3,  3,4,  4,5,  5,6,  6,7,  7,8,  8,9,  9,10,  10,11,  11,0];
+        this.coincidentals_n = [0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0, 0,0,0,];
+        this.coincidentals_c = [c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a, c.x,c.y,c.z,c.a,];
+
+
+        this.distances = [];
+
+        this._initBuffers();
+    }
     removeComponent(comp)
     {   
         removeComponentFromList(this.components, comp);
@@ -879,8 +927,15 @@ class ConstraintManager
                 this.coincidentals.splice(i,1); //remove constraint
             }
         }
+        for (var i=0; i<this.distances.length; i++)
+        {
+            var c = this.distances[i];
+            if (c.c1 == comp || c.c2 == comp)
+            {
+                this.distances.splice(i,1); //remove constraint
+            }
+        }
     }
-
     addCoincidentalConstraint(comp1, pointName1, comp2, pointName2)
     {
         if (isComponentInList(this.components, comp1) == false )
@@ -901,11 +956,34 @@ class ConstraintManager
 
         this.coincidentals.push(  c );
     }
+    addDiststanceConstraint(comp1, pointName1, comp2, pointName2)
+    {
+        if (isComponentInList(this.components, comp1) == false )
+        {
+            this.components.push(comp1);
+        }
+        if (isComponentInList(this.components, comp2) == false )
+        {
+            this.components.push(comp2);
+        }
 
+        var dist = distanceBetweenPoints(  comp1.getPosition(pointName1), comp2.getPosition(pointName2)   );
+
+        var c = {
+            c1: comp1,
+            pn1: pointName1,
+            c2: comp2,
+            pn2: pointName2,
+            dist: dist
+        };
+        this.distances.push(c);
+    }
     requestPointMove(component, pointName, newPointPosition, pVisitedConstraints = [])
     {
         console.log('requestPointMove: comp: ' + component.name + "  pn:"+pointName);
         var c;
+
+        //Coincidentals
         for (var i=0; i<this.coincidentals.length; i++)
         {
             c = this.coincidentals[i];
@@ -938,9 +1016,94 @@ class ConstraintManager
                 }
             }
         }
+
+        //Distances
+        for (var i=0; i<this.distances.length; i++)
+        {
+            c = this.distances[i];
+            if (isComponentInList(pVisitedConstraints, c)) 
+            {
+                continue;
+            }
+
+
+            if (c.c1 == component && c.pn1 == pointName)
+            {   
+                //if the coincidental constraint deals with the current component & pointName
+                pVisitedConstraints.push(c);
+                
+                var p1 = newPointPosition;
+                var p2 = c.c2.getPosition(c.pn2);
+
+                var distBetweenPoints = distanceBetweenPoints(p1, p2);
+
+                if (distBetweenPoints != c.dist)
+                {
+
+                    var np = new vec4();
+                    var angleBetweenPoints = Math.atan2(  p2.y - p1.y,  p2.x - p1.x  );
+                    np.x = Math.cos(angleBetweenPoints) * c.dist;
+                    np.y = Math.sin(angleBetweenPoints) * c.dist;
+
+                    var ret = this.requestPointMove(c.c2, c.pn2, np, pVisitedConstraints);
+                    if (ret != null)
+                    {
+                        c.c1.setPosition(newPointPosition, c.pn1);
+                        return ret;
+                    }
+                }
+            }
+
+            if (c.c2 == component && c.pn2 == pointName)
+            {   
+                //if the coincidental constraint deals with the current component & pointName
+                pVisitedConstraints.push(c);
+                
+                var p1 = c.c1.getPosition(c.pn1);
+                var p2 = newPointPosition;
+
+                var distBetweenPoints = distanceBetweenPoints(p1, p2);
+
+                if (distBetweenPoints != c.dist)
+                {
+
+                    var np = new vec4();
+                    var angleBetweenPoints = Math.atan2(  p1.y - p2.y,  p1.x - p2.x  );
+                    np.x = Math.cos(angleBetweenPoints) * c.dist;
+                    np.y = Math.sin(angleBetweenPoints) * c.dist;
+
+                    var ret = this.requestPointMove(c.c1, c.pn1, np, pVisitedConstraints);
+                    if (ret != null)
+                    {
+                        c.c1.setPosition(newPointPosition, c.pn1);
+                        return ret;
+                    }
+                }
+            }
+
+        }
+
+
         //console.log('requestPointMove2: comp: ' + component.name + "  pn:"+pointName);
 
         component.setPosition(newPointPosition, pointName);
         return newPointPosition;
+    }
+    _initBuffers()
+    {
+        //initBuffers(vertices, normals, colors, indices)
+        this.coincidentals_buffers = initBuffers(this.coincidentals_v, this.coincidentals_n, this.coincidentals_c, this.coincidentals_i);
+    }
+    draw(gl, projectionMatrix, viewMatrix)
+    {
+        //Draw Lines
+        var mat = new mat4();
+        var scale = new vec4(.02/zoom,.02/zoom,.02/zoom);
+        var p;
+        for (var i=0; i<this.coincidentals.length; i++)
+        {
+            p = this.coincidentals[i].c1.getPosition( this.coincidentals[i].pn1 );
+            DrawDefault(gl, projectionMatrix, viewMatrix, mat.makeTranslationAndScale(p, scale), this.coincidentals_i, this.coincidentals_buffers, false);
+        }
     }
 }

@@ -122,7 +122,48 @@ class mat4 {
         
         return this;
     }
-    makeScale(x,y,z,a)
+    makeTranslationAndScale(tx,ty,tz=0, sx=1, sy=1, sz=1)
+    {
+        if (tx instanceof vec4 && ty instanceof vec4)
+        {
+            sx = ty.x;
+            sy = ty.y;
+            sz = ty.z;
+
+            ty = tx.y;
+            tz = tx.z;
+            tx = tx.x;
+        } else {
+            if (tx == null || isNaN(tx) || ty == null || isNaN(ty)) {
+                console.error("mart4.makeTranslationAndScale() requires either 2 vec4s or 6 scalars as inputs. Given null values.");
+                return;
+            }
+        }
+
+        //COLUMN MAJOR ALIGNMENT
+        this.f32a[0] = sx;
+        this.f32a[4] = 0;
+        this.f32a[8] = 0;
+        this.f32a[12] = tx;
+
+        this.f32a[1] = 0;
+        this.f32a[5] = sy;
+        this.f32a[9] = 0;
+        this.f32a[13] = ty;
+
+        this.f32a[2] = 0;
+        this.f32a[6] = 0;
+        this.f32a[10] = sz;
+        this.f32a[14] = tz;
+
+        this.f32a[3] = 0;
+        this.f32a[7] = 0;
+        this.f32a[11] = 0;
+        this.f32a[15] = 1;
+        
+        return this;
+    }
+    makeScale(x,y=1,z=1,a=1)
     {
         if (x instanceof vec4)
         {
@@ -147,10 +188,6 @@ class mat4 {
             this.f32a[11] = 0;
             this.f32a[15] = x.a;
         } else {
-            if (x == null || isNaN(x)) { x = 0;}
-            if (y == null || isNaN(y)) { y = 0;}
-            if (z == null || isNaN(z)) { z = 0;}
-            if (a == null || isNaN(a)) { a = 0;}
 
             //COLUMN MAJOR ALIGNMENT
             this.f32a[0] = x;
@@ -285,6 +322,44 @@ class mat4 {
             return newMat;
         }
         console.error("mat4.mul() was passed Object it couldn't multiply. Valid types: mat4, vec4, number. ");
+        return null;
+    }
+    mulInto(mat) {
+        //Multiply into mat4 object.
+        if (mat instanceof mat4) {
+            var f1 = this.getFloat32Array();
+            var f2 = mat.getFloat32Array();
+            //var out = new mat4();
+            
+            this.f32a[0] = f1[0]*f2[0] + f1[4]*f2[1] + f1[8]*f2[2] + f1[12]*f2[3];
+            this.f32a[1] = f1[1]*f2[0] + f1[5]*f2[1] + f1[9]*f2[2] + f1[13]*f2[3];
+            this.f32a[2] = f1[2]*f2[0] + f1[6]*f2[1] + f1[10]*f2[2] + f1[14]*f2[3];
+            this.f32a[3] = f1[3]*f2[0] + f1[7]*f2[1] + f1[11]*f2[2] + f1[15]*f2[3];
+
+            this.f32a[4] = f1[0]*f2[4] + f1[4]*f2[5] + f1[8]*f2[6] + f1[12]*f2[7];
+            this.f32a[5] = f1[1]*f2[4] + f1[5]*f2[5] + f1[9]*f2[6] + f1[13]*f2[7];
+            this.f32a[6] = f1[2]*f2[4] + f1[6]*f2[5] + f1[10]*f2[6] + f1[14]*f2[7];
+            this.f32a[7] = f1[3]*f2[4] + f1[7]*f2[5] + f1[11]*f2[6] + f1[15]*f2[7];
+
+            this.f32a[8] = f1[0]*f2[8] + f1[4]*f2[9] + f1[8]*f2[10] + f1[12]*f2[11];
+            this.f32a[9] = f1[1]*f2[8] + f1[5]*f2[9] + f1[9]*f2[10] + f1[13]*f2[11];
+            this.f32a[10] = f1[2]*f2[8] + f1[6]*f2[9] + f1[10]*f2[10] + f1[14]*f2[11];
+            this.f32a[11] = f1[3]*f2[8] + f1[7]*f2[9] + f1[11]*f2[10] + f1[15]*f2[11];
+
+            this.f32a[12] = f1[0]*f2[12] + f1[4]*f2[13] + f1[8]*f2[14] + f1[12]*f2[15];
+            this.f32a[13] = f1[1]*f2[12] + f1[5]*f2[13] + f1[9]*f2[14] + f1[13]*f2[15];
+            this.f32a[14] = f1[2]*f2[12] + f1[6]*f2[13] + f1[10]*f2[14] + f1[14]*f2[15];
+            this.f32a[15] = f1[3]*f2[12] + f1[7]*f2[13] + f1[11]*f2[14] + f1[15]*f2[15];
+            
+            return this;
+        } else if (typeof mat == 'number') {
+            for(var i=0; i<16; i++)
+            {
+                this.f32a[i] = this.f32a[i] * mat;
+            }
+            return this;
+        }
+        console.error("mat4.muli() requires either a mat4 or a scalar as an input.");
         return null;
     }
     add(mat) {
