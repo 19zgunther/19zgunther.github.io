@@ -199,22 +199,48 @@
             <br> 'delete' = Remove All Components
             <br> 'backspace' = Remove Selected Component
             <br><br>
+            
+            <div style="font-weight: bold;">
+                How It Started:
+            </div>
 
-            <div style="font-weight: bold;">
-                How it works:
-            </div>
-            To start, this is by no means a proper circuit simulator. It lacks functionality and some accuracy, although
-            the entire purpose of the project was to force me to learn more about circuits and circuit analysis.
-            This simulator works by using KCL and nodal analysis. It essentially is a simple DC simulator which has been adapted to allow for AC functionality, albeit likely a bit inaccurate.
-            Inductors find the current flowing through them for the next simulation frame by finding the voltage across the component and incrementing the current accordinly.
-            Capacitors find the voltage across them for the next simulation by finding the current flowing into them and using V=Q/C.
+            This project started after I took my first introductory Electrical Engineering course. I had learned Ohms Law, KCL, and KVL and believed that with those basic laws I could simulate the
+            most basic circuits. Since then I have learned methods for calculating circuits using differential equations and why simulators like this one are rarely used.
+            
             <br><br>
             <div style="font-weight: bold;">
-                Notes:
+                How It Works:
             </div>
-            -- Inductors have a tendancy to make voltage blow up to infinity. Watch out for inductors in series or parallel.<br>
-            -- Small inductor and capacitor values are harder to simulate. The time step needs to be adjusted if using smaller values. <br>
-            <br><br>
+            This simulator, in essence, is just a nodal analysis calculator (KCL) with a basic UI slapped on the front.
+            
+            It simulates components like capacitors and inductors as though they are voltage and current sources, with approximations being made each time step to
+            determine the next capacitor and inductor voltage and current values. For each time step, the simulator generates equations for the voltage of each node using the fundamental components
+            (resistors, voltage sources/capacitors, and current sources/inductors), assembles all of the equations into a matrix, and uses Gaussian elimination to find the voltage of each node.
+            Using the node voltages, KCL, and ohms law, the simulator finds the current through each component. Capacitors and Inductors have their voltages and currents updated accordingly, and
+            the next cycle begins.
+
+            For each time step the user sees (in the scope and in the text overlays) the simulator actually simulates 1000 cycles. This is done to improve the simulation accuracy: the smaller the time
+            step, the less error is added each cycle. Thus, the simulator uses a tiny time step (1nS is the default).
+
+            As for the UI, I am using HTML canvases and a basic canvas painter class I wrote to draw the circuit and text to the screen. 
+            At the moment this is fairly inefficent and uses an unacceptable amount of computing power for how little it is actually doing.
+            I am not proud of this and plan to change the entire graphics engine to webGL to offload the processing power from the CPU to the GPU.
+            I have not done this yet because I will need to create vertice-based models of each of the components, which I suspect will be a painfully time-consuming process.
+            <br>
+            <br>
+            <div style="font-weight: bold;">
+                Future Plans:
+            </div>
+            In the future I would like to make many changes to the UI and core simulation algorithms. 
+
+            For starters, each time step the Ax=B matrices which are used to find 
+            the node voltages are completely remade each time step. This is inefficient because the circuit does not change each cycle, with only voltage, current, and resistive values being changed
+            each cycle. Secondly, I may be able to derive formulas based on component values for each node voltage and be able to use the GPU to crunch the linear equations, freeing up the CPU for other
+            logic functions.
+            
+            Finally, I am using a KCL and KVL with no differential equations at all. If I wanted to dramatically increase performance, I would need to create a differential equation solver
+            and make my simulator more akin to that of traditional SPICE simulators.
+
             <br>
             <br>
             <br>
