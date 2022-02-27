@@ -246,7 +246,7 @@ const CanvasElement = document.getElementById('canvas');
 
 
 //Instantiate Point Source
-const pointSource = new PointSource(new vec3(0, 4, 5));
+const pointSource = new PointSource(new vec3(0, 9, 5));
 
 //Instantiate Scene Objects
 const objects = [
@@ -278,8 +278,8 @@ const objects = [
 
 
 
-const width = 500;
-const height = 500;
+var width = 500;
+var height = 500;
 const ctx = CanvasElement.getContext('2d');
 var canvasData = [];
 
@@ -291,11 +291,12 @@ setup();
 
 
 function setup() {
-    CanvasElement.style.width = width + 'px';
-    CanvasElement.style.height = height + 'px';
-    CanvasElement.width = width;
-    CanvasElement.height = height;
 
+    document.getElementById('ImageSize').value = width;
+
+    document.getElementById('LSx').value = pointSource.position.x;
+    document.getElementById('LSy').value = pointSource.position.y;
+    document.getElementById('LSz').value = pointSource.position.z;
 
     //Get image data, and clear colors.
     canvasData = ctx.createImageData(width, height);
@@ -310,7 +311,25 @@ function setup() {
     render();
 }
 
+
+function sliderChanged(element) {
+    switch (element.id){
+        case 'ImageSize': width = height = Number(element.value); render(); break;
+        case 'LSx': pointSource.position.x = Number(element.value); render(); break;
+        case 'LSy': pointSource.position.y = Number(element.value); render(); break;
+        case 'LSz': pointSource.position.z = Number(element.value); render(); break;
+    }
+}
+
+
+
 function render() {
+    CanvasElement.style.width = width + 'px';
+    CanvasElement.style.height = height + 'px';
+    CanvasElement.width = width;
+    CanvasElement.height = height;
+
+    canvasData = ctx.createImageData(width, height);
 
     numRuns = 1;
     for (var x = 0; x < width; x += 1) {
