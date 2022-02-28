@@ -162,7 +162,7 @@ class Plane extends Object {
     }
     getColor(point) {
         //return this.color;
-        if (Math.abs(point.x % 2) < 1 && Math.abs(point.y % 2) < 1 || Math.abs(point.z % 2) < 1)
+        if (Math.abs(point.x % 5) < 2 && Math.abs(point.y % 2) < 1 || Math.abs(point.z % 2) < 1)
         {
             return this.color;
         } else {
@@ -189,7 +189,7 @@ class Disk extends Plane {
 }
 
 class PointSource extends Object {
-    constructor(position = new vec3(), lightColor = new vec3(5, 4, 4), shadowColor = new vec3(.2, .2, .2), radius = 0.5) {
+    constructor(position = new vec3(), lightColor = new vec3(5, 4, 4), shadowColor = new vec3(.1, .1, .1), radius = 0.5) {
         super(position, lightColor, 0);
         this.lightColor = lightColor;
         this.radius = radius;
@@ -239,7 +239,9 @@ class PointSource extends Object {
 }
 
 
+class TransparentSphere extends Sphere {
 
+}
 
 
 const CanvasElement = document.getElementById('canvas');
