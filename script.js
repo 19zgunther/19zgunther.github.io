@@ -8,7 +8,14 @@ UpdateImages();
 
 function ChangePage(pageString)
 {
-    document.location = pageString;
+    console.log(document.location);
+    if (document.location.includes('index.html') || document.location.includes('resume.html'))
+    {
+
+    } else {
+        pageString = "../"+pageString;
+    }
+    //document.location = pageString;
 }
 
 window.onresize = function(event){

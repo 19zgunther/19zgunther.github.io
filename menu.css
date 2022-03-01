@@ -1,0 +1,98 @@
+*{
+    font-family:'Courier New';
+    margin:0%;
+    padding: 0%;
+    transition: background-color 0.2s;
+    font-size: 1vmax;
+}
+
+
+.menu {
+    position: fixed;
+    width: 100%;
+    height: calc(fit-content);
+    background-color: rgba(20,20,20,.7);
+    display:flex;
+    justify-content: right;
+}
+
+
+.menu_item {
+    font-size: 2vmax;
+    color: rgba(200,200,200);
+    /*font-weight: bold;*/
+    text-align: center;
+
+    min-width: 5vmax;
+    position: relative;
+    width: fit-content;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left:1vmax;
+    margin-right:1vmax;
+    padding: 1vmax 3vmax 1vmax 3vmax;
+    vertical-align: middle;
+    height: fit-content;
+}
+.menu_item:hover {
+    background-color: rgba(40,40,40,1)
+}
+
+.menu_item:hover .menu_dropdown{
+    max-height: 70vmax;
+    overflow: visible;
+    opacity: 1;
+}
+
+.menu_dropdown {
+    width: 100%;
+    position: absolute;
+    left: 0px;
+    max-height: 0px;
+    height: fit-content;
+    opacity: 0.5;
+    background-color: rgba(30,30,30,1);
+
+    overflow: hidden;
+    display:block;
+
+    -webkit-transition: all 1s;
+    -moz-transition: all 1s;
+    -o-transition: all 1s;
+    -ms-transition: all 1s;
+    transition: all 1s;
+}
+
+.menu_dropdown_child {
+
+    border-radius: .4vmax;
+
+    font-size: 1.5vmax;
+
+    opacity: 0;
+    margin: 0vmax;
+    margin-top: 0.4vmax;
+    padding: .4vmax;
+    width: 95%;
+
+    height: fit-content;
+
+    max-height: 0px;
+    background-color: rgba(40,40,40,1);
+
+    overflow:hidden;
+
+    -webkit-transition: all 1s;
+    -moz-transition: all 1s;
+    -o-transition: all 1s;
+    -ms-transition: all 1s;
+    transition: all 1s;
+}
+.menu_dropdown_child:hover {
+    background-color: rgba(50,50,50,1);
+}
+
+.menu_item:hover .menu_dropdown_child {
+    max-height:100px;
+    opacity: 1;
+}
