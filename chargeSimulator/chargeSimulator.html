@@ -5,18 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gunther</title>
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../menu.css">
     <link rel="stylesheet" href="chargeSimulator.css">
 </head>
 <body>
     
     <div id="Background">
         
-        <div id="Header" class = "header">
-            <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('../index.html')">Home</div>
-            <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('../resume.html')" >Resume</div>
-            <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('chargeSimulator.html')">Charge Simulator</div>
-            <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
-            <div id="cadButton" class = "HeaderButton" onclick= "ChangePage('../CAD/cad.html')">CAD</div>
+        <!-- Menu -->
+        <div class='menu'>
+            <div style='position: absolute; left:0; justify-self:left;'>
+                <div class='logo' onclick='buttonClick("home")'>
+                    ZG
+                </div>
+            </div>
+            <div class='menu_item' onclick='buttonClick("resume")'> 
+                Resume
+            </div>
+            <div class='menu_item'>
+                Projects
+                <div class='menu_dropdown'>
+                    <div id="INSERT_MENU_PROJECTS">
+                        null
+                    </div>
+                </div>
+            </div>
+            <!--Scroll Progress Bar-->
+            <div id='scrollIndicatorBackground' class='scrollIndicatorBackground'>
+                <div id='scrollIndicator' class='scrollIndicator'>
+
+                </div>
+            </div>
         </div>
 
         <div class = "Paragraph">
@@ -76,5 +95,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/p5@1.3.1/lib/p5.js"></script>
 <script src="../script.js"></script>
+<script src="../insert.js"></script>
 <script src="chargeSimulator.js"></script>
 </html>

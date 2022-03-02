@@ -4,96 +4,121 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zack Gunther</title>
+    <link rel="stylesheet" href="../menu.css">
     <link rel="stylesheet" href="../style.css">
 </head>
 
-<body style = "background-color: rgba(0,0,0,0);">
-    <div id="Header" class = "header" style = 'padding:0%'>
-        <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('../index.html')">Home</div>
-        <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('../resume.html')" >Resume</div>
-        <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
-        <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('../circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
-        <div id="cadButton" class = "HeaderButton" onclick= "ChangePage('CAD/cad.html')">CAD</div>
-    </div>
-    <div id = 'background' style = 'padding: 3px; height: fit-content; min-height: 100%;'>
-        <div style = 'display: grid; justify-content: center; padding:auto;'>
-            <Title2 style='justify-content: center; font-size:x-large;'>
-                Ray Tracing Experiment Project
-            </Title2>
-            <canvas id='canvas' style = 'width:10%; height:10%;'></canvas>
-            <br>
-            <div style="display:table;font-size: smaller;">
-                <div>
-                    Controls:
-                </div>
-                <!--Row 1-->
-                <div style='display: table-row'>
-                    <div style='display: table-cell'>
-                        Image Size: 
-                    </div>
-                    <div style='display: table-cell'>
-                        100 <input id = 'ImageSize' type='range' min='100' max='1000' step='10' onchange = 'sliderChanged(this)'> 1000
-                    </div>
-                </div>
-                <br>
-                <!--Row 2-->
-                <div style='display: table-row'>
-                    <div style='display: table-cell'>
-                        Light source x position:
-                    </div>
-                    <div style='display: table-cell'>
-                        -10 <input id = 'LSx' type='range' min='-9' max='9' step='.1' onchange = 'sliderChanged(this)'> 10
-                    </div>
-                </div>
-                <!-- Row 3-->
-                <div style='display: table-row'>
-                    <div style='display: table-cell'>
-                        Light source y position:
-                    </div>
-                    <div style='display: table-cell'>
-                        -10 <input id = 'LSy' type='range' min='-9' max='9' step='.1' onchange = 'sliderChanged(this)'> 10
-                    </div>
-                </div>
-                <!-- Row 4-->
-                <div style='display: table-row'>
-                    <div style='display: table-cell'>
-                        Light source z position:
-                    </div>
-                    <div style='display: table-cell'>
-                        -10 <input id = 'LSz' type='range' min='-9' max='9' step='.1' onchange = 'sliderChanged(this)'> 10
-                    </div>
-                </div>
-                
-                
-                <br>
+<body style='background-color: rgba(30,30,30)'>
+    
+
+    <!-- Menu -->
+    <div class='menu'>
+        <div style='position: absolute; left:0; justify-self:left;'>
+            <div class='logo' onclick='buttonClick("home")'>
+                ZG
             </div>
         </div>
-
-        <div style = 'padding-left: 10%; padding-right:10%;'>
-            One day I was wandering aimlessly around the internet and found an image of reflective spheres and a few other basic objects. After a quick search, I discovered
-            the image was generated using ray tracing, a rendering technique I had heard of but knew nothing about. After a few hours of research and programming
-            I created this: The world's most innefficient single threaded ray tracing renderer!
-            <br><br>
-            This renderer (currently) can render two basic objects: Spheres and planes. It works by projecting a ray for each pixel and seeing what the ray intersects with. If the ray intersects with
-            an object the object color is recorded, a ray from that intersection is shot to the point light source to determine the light level (based on distance and blocking objects), and finally a 
-            new ray is recursively shot from the intersection in the reflected direction. The reflected ray returns a color value from what it hit, and all of the colors and light levels are accumulated
-            to find the final pixel color to display on the screen.
-            <br><br>
-            Obviously this implementation has some shortcomings. Firstly, this program sequentially computes each pixel even though each could be computed independently. 
-            For a 500 by 500 pixel rendering with 7 objects, this program takes a painfully long time to render. On my computer it takes a full second, although
-            results may vary depending on which processor used. I have plans to use webGL and fragment shaders to parallelize this rendering technique to decrease rendering time, 
-            although this would require a complete restart to do so, and I do not currently have the time.
-            <br>
-            Secondly, only two types of objects are currently renderable (Spheres and Planes) and no other light sources besides point light sources have been implemented.
-            This means only hard shadows are renderable, and light source reflections are... less than optimal. Currently the point light source appears to be a rather large sphere,
-            but only the very center is used for computing shadows whereas the rest is simply a white-colored object.
-
-            <br>
+        <div class='menu_item' onclick='buttonClick("resume")'> 
+            Resume
         </div>
-        <br><br>
+        <div class='menu_item'>
+            Projects
+            <div class='menu_dropdown'>
+                <div id="INSERT_MENU_PROJECTS">
+                    null
+                </div>
+            </div>
+        </div>
+        <!--Scroll Progress Bar-->
+        <div id='scrollIndicatorBackground' class='scrollIndicatorBackground'>
+            <div id='scrollIndicator' class='scrollIndicator'>
+
+            </div>
+        </div>
     </div>
 
+
+
+    <div style = 'display: grid; justify-content: center; padding:auto;'>
+        <Title2 style='justify-content: center; font-size:x-large;'>
+            Ray Tracing Experiment Project
+        </Title2>
+        <canvas id='canvas' style = 'width:10%; height:10%;'></canvas>
+        <br>
+        <div style="display:table;font-size: smaller;">
+            <div>
+                Controls:
+            </div>
+            <!--Row 1-->
+            <div style='display: table-row'>
+                <div style='display: table-cell'>
+                    Image Size: 
+                </div>
+                <div style='display: table-cell'>
+                    100 <input id = 'ImageSize' type='range' min='100' max='1000' step='10' onchange = 'sliderChanged(this)'> 1000
+                </div>
+            </div>
+            <br>
+            <!--Row 2-->
+            <div style='display: table-row'>
+                <div style='display: table-cell'>
+                    Light source x position:
+                </div>
+                <div style='display: table-cell'>
+                    -10 <input id = 'LSx' type='range' min='-9' max='9' step='.1' onchange = 'sliderChanged(this)'> 10
+                </div>
+            </div>
+            <!-- Row 3-->
+            <div style='display: table-row'>
+                <div style='display: table-cell'>
+                    Light source y position:
+                </div>
+                <div style='display: table-cell'>
+                    -10 <input id = 'LSy' type='range' min='-9' max='9' step='.1' onchange = 'sliderChanged(this)'> 10
+                </div>
+            </div>
+            <!-- Row 4-->
+            <div style='display: table-row'>
+                <div style='display: table-cell'>
+                    Light source z position:
+                </div>
+                <div style='display: table-cell'>
+                    -10 <input id = 'LSz' type='range' min='-9' max='9' step='.1' onchange = 'sliderChanged(this)'> 10
+                </div>
+            </div>
+            
+            
+            <br>
+        </div>
+    </div>
+
+    <div style = 'padding-left: 10%; padding-right:10%;'>
+        One day I was wandering aimlessly around the internet and found an image of reflective spheres and a few other basic objects. After a quick search, I discovered
+        the image was generated using ray tracing, a rendering technique I had heard of but knew nothing about. After a few hours of research and programming
+        I created this: The world's most innefficient single threaded ray tracing renderer!
+        <br><br>
+        This renderer (currently) can render two basic objects: Spheres and planes. It works by projecting a ray for each pixel and seeing what the ray intersects with. If the ray intersects with
+        an object the object color is recorded, a ray from that intersection is shot to the point light source to determine the light level (based on distance and blocking objects), and finally a 
+        new ray is recursively shot from the intersection in the reflected direction. The reflected ray returns a color value from what it hit, and all of the colors and light levels are accumulated
+        to find the final pixel color to display on the screen.
+        <br><br>
+        Obviously this implementation has some shortcomings. Firstly, this program sequentially computes each pixel even though each could be computed independently. 
+        For a 500 by 500 pixel rendering with 7 objects, this program takes a painfully long time to render. On my computer it takes a full second, although
+        results may vary depending on which processor used. I have plans to use webGL and fragment shaders to parallelize this rendering technique to decrease rendering time, 
+        although this would require a complete restart to do so, and I do not currently have the time.
+        <br>
+        Secondly, only two types of objects are currently renderable (Spheres and Planes) and no other light sources besides point light sources have been implemented.
+        This means only hard shadows are renderable, and light source reflections are... less than optimal. Currently the point light source appears to be a rather large sphere,
+        but only the very center is used for computing shadows whereas the rest is simply a white-colored object.
+
+        <br>
+    </div>
+    <br><br>
+
 </body>
+
+<script src="../insert.js"></script>
+<script src="../script.js"></script>
 
 <script src="raytracing.js"></script>
 

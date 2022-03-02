@@ -1,23 +1,36 @@
 *{
-    font-family:'Courier New';
     margin:0%;
     padding: 0%;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, color 0.2s;
     font-size: 1vmax;
+    font-family:'Courier New';
+    font-size: 1vmax;
+    color: white;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
+
+
 
 
 .menu {
-    position: fixed;
+    z-index: 1000;
+    position: sticky;
+    display:block;
+
+    top: 0;
     width: 100%;
-    height: calc(fit-content);
+    max-width: 100%;
+    min-height: fit-content;
     background-color: rgba(20,20,20,.7);
+    /*background-color:  rgba(20, 32, 66,.7);*/
     display:flex;
     justify-content: right;
 }
 
 
 .menu_item {
+    cursor: pointer;
     font-size: 2vmax;
     color: rgba(200,200,200);
     /*font-weight: bold;*/
@@ -35,7 +48,8 @@
     height: fit-content;
 }
 .menu_item:hover {
-    background-color: rgba(40,40,40,1)
+    background-color: rgba(40,40,40,1);
+    color:#ac4d2d;
 }
 
 .menu_item:hover .menu_dropdown{
@@ -56,11 +70,11 @@
     overflow: hidden;
     display:block;
 
-    -webkit-transition: all 1s;
-    -moz-transition: all 1s;
-    -o-transition: all 1s;
-    -ms-transition: all 1s;
-    transition: all 1s;
+    -webkit-transition: all 1s, color 0.2s, background-color 0.2s;
+    -moz-transition: all 1s, color 0.2s, background-color 0.2s;
+    -o-transition: all 1s, color 0.2s, background-color 0.2s;
+    -ms-transition: all 1s, color 0.2s, background-color 0.2s;
+    transition: all 1s, color 0.2s, background-color 0.2s;
 }
 
 .menu_dropdown_child {
@@ -82,17 +96,82 @@
 
     overflow:hidden;
 
-    -webkit-transition: all 1s;
-    -moz-transition: all 1s;
-    -o-transition: all 1s;
-    -ms-transition: all 1s;
-    transition: all 1s;
+    -webkit-transition: max-height 1s, color 0.2s, background-color 0.2s;
+    -moz-transition: max-height 1s, color 0.2s, background-color 0.2s;
+    -o-transition: max-height 1s, color 0.2s, background-color 0.2s;
+    -ms-transition: max-height 1s, color 0.2s, background-color 0.2s;
+    transition: max-height 1s, color 0.2s, background-color 0.2s;
 }
 .menu_dropdown_child:hover {
     background-color: rgba(50,50,50,1);
+    color: #ac4d2d;
 }
 
 .menu_item:hover .menu_dropdown_child {
     max-height:100px;
     opacity: 1;
+}
+
+
+
+.logo{
+    cursor: pointer;
+    /*color: #141A46;*/
+    font-size:3.7vmax;
+    color: rgba(20,20,20);
+    /*font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;*/
+
+    font-family: 'Abril Fatface', cursive;
+    background-color: #ac4d2d;
+
+
+    height: fit-content;
+    width: fit-content;
+
+    margin: 0px;
+    padding: 0px;
+    
+
+    letter-spacing: 0px;
+
+
+    -webkit-transition: background-color 0.5s, color 0.5s 0.1s;
+    -moz-transition: background-color 0.5s, color 0.5s 0.1s;
+    -o-transition: background-color 0.5s, color 0.5s 0.1s;
+    -ms-transition: background-color 0.5s, color 0.5s 0.1s;
+    transition: background-color 0.5s, color 0.5s 0.1s;
+}
+
+body.loaded .logo{
+    text-shadow: 0 0;
+    /*color: #141A46;*/
+    /*color: rgba(20,20,20);*/
+}
+
+.logo:hover {
+    background-color: rgba(20,20,20,0.5);
+    color: #ac4d2d;
+}
+
+
+
+
+.scrollIndicator {
+    width: 0%;
+    height: 0.5vh;
+    background-color: #ac4d2d;
+    margin: 0;
+    padding: 0;
+    z-index: 1001;
+}
+
+.scrollIndicatorBackground {
+    top:0;
+    display:block;
+    position:fixed;
+    margin: 0;
+    padding: 0;
+    height: fit-content;
+    width: 100%;
+    background-color: transparent;
 }

@@ -1,31 +1,26 @@
 
 
 
-const topBarElement = document.getElementById("INSERT_TOP_BAR");
-if (topBarElement != null) {
-    topBarElement.innerHTML = `
-    <div class = 'menu'>
-        <div class = 'menu_item' style='position: absolute; left:0; justify-self:left;'>
-            Zack Gunther
-        </div>
-        <div class = 'menu_item'>
-            Resume
-        </div>
-        <div class = 'menu_item'>
-            Projects
-            <div class = 'menu_dropdown'>
-                <div class = 'menu_dropdown_child'>
-                    Circuit Simulator
-                </div>
-                <div class = 'menu_dropdown_child'>
-                    Charged Particle Simulator
-                </div>
-            </div>
-        </div>
+const menuProjectsElement = document.getElementById("INSERT_MENU_PROJECTS");
+if (menuProjectsElement != null) {
+
+    const text = `
+    <div class = 'menu_dropdown_child' onclick='buttonClick("circuit_simulator")'>
+        Circuit Simulator
+    </div>
+    <div class = 'menu_dropdown_child' onclick='buttonClick("charged_particle_simulator")'>
+        Charged Particle Simulator
+    </div>
+    <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
+        Ray Tracing Project (in dev)
+    </div>
+    <div class = 'menu_dropdown_child' onclick='buttonClick("cad")'>
+        CAD (in dev)
     </div>
     `;
-    
-    
+
+    menuProjectsElement.innerHTML = text;
+
     var o = `
     <div style = "position:fixed; top:0px; z-index: 500; width: 100%;">
         <div id="Header" class = "header">
