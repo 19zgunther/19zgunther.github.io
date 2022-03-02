@@ -1,0 +1,253 @@
+
+
+
+.titleA{
+
+    /*font-family: 'Abril Fatface', cursive;*/
+    text-align: left;
+
+    transition: width 2s 0.5s, color 1s;
+
+    width: 0%;
+
+    font-size:10em;
+    background-image:url('Lake3IMG.jpg');
+    background-size: cover;
+    color: rgba(250,255,255,0.05);
+    -moz-background-clip: text;
+    -webkit-background-clip: text;
+    background-clip: text;
+    /*transform: rotateX(90deg);*/
+    overflow: hidden;
+    text-overflow: hidden;
+
+    margin-right: 10%;
+    margin-left: 10%;
+    cursor: default;
+}
+body.loaded .titleA{
+    /*transform: rotateX(0deg) translateY(100px);*/
+    width: 100%;
+}
+.titleA:hover{
+    color: #ac4d2d69;
+}
+
+.subtitleA{
+    font-size: 1.2vmax;
+
+    color: transparent;
+    -webkit-transition: color 2s;
+    -moz-transition: color 2s;
+    -o-transition: color 2s;
+    -ms-transition: color 2s;
+    transition: color 2s;
+
+    margin-left: 15%;
+    margin-right: 5%;
+    width: 90%;
+    max-width: fit-content;
+
+    line-height:1.7;
+
+    overflow: wrap;
+}
+body.loaded .subtitleA{
+    color: white;
+}
+.subtitle_delay1{
+    -webkit-transition: color 2s 2s;
+    -moz-transition: color 2s 2s;
+    -o-transition: color 2s 2s;
+    -ms-transition: color 2s 2s;
+    transition: color 2s 2s;
+}
+.subtitle_delay2{
+    -webkit-transition: color 2s 3.5s;
+    -moz-transition: color 2s 3.5s;
+    -o-transition: color 2s 3.5s;
+    -ms-transition: color 2s 3.5s;
+    transition: color 2s 3.5s;
+}
+.subtitle_delay3{
+    -webkit-transition: color 2s 6s;
+    -moz-transition: color 2s 6s;
+    -o-transition: color 2s 6s;
+    -ms-transition: color 2s 6s;
+    transition: color 2s 6s;
+}
+.subtitle_delay4{
+    -webkit-transition: color 2s 8.5s;
+    -moz-transition: color 2s 8.5s;
+    -o-transition: color 2s 8.5s;
+    -ms-transition: color 2s 8.5s;
+    transition: color 2s 8.5s;
+}
+
+
+
+
+
+
+
+.image_me{
+    color: white;
+    opacity: 0;
+    border-radius:50%; 
+    
+    width:60%; 
+    margin-top: 10%;
+    margin-bottom:10%; 
+    margin-left:10%; 
+    margin-right: 10%; 
+    justify-self:center;
+
+    transition: border-radius 2s, width 1s, opacity 2s 2s, border-color 2s;
+
+    border-width: .3vmax;
+    border-style:solid;
+    border-color: transparent;
+}
+.image_me:hover {
+    border-color: #ac4d2d;
+    border-radius: 45%;
+}
+
+body.loaded .image_me{
+    opacity:1;
+}
+
+
+
+
+
+
+
+
+.dualSection{
+    width: 80%;
+    display:flex;
+    flex-direction: row;
+    padding-top: 5%;
+    padding-left:10%;
+}
+
+.dualSectionA{
+    width: 70%; 
+}
+
+.dualSectionB{
+    width: 50%;
+}
+
+
+.image_downarrow{
+    opacity: 0;
+    width: 70px;
+    height: 70px;
+    margin:auto;
+    margin-top: 0;
+    justify-self:center;
+    /*clip-path: polygon(5% 0%,  10% 0%, 10% 10%, 15% 10%, 7.5% 20%, 0% 10%, 5% 10%);*/
+    clip-path: polygon(25% 0%,  50% 0%, 50% 60%, 75% 60%, 37.5% 100%, 0% 60%, 25% 60%);
+    
+    transition: opacity 3s 6s;
+}
+
+
+body.loaded .image_downarrow{
+    opacity:1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.content_column{
+    width:70%; 
+    height:fit-content; 
+    margin-left:15%; 
+    opacity: 0; 
+    transition: opacity 0.5s;
+}
+
+
+#cps_container{
+    width: 100%;
+    height: 50vh;
+    background-color: rgba(255,255,255,0.1);
+    padding: 1%;
+    border-radius: 10px;
+}
+
+#cps_trapezoid{
+    border-radius: 15px;
+    height:90%;
+    font-size: 5em;
+    text-align: left;
+    width:90%;
+    padding: 2%;
+
+    float:left;
+    background: black url(chargedParticleSimulatorIMG.png) center top no-repeat;
+    background-size:cover;
+
+
+    -webkit-clip-path: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+    clip-path: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+
+    -webkit-shape-outside: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+    shape-outside: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+}
+#cps_text {
+    margin-top:auto;
+    margin-bottom:auto;
+    text-align:left;
+    line-height: 1.5;
+}
+
+
+
+
+#cs_container{
+    width: 100%;
+    height: 50vh;
+    background-color: rgba(255,255,255,0.1);
+    padding: 1%;
+    border-radius: 10px;
+}
+
+#cs_trapezoid{
+    border-radius: 15px;
+    height:90%;
+    font-size: 5em;
+    text-align: right;
+    width:90%;
+    padding: 2%;
+
+    float:right;
+    background: black url(circuitSimulatorIMG.png) center top no-repeat;
+    background-size:cover;
+
+
+    -webkit-clip-path: polygon(30% 0, 100% 0, 100% 100%, 50% 100%);
+    clip-path: polygon(30% 0, 100% 0, 100% 100%, 50% 100%);
+
+    -webkit-shape-outside: polygon(30% 0, 100% 0, 100% 100%, 50% 100%);
+    shape-outside: polygon(30% 0, 100% 0, 100% 100%, 50% 100%);
+
+}
+#cs_text {
+    margin-top:auto;
+    margin-bottom:auto;
+    text-align:left;
+    line-height: 1.5;
+}
