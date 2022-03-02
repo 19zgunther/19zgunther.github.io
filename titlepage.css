@@ -140,7 +140,6 @@ body.loaded .image_me{
     width: 50%;
 }
 
-
 .image_downarrow{
     opacity: 0;
     width: 70px;
@@ -152,8 +151,8 @@ body.loaded .image_me{
     clip-path: polygon(25% 0%,  50% 0%, 50% 60%, 75% 60%, 37.5% 100%, 0% 60%, 25% 60%);
     
     transition: opacity 3s 6s;
-}
 
+}
 
 body.loaded .image_downarrow{
     opacity:1;
@@ -170,25 +169,28 @@ body.loaded .image_downarrow{
 
 
 
-
 .content_column{
     width:70%; 
     height:fit-content; 
     margin-left:15%; 
-    opacity: 0; 
+    opacity: 1;
     transition: opacity 0.5s;
 }
 
-
-#cps_container{
+.project_container{
+    opacity: 0.1;
     width: 100%;
     height: 50vh;
     background-color: rgba(255,255,255,0.1);
     padding: 1%;
     border-radius: 10px;
+
+    transition: opacity 0.5s;
 }
 
-#cps_trapezoid{
+
+
+/*#left_trapezoid{
     border-radius: 15px;
     height:90%;
     font-size: 5em;
@@ -197,7 +199,6 @@ body.loaded .image_downarrow{
     padding: 2%;
 
     float:left;
-    background: black url(chargedParticleSimulatorIMG.png) center top no-repeat;
     background-size:cover;
 
 
@@ -206,8 +207,30 @@ body.loaded .image_downarrow{
 
     -webkit-shape-outside: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
     shape-outside: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+}*/
+#left_trapezoid{
+    border-radius: 15px;
+    height:90%;
+    font-size: 5em;
+    text-align: left;
+    width:90%;
+    padding: 2%;
+
+    float:left;
+    background-size:cover;
+
+    background-attachment:fixed;
+    background-position:top;
+    background-repeat: no-repeat;
+    background-size:cover;
+
+    -webkit-clip-path: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+    clip-path: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+
+    -webkit-shape-outside: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
+    shape-outside: polygon(0% 0, 70% 0, 50% 100%, 0% 100%);
 }
-#cps_text {
+#left_text {
     margin-top:auto;
     margin-bottom:auto;
     text-align:left;
@@ -216,16 +239,7 @@ body.loaded .image_downarrow{
 
 
 
-
-#cs_container{
-    width: 100%;
-    height: 50vh;
-    background-color: rgba(255,255,255,0.1);
-    padding: 1%;
-    border-radius: 10px;
-}
-
-#cs_trapezoid{
+#right_trapezoid{
     border-radius: 15px;
     height:90%;
     font-size: 5em;
@@ -234,7 +248,10 @@ body.loaded .image_downarrow{
     padding: 2%;
 
     float:right;
-    background: black url(circuitSimulatorIMG.png) center top no-repeat;
+    /*background: black url(circuitSimulatorIMG.png) center top no-repeat;*/
+    background-attachment:fixed;
+    background-position:top;
+    background-repeat: no-repeat;
     background-size:cover;
 
 
@@ -245,7 +262,7 @@ body.loaded .image_downarrow{
     shape-outside: polygon(30% 0, 100% 0, 100% 100%, 50% 100%);
 
 }
-#cs_text {
+#right_text {
     margin-top:auto;
     margin-bottom:auto;
     text-align:left;

@@ -2,12 +2,14 @@
 
 
 var scrollIndicatorElement = document.getElementById("scrollIndicator");
-var cps_contentColumnElement = document.getElementById("cps_content_column");
-var cs_contentColumnElement = document.getElementById("cs_content_column");
+//var cps_contentColumnElement = document.getElementById("cps_content_column");
+//var cs_contentColumnElement = document.getElementById("cs_content_column");
 
 
-var contentColumnElements = [cps_contentColumnElement, cs_contentColumnElement];
+//var contentColumnElements = [cps_contentColumnElement, cs_contentColumnElement];
+var contentColumnElements = document.getElementsByClassName("project_container");
 
+//console.log(contentColumnElements);
 
 
 
@@ -23,7 +25,6 @@ window.onscroll = function() {
     
 
     //console.log( currentOffset/(maxHeight-windowHeight) );
-    
 
     try {
         var maxHeight = Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
@@ -32,29 +33,23 @@ window.onscroll = function() {
 
         scrollIndicatorElement.style.width = Math.round(currentOffset/(maxHeight-windowHeight)*100) + "%";
 
-        if (currentOffset > 10)
-        {
-            if ( cps_contentColumnElement.style.opacity != '1')
-            {
-                console.log("op = 1");
-                cps_contentColumnElement.style.opacity = '1';
-            }
-        }
 
 
         for(var i=0; i<contentColumnElements.length;i++)
         {
-            if (Math.abs(contentColumnElements[i].getBoundingClientRect().top - (currentOffset-windowHeight/2)) < windowHeight/2 )
+            //console.log("top: " + contentColumnElements[i].getBoundingClientRect().top + "  scroll: " + currentOffset + "   winH: " + windowHeight);
+            var bb = contentColumnElements[i].getBoundingClientRect();
+            if (Math.abs(bb.top - bb.height/2) < windowHeight/2 )
             {
-                contentColumnElements[i].style.opacity = 1;
+                contentColumnElements[i].style.opacity = '1';
             } else {
-                contentColumnElements[i].style.opacity = 0.2;
+                contentColumnElements[i].style.opacity = '0.2';
             }
         }
+        //console.log("HERE");
     } catch (e) {
-
+        console.log(e);
     }
-
 };
 
 

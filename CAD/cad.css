@@ -2,7 +2,7 @@
 
 /*general*/
 *{
-    border-radius: 4px;
+    /*border-radius: 4px;*/
     /*padding: inherit;*/
     color: white;
     transition: opacity 0.1s, background-color 0.1s;
