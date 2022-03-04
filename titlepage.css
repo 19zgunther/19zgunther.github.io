@@ -1,12 +1,16 @@
 
 
+#welcome_section{
+    transition: transform 1s;
+}
+
 
 .titleA{
 
     /*font-family: 'Abril Fatface', cursive;*/
     text-align: left;
 
-    transition: width 2s 0.5s, color 1s;
+    transition: width 2s 0.5s, color 1s, transform 3s;
 
     width: 0%;
 

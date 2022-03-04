@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -38,27 +40,32 @@
     </div>
 
 
+    
 
-    <div style = 'display: grid; justify-content: center; padding:auto;'>
-        <Title2 style='justify-content: center; font-size:x-large;'>
-            Ray Tracing Experiment Project
-        </Title2>
-        <canvas id='canvas' style = 'width:10%; height:10%;'></canvas>
-        <br>
+    
+    <div style="width:100%; text-align:center; margin:auto; font-size: 3em;">
+        Ray Tracing Project
+    </div>
+
+
+    <canvas id='canvas' style = 'width:10%; height:10%; padding: 5%; float:right'></canvas>
+
+
+
+    <div style = 'padding: 5%;'>
+        <div style="font-size:2em;">
+            Controls:
+        </div>
         <div style="display:table;font-size: smaller;">
-            <div>
-                Controls:
-            </div>
             <!--Row 1-->
             <div style='display: table-row'>
                 <div style='display: table-cell'>
                     Image Size: 
                 </div>
                 <div style='display: table-cell'>
-                    100 <input id = 'ImageSize' type='range' min='100' max='1000' step='10' onchange = 'sliderChanged(this)'> 1000
+                    100px <input id = 'ImageSize' type='range' min='100' max='1000' step='10' onchange = 'sliderChanged(this)'> 1000px
                 </div>
             </div>
-            <br>
             <!--Row 2-->
             <div style='display: table-row'>
                 <div style='display: table-cell'>
@@ -86,13 +93,11 @@
                     -10 <input id = 'LSz' type='range' min='-9' max='9' step='.1' onchange = 'sliderChanged(this)'> 10
                 </div>
             </div>
-            
-            
             <br>
         </div>
-    </div>
-
-    <div style = 'padding-left: 10%; padding-right:10%;'>
+        <div style="font-size:2em;">
+            About:
+        </div>
         One day I was wandering aimlessly around the internet and found an image of reflective spheres and a few other basic objects. After a quick search, I discovered
         the image was generated using ray tracing, a rendering technique I had heard of but knew nothing about. After a few hours of research and programming
         I created this: The world's most innefficient single threaded ray tracing renderer!
@@ -110,16 +115,13 @@
         Secondly, only two types of objects are currently renderable (Spheres and Planes) and no other light sources besides point light sources have been implemented.
         This means only hard shadows are renderable, and light source reflections are... less than optimal. Currently the point light source appears to be a rather large sphere,
         but only the very center is used for computing shadows whereas the rest is simply a white-colored object.
-
         <br>
     </div>
     <br><br>
 
 </body>
 
-<script src="../insert.js"></script>
 <script src="../script.js"></script>
-
 <script src="raytracing.js"></script>
 
 </html>
