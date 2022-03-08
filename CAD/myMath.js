@@ -604,6 +604,28 @@ class vec4 {
             return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
         }
     }
+    addi(x,y=0,z=0,a=0)
+    {
+        if (x instanceof vec4)
+        {
+            //return new vec4(this.x+x.x, this.y+x.y, this.z+x.z, this.a+x.a);
+            this.x += x.x;
+            this.y += x.y;
+            this.z += x.z;
+            this.z += x.z;
+        } else {
+            if (isNaN(x)) { x = 0;}
+            if (isNaN(y)) { y = 0;}
+            if (isNaN(z)) { z = 0;}
+            if (isNaN(a)) { a = 0;}
+            //return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
+            this.x += x;
+            this.y += y;
+            this.z += z;
+            this.z += z;
+        }
+        return this;
+    }
 
     sub(x,y,z,a)
     {
@@ -639,6 +661,36 @@ class vec4 {
             return new vec4(this.x*x, this.y*y, this.z*z, this.a*a);
         }
     }
+    muli(x,y=null,z=null,a=null)
+    {
+        //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);
+        if (x instanceof vec4)
+        {
+            //multiply by vector
+            this.x = this.x*x.x;
+            this.y = this.y*x.y;
+            this.z = this.z*x.z;
+            this.a = this.a*x.a;
+        } else if ( !isNaN(Number(x)) && y == null && z == null && a == null) {
+            //multiply by scalar
+            this.x = this.x*x;
+            this.y = this.y*x;
+            this.z = this.z*x;
+            this.a = this.a*x;
+        } else {
+            //multiple by all scalars
+            if (isNaN(x)) { x = 0;}
+            if (isNaN(y)) { y = 0;}
+            if (isNaN(z)) { z = 0;}
+            if (isNaN(a)) { a = 0;}
+            this.x = this.x*x;
+            this.y = this.y*y;
+            this.z = this.z*z;
+            this.a = this.a*a;
+        }
+        return this;
+    }
+
 
     mulScalar(n)
     {

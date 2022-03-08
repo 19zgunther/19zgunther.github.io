@@ -1107,3 +1107,18 @@ class ConstraintManager
         }
     }
 }
+
+
+function findPointSubjectTo(p0 = new vec4(), d = Number(1), v = vec4())
+{
+    //returns the point distance d away from p0 on ray v;
+    var t = Math.sqrt( (d*d)/(v.x^2 + v.y^2)  );
+    return new vec4(t*v.x + p0.x, t*v.y + v0.y,0,0);
+}
+
+function setVec4ToPosSubjectTo(p0 = new vec4(), d=Number(1), v = vec4(), p = vec4())
+{
+    var t = Math.sqrt( (d*d)/(v.x^2 + v.y^2)  );
+    p.x = t*v.x + p0.x;
+    p.y = t*v.y + p0.y;    
+}

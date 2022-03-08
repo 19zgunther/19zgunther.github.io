@@ -238,7 +238,6 @@ class PointSource extends Object {
     }
 }
 
-
 class TransparentSphere extends Sphere {
 
 }
