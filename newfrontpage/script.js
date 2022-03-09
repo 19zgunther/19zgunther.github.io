@@ -12,7 +12,7 @@ class Planet {
     }
 
     generateMesh() {
-        let ret = generatePlanet(5, this.radius, 0.05, 0.01);
+        let ret = generatePlanet(5, this.radius, 0.04, 0.01);
         this.vertices = ret.vertices;
         this.indices = ret.indices;
         this.normals = ret.normals;
@@ -91,32 +91,61 @@ class Astroid {
     }
 }
 
-class Satellite {
-    constructor(orbitRadius = 8, orbitTilt = 4, size = 1, numSolarPanels = 2, surfaceDefinition = 5,color = new vec4(0.5,0.5,0.5,1)) {
-        this.position = new vec4(orbitRadius,0,0);
-        this.rotation = new vec4(Math.random(), Math.random());
-
-        surfaceDefinition = Math.min( Math.max(surfaceDefinition, 3), 10);
-        numSolarPanels = Math.min(Math.max(numSolarPanels,2),10);
-
-        this.size = size;
-        this.surfaceDefinition = surfaceDefinition;
-        this.numSolarPanels = numSolarPanels;
-        this.color = color;
-        
-        this.orbitRadius = orbitRadius;
-        this.orbitAngle = Math.random()*6.28;
-        this.orbitTilt = orbitTilt;
-        this.orbitTiltOffset = Math.random()*6.29;
-
-        this.deltaOrbitAngle = 0.25/(this.orbitRadius*this.orbitRadius);
-        this.deltaRotation = Math.random()/10;
-
-        
-        this.generateMesh();
+class Object {
+    constructor(position = new vec4(), rotation = new vec4()) {
+        this.position = position;
+        this.rotation = rotation;
         this.positionMatrix = new mat4().makeTranslation(this.position);
         this.rotationMatrix = new mat4().makeRotation(this.rotation);
+    }
+    setPosition(pos) {
+        this.position = pos;
+        this.positionMatrix.makeTranslation(this.position);
+    }
+    setRotation(rot) {
+        this.rotation = rot;
+        this.rotationMatrix.makeRotation(this.rotation);
+    }
+    draw(gl, perspectiveMatrix, viewMatrix) {
+        DrawDefault(gl, perspectiveMatrix, viewMatrix, this.positionMatrix, this.rotationMatrix, this.indices, this.buffer, true);
+    }
+}
 
+class Satellite extends Object{
+    constructor(orbitRadius = 8, orbitTilt = 4, orbitSpeedMultiplier = 0.25, localRotationSpeedMultiplier = 1) {
+        super(new vec4(), new vec4());
+        
+        this.orbitRadius = orbitRadius;
+        this.orbitTilt = orbitTilt;
+        this.orbitAngle = Math.random()*6.28;
+        this.orbitTiltOffset = Math.random()*6.28;
+        this.deltaOrbitAngle = 0.25*orbitSpeedMultiplier/(this.orbitRadius*this.orbitRadius);
+        this.localRotationSpeedMultiplier = localRotationSpeedMultiplier/10;
+
+    }
+    generateMesh() {
+        console.error("Satellite.generateMesh() not implemented");
+        return;
+    }
+    update(){
+        this.setRotation(this.rotation.addi(this.localRotationSpeedMultiplier/50,this.localRotationSpeedMultiplier,this.localRotationSpeedMultiplier/10));
+        //this.setRotation(new vec4(this.orbitAngle + this.orbitTiltOffset,this.orbitAngle + 3.14));
+        this.setPosition(new vec4(this.orbitRadius*Math.sin(this.orbitAngle), this.orbitTilt*Math.sin(this.orbitAngle + this.orbitTiltOffset), this.orbitRadius*Math.cos(this.orbitAngle)));
+        this.orbitAngle += this.deltaOrbitAngle;
+    }
+}
+
+class ManMadeSatellite extends Satellite{
+    constructor(orbitRadius = 8, orbitTilt = 4, size = 1, orbitSpeedMultiplier = 0.25, localRotationSpeedMultiplier = 1, 
+                numSolarPanels = 2, surfaceDefinition = 5, color = new vec4(0.5,0.5,0.5,1)) {
+        super(orbitRadius, orbitTilt, orbitSpeedMultiplier, localRotationSpeedMultiplier);
+
+        this.size = size;
+        this.surfaceDefinition = Math.min( Math.max(surfaceDefinition, 3), 10);
+        this.numSolarPanels = Math.min(Math.max(numSolarPanels,2),10);
+        this.color = color;
+
+        this.generateMesh();
     }
 
     generateMesh() {
@@ -127,48 +156,17 @@ class Satellite {
         this.colors = ret.colors;
         this.buffer = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
-
-    setPosition(pos) {
-        this.position = pos;
-        this.positionMatrix.makeTranslation(this.position);
-    }
-    setRotation(rot) {
-        this.rotation = rot;
-        this.rotationMatrix.makeRotation(this.rotation);
-    }
-    update(){
-        //this.setRotation(this.rotation.addi(this.deltaRotation/20,this.deltaRotation,this.deltaRotation/10));
-        this.setRotation(new vec4(this.orbitAngle + this.orbitTiltOffset,this.orbitAngle + 3.14));
-        this.setPosition(new vec4(this.orbitRadius*Math.sin(this.orbitAngle), this.orbitTilt*Math.sin(this.orbitAngle + this.orbitTiltOffset), this.orbitRadius*Math.cos(this.orbitAngle)));
-        this.orbitAngle += this.deltaOrbitAngle;
-        //this.setPosition(new vec4(0,0,7));
-    }
-    draw(gl, perspectiveMatrix, viewMatrix) {
-        DrawDefault(gl, perspectiveMatrix, viewMatrix, this.positionMatrix, this.rotationMatrix, this.indices, this.buffer, true);
-    }
 }
 
-class SpaceStation {
-    constructor(orbitRadius = 8, orbitTilt = 4, size = 1, color = new vec4(0.7,0.7,0.7,1)) {
-        this.position = new vec4(orbitRadius,0,0);
-        this.rotation = new vec4(Math.random(), Math.random());
+class SpaceStation extends Satellite{
+    constructor(orbitRadius = 8, orbitTilt = 4, size = 0.5, color = new vec4(0.7,0.7,0.7,1)) {
+
+        super(orbitRadius, orbitTilt);
 
         this.size = size;
         this.color = color;
         
-        this.orbitRadius = orbitRadius;
-        this.orbitAngle = Math.random()*6.28;
-        this.orbitTilt = orbitTilt;
-        this.orbitTiltOffset = Math.random()*6.29;
-
-        this.deltaOrbitAngle = 0.25/(this.orbitRadius*this.orbitRadius);
-        this.deltaRotation = Math.random()/10;
-
-        
         this.generateMesh();
-        this.positionMatrix = new mat4().makeTranslation(this.position);
-        this.rotationMatrix = new mat4().makeRotation(this.rotation);
-
     }
 
     generateMesh() {
@@ -180,14 +178,6 @@ class SpaceStation {
         this.buffer = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
 
-    setPosition(pos) {
-        this.position = pos;
-        this.positionMatrix.makeTranslation(this.position);
-    }
-    setRotation(rot) {
-        this.rotation = rot;
-        this.rotationMatrix.makeRotation(this.rotation);
-    }
     update(){
         //this.setRotation(this.rotation.addi(this.deltaRotation/20,this.deltaRotation,this.deltaRotation/10));
         this.setRotation(new vec4(this.orbitAngle + this.orbitTiltOffset,this.orbitAngle + 3.14));
@@ -195,8 +185,26 @@ class SpaceStation {
         this.orbitAngle += this.deltaOrbitAngle;
         //this.setPosition(new vec4(0,0,7));
     }
-    draw(gl, perspectiveMatrix, viewMatrix) {
-        DrawDefault(gl, perspectiveMatrix, viewMatrix, this.positionMatrix, this.rotationMatrix, this.indices, this.buffer, true);
+}
+
+class Airplane extends Object {
+    constructor(position = new vec4(0,0,8), rotation = new vec4(0,0,0))
+    {
+        super(position,rotation);
+        this.generateMesh();
+    }
+    generateMesh()
+    {
+        //let ret = BakeText();
+        let ret = generateAirplane();
+        this.vertices = ret.vertices;
+        this.indices = ret.indices;
+        this.normals = ret.normals;
+        this.colors = ret.colors;
+        this.buffer = initBuffers(ret.vertices, ret.normals, ret.colors, ret.indices);
+    }
+    update(){
+        this.setRotation(this.rotation.addi(.01, .01, .01));
     }
 }
 
@@ -215,7 +223,7 @@ var zFar = 10;
 var perspectiveProjectionMatrix = new mat4().makePerspective(FOV, aspect, zNear, zFar);
 var viewMatrix = (new mat4().makeRotation(0,0,0)).mul( new mat4().makeTranslation(0,0,0) );
 
-const position = new vec4(0,0,-15);
+const position = new vec4(0,0,-20);
 const rotation = new vec4();
 
 const keys = {};
@@ -226,27 +234,18 @@ setup();
 
 var objects = [
     new Planet(),
-    new Astroid(.1, 2, .2, 10, 4),
-    new Astroid(.2, 2, .2, 8, -3),
-    new Astroid(.05, 2, .3, 9, 2),
-    new Astroid(.1, 2, .2, 9, -6),
-    new Astroid(.2, 2, .2, 8, -5),
-    new Astroid(.05, 2, .2, 7, -4),
-    new Satellite(),
-    new Satellite(9, 2, 1, 2, 8),
-    new Satellite(6, 5, 1, 3, 8),
-    new Satellite(7, 2, 1, 4, 8),
-    new Satellite(8, 2, 1, 10, 10),
-    new SpaceStation()
+    new SpaceStation(),
+    //new Airplane, 
 ];
 
-for( var i=0; i<20; i++)
+for( var i=0; i<50; i++)
 {
-    objects.push(new Astroid(Math.random()/10+0.05, 2, Math.random()/3 + 0.1, Math.random()*10 + 6, 5-Math.random()*10 ));
+    objects.push(new Astroid(Math.random()/10+0.05, 2, Math.random()/3 + 0.1, Math.random()*5 + 9, 5-Math.random()*10 ));
 }
 for (var i=0; i<20; i++)
 {
-    objects.push(new Satellite(Math.random()*6 + 6, 8-Math.random()*16, Math.random+0.1, Math.random()*5 + 2, 5) );
+    //objects.push(new ManMadeSatellite(Math.random()*6 + 6, 8-Math.random()*16, Math.random+0.1, Math.random()*5 + 2, 5) );
+    objects.push(new ManMadeSatellite(7, 8-Math.random()*16, Math.random()+0.25, 0.75 + Math.random()/5, Math.random() ) );
 }
 
 
@@ -254,8 +253,8 @@ for (var i=0; i<20; i++)
 var updateInverval = setInterval(update,50);
 
 function setup() {
-    glCanvasElement.width = document.body.clientWidth * 0.9;
-    glCanvasElement.height = document.body.clientHeight * 0.9;
+    glCanvasElement.width = document.body.clientWidth;
+    glCanvasElement.height = document.body.clientHeight;
     glCanvasElement.style.width = glCanvasElement.width
     glCanvasElement.style.height = glCanvasElement.height
     if (gl == null)
@@ -317,9 +316,20 @@ function update() {
 
 
 
-    for(var i in objects) {
-        objects[i].update();
-        objects[i].draw(gl, perspectiveProjectionMatrix, viewMatrix);
+    if (keys['ArrowUp'] == true)
+    {
+        for(var i in objects) {
+            for (var j=0; j<10; j++)
+            {
+                objects[i].update();
+            }
+            objects[i].draw(gl, perspectiveProjectionMatrix, viewMatrix);
+        }
+    } else {
+        for(var i in objects) {
+            objects[i].update();
+            objects[i].draw(gl, perspectiveProjectionMatrix, viewMatrix);
+        }
     }
 
     rot += 0.005;
@@ -534,125 +544,6 @@ function removeDuplicateVertices(verts, inds, norms, cols)
 }
 
 
-function generatePlanet_OLD(steps = 2, radius = 2, randomModifier = 0.1, colorVariation=0.2)
-{
-    var vertices = [0,-1,0, 1,0,0, 0,0,1, -1,0,0, 0,0,-1, 0,1,0];
-    for (var i in vertices)
-    {
-        vertices[i] = vertices[i]*radius;
-    }
-    var indices = [0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 4,5,1];
-    var zz = new vec4();
-    for (var s=0; s<steps; s++)
-    {
-        var inds = [];
-        var verts = [];
-
-        for( var i=0; i<indices.length; i+=3)
-        {
-            let v1 = new vec4(vertices[indices[i]*3], vertices[indices[i]*3 + 1], vertices[indices[i]*3 + 2]);
-            let v2 = new vec4(vertices[indices[i+1]*3], vertices[indices[i+1]*3 + 1], vertices[indices[i+1]*3 + 2]);
-            let v3 = new vec4(vertices[indices[i+2]*3], vertices[indices[i+2]*3 + 1], vertices[indices[i+2]*3 + 2]);
-
-            let b1 = (v1.add(v2)).muli(0.5);
-            b1.muli( radius/distanceBetweenPoints(b1, zz)  );
-            let b2 = (v2.add(v3)).muli(0.5);
-            b2.muli( radius/distanceBetweenPoints(b2, zz)  );
-            let b3 = (v1.add(v3)).muli(0.5);
-            b3.muli( radius/distanceBetweenPoints(b3, zz)  );
-
-            let lv = verts.length/3;
-
-            inds.push( lv, lv+3, lv+5 );  //bottom-left
-            inds.push( lv+3, lv+1, lv+4); //top
-            inds.push( lv+5, lv+4, lv+2); //bottom-right
-            inds.push( lv+3, lv+4, lv+5); //center
-
-            verts.push(v1.x, v1.y, v1.z,   v2.x, v2.y, v2.z,  v3.x, v3.y, v3.z);
-            verts.push(b1.x, b1.y, b1.z,   b2.x, b2.y, b2.z,  b3.x, b3.y, b3.z);
-        }
-
-        var ret = removeDuplicateVertices(verts, inds);
-        vertices = ret.vertices;
-        indices = ret.indices;
-    }
-
-    //var ret = removeDuplicateVertices(vertices, indices);
-
-    randomModifier = 0.1;
-    var start = Math.round(Math.random() * (ret.vertices.length-62));
-
-    for (var i=start; i<start+60; i+=3)
-    {
-        let rand = 1 + Math.random()*randomModifier;
-        ret.vertices[i] = ret.vertices[i]*rand;
-        ret.vertices[i+1] = ret.vertices[i+1]*rand;
-        ret.vertices[i+2] = ret.vertices[i+2]*rand;
-    }
-
-    vertices = ret.vertices;
-    indices = ret.indices;
-
-
-    v = [];
-    ind = [];
-    n = [];
-    c = [];
-
-    var indOn = 0;
-    for(var i=0; i<indices.length; i+=3)
-    {
-        v.push(  vertices[indices[i]*3]  );
-        v.push(  vertices[indices[i]*3 + 1]  );
-        v.push(  vertices[indices[i]*3 + 2] );
-
-        v.push(  vertices[indices[i+1]*3]  );
-        v.push(  vertices[indices[i+1]*3 + 1]  );
-        v.push(  vertices[indices[i+1]*3 + 2] );
-
-        v.push(  vertices[indices[i+2]*3]  );
-        v.push(  vertices[indices[i+2]*3 + 1]  );
-        v.push(  vertices[indices[i+2]*3 + 2] );
-
-        ind.push(indOn, indOn +1, indOn +2);
-        indOn += 3;
-
-        var a = new vec4( 
-            vertices[indices[i+1]*3    ] - vertices[indices[i]*3    ],
-            vertices[indices[i+1]*3 + 1] - vertices[indices[i]*3 + 1],
-            vertices[indices[i+1]*3 + 2] - vertices[indices[i]*3 + 2], );
-        var b = new vec4( 
-            vertices[indices[i+2]*3    ] - vertices[indices[i]*3    ],
-            vertices[indices[i+2]*3 + 1] - vertices[indices[i]*3 + 1],
-            vertices[indices[i+2]*3 + 2] - vertices[indices[i]*3 + 2], );
-        b.scaleToUnit();
-        a.scaleToUnit();
-        
-        var nx = a.y*b.z - a.z*b.y;
-        var ny = a.z*b.x - a.x*b.z;
-        var nz = a.x*b.y - a.y*b.x;
-
-        n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz,);
-        
-        var rx = Math.random()*colorVariation;
-        var ry = Math.random()*colorVariation;
-        var rz = Math.random()*colorVariation;
-
-        for (var k=0; k<3; k++){
-            c.push(rx,ry,rz, 1);
-            //c.push(color.x + Math.random() * colorVariation, color.y + Math.random() * colorVariation, color.z + Math.random() * colorVariation, color.a);
-        }
-
-    }
-    //console.log(v, ind, n, c);
-    return {
-        vertices: v,
-        indices: ind,
-        normals: n,
-        colors: c,
-    }
-}
-
 
 
 //Takes in steps which is precision of model, radius, randomModifier(height), and colorvariation
@@ -779,7 +670,10 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
         var ny = a.z*b.x - a.x*b.z;
         var nz = a.x*b.y - a.y*b.x;
 
-        n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz,);
+        let newN = new vec4(nx,ny,nz).scaleToUnit();
+
+        n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+        //n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz);
         
         for (var k=0; k<3; k++){
             let mag = vertices[indices[i+k]].getLength()/radius;
@@ -831,7 +725,6 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
         colors: c,
     }
 }
-
 
 function generateAstroid(steps = 2, radius = 0.5, randomModifier = 0.1, colorVariation=0.2)
 {
@@ -1075,9 +968,9 @@ function generateSpaceStation(size=1, color=new vec4(0.5,.5,.5,1))
     var indOn = 0;
     for(var i=0; i<indices.length; i+=3)
     {
-        v.push( vertices[indices[i]].x, vertices[indices[i]].y, vertices[indices[i]].z);
-        v.push( vertices[indices[i+1]].x, vertices[indices[i+1]].y, vertices[indices[i+1]].z);
-        v.push( vertices[indices[i+2]].x, vertices[indices[i+2]].y, vertices[indices[i+2]].z);
+        v.push( vertices[indices[i]].x * size, vertices[indices[i]].y * size, vertices[indices[i]].z * size);
+        v.push( vertices[indices[i+1]].x * size, vertices[indices[i+1]].y * size, vertices[indices[i+1]].z * size);
+        v.push( vertices[indices[i+2]].x * size, vertices[indices[i+2]].y * size, vertices[indices[i+2]].z * size);
 
 
         ind.push(indOn, indOn+1, indOn+2);
@@ -1108,6 +1001,64 @@ function generateSpaceStation(size=1, color=new vec4(0.5,.5,.5,1))
     }
 }
 
+function generateAirplane(size = 1){
+    var vertices = [];
+    var indices = [];
+    var colors = [];
+
+    let ret = generateClosedCylinder(5, .4, 9, new vec4(1,0,0,1));
+    addComponents(vertices, indices, colors, ret.vertices, ret.indices, ret.colors, new vec4());
+
+    ret = generateBox(1,2,.1);
+    addComponents(vertices, indices, colors, ret.vertices, ret.indices, ret.colors, new vec4(0,0,-0.5), new vec4(3.14/2));
+    addComponents(vertices, indices, colors, ret.vertices, ret.indices, ret.colors, new vec4(0,0,0), new vec4(3.14/2, 0,3.14/2), new vec4(0.5,0.5,1));
+    addComponents(vertices, indices, colors, ret.vertices, ret.indices, ret.colors, new vec4(0,3,-1.5), new vec4(3.14/2), new vec4(2,1,3));
+    ret = generateClosedCylinder(0.1,0.6,9,new vec4(1,0,0,0.5));
+    addComponents(vertices, indices, colors, ret.vertices, ret.indices, ret.colors, new vec4(0,5));
+    //addComponents(vertices, indices, colors, ret.vertices, 
+
+    var v = [];
+    var ind = [];
+    var n = [];
+    var c = [];
+
+    var indOn = 0;
+    for(var i=0; i<indices.length; i+=3)
+    {
+        v.push( vertices[indices[i]].x * size, vertices[indices[i]].y * size, vertices[indices[i]].z * size);
+        v.push( vertices[indices[i+1]].x * size, vertices[indices[i+1]].y * size, vertices[indices[i+1]].z * size);
+        v.push( vertices[indices[i+2]].x * size, vertices[indices[i+2]].y * size, vertices[indices[i+2]].z * size);
+
+
+        ind.push(indOn, indOn+1, indOn+2);
+        indOn += 3;
+
+        var a = vertices[indices[i+1]].sub(vertices[indices[i]]);
+        var b = vertices[indices[i+2]].sub(vertices[indices[i]]);
+
+        b.scaleToUnit();
+        a.scaleToUnit();
+        
+        var nx = a.y*b.z - a.z*b.y;
+        var ny = a.z*b.x - a.x*b.z;
+        var nz = a.x*b.y - a.y*b.x;
+
+        let newN = new vec4(nx,ny,nz).scaleToUnit();
+
+        n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+
+        c.push( colors[indices[i]].x, colors[indices[i]].y, colors[indices[i]].z, colors[indices[i]].a );
+        c.push( colors[indices[i+1]].x, colors[indices[i+1]].y, colors[indices[i+1]].z, colors[indices[i+1]].a );
+        c.push( colors[indices[i+2]].x, colors[indices[i+2]].y, colors[indices[i+2]].z, colors[indices[i+2]].a );
+    }
+
+    return {
+        vertices: v,
+        indices: ind,
+        normals: n,
+        colors: c,
+    }
+}
 
 /* Requires:
  *      vertices:list of vec4 vertices
@@ -1216,5 +1167,225 @@ function generateRect(width=1,height=1, color=new vec4(1,0,0,1))
         vertices: v,
         indices: i,
         colors:c
+    }
+}
+
+function generateBox(w=1, h=1, d = 1, color = new vec4(1,0,0,1))
+{
+    /*
+    return {
+        //vertices: [0,0,0, 0,0,height, width,0,height, width,0,0,  0,thickness,0, 0,thickness,height, width,thickness,height, width,thickness,0 ], 
+        
+        vertices: [0,0,h, w,0,h, w,0,0, 0,0,0,  //front
+            0,0,h, 0,d,h, w,d,h, w,0,h, //top
+            0,0,0, w,0,0, w,d,0, 0,d,0, //bottom
+            0,d,h, 0,d,0, w,d,0, w,d,h, //back
+            0,d,h, 0,0,h, 0,0,0, 0,d,0, //left
+            w,0,h, w,d,h, w,d,0, w,0,0, //right
+        ],
+
+        indices: [0,1,2, 0,2,3,
+            4,5,6, 4,6,7,
+            8,9,10, 8,10,11,
+            12,13,14, 12,14,15,
+            16,17,18, 16,18,19,
+            20,21,22, 20,22,23
+        ],
+        normals: [
+            0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
+            0,1,0, 0,1,0, 0,1,0, 0,1,0,
+            0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, 
+            0,0,1, 0,0,1, 0,0,1, 0,0,1, 
+            1,0,0, 1,0,0, 1,0,0, 1,0,0,
+            -1,0,0, -1,0,0, -1,0,0, -1,0,0
+        ],
+        colors: [
+            color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a,
+            color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a,
+            color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a,
+            color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a,
+            color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a,
+            color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a, color.x,color.y,color.z,color.a,
+        ]
+    }*/
+    let v0 = new vec4(0,0,h);
+    let v1 = new vec4(w,0,h);
+    let v2 = new vec4(w,0,0);
+    let v3 = new vec4(0,0,0);
+    let v4 = new vec4(0,d,h);
+    let v5 = new vec4(w,d,h);
+    let v6 = new vec4(w,d,0);
+    let v7 = new vec4(0,d,0);
+    return {
+        vertices: [
+            v0,v1,v2,v3, //front
+            v0,v4,v5,v1, //top
+            v3,v2,v6,v7, //bottom
+            v4,v7,v6,v5, //back
+            v0,v3,v7,v4, //left
+            v1,v5,v6,v2, //right
+        ],
+        indices: [0,2,1, 0,3,2,
+            4,6,5, 4,7,6,
+            8,10,9, 8,11,10,
+            12,14,13, 12,15,14,
+            16,18,17, 16,19,18,
+            20,22,21, 20,23,22
+        ],
+
+        colors: [
+            color, color, color, color,
+            color, color, color, color,
+            color, color, color, color,
+            color, color, color, color,
+            color, color, color, color,
+            color, color, color, color,
+        ]
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function generatePlanet_OLD(steps = 2, radius = 2, randomModifier = 0.1, colorVariation=0.2)
+{
+    var vertices = [0,-1,0, 1,0,0, 0,0,1, -1,0,0, 0,0,-1, 0,1,0];
+    for (var i in vertices)
+    {
+        vertices[i] = vertices[i]*radius;
+    }
+    var indices = [0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 4,5,1];
+    var zz = new vec4();
+    for (var s=0; s<steps; s++)
+    {
+        var inds = [];
+        var verts = [];
+
+        for( var i=0; i<indices.length; i+=3)
+        {
+            let v1 = new vec4(vertices[indices[i]*3], vertices[indices[i]*3 + 1], vertices[indices[i]*3 + 2]);
+            let v2 = new vec4(vertices[indices[i+1]*3], vertices[indices[i+1]*3 + 1], vertices[indices[i+1]*3 + 2]);
+            let v3 = new vec4(vertices[indices[i+2]*3], vertices[indices[i+2]*3 + 1], vertices[indices[i+2]*3 + 2]);
+
+            let b1 = (v1.add(v2)).muli(0.5);
+            b1.muli( radius/distanceBetweenPoints(b1, zz)  );
+            let b2 = (v2.add(v3)).muli(0.5);
+            b2.muli( radius/distanceBetweenPoints(b2, zz)  );
+            let b3 = (v1.add(v3)).muli(0.5);
+            b3.muli( radius/distanceBetweenPoints(b3, zz)  );
+
+            let lv = verts.length/3;
+
+            inds.push( lv, lv+3, lv+5 );  //bottom-left
+            inds.push( lv+3, lv+1, lv+4); //top
+            inds.push( lv+5, lv+4, lv+2); //bottom-right
+            inds.push( lv+3, lv+4, lv+5); //center
+
+            verts.push(v1.x, v1.y, v1.z,   v2.x, v2.y, v2.z,  v3.x, v3.y, v3.z);
+            verts.push(b1.x, b1.y, b1.z,   b2.x, b2.y, b2.z,  b3.x, b3.y, b3.z);
+        }
+
+        var ret = removeDuplicateVertices(verts, inds);
+        vertices = ret.vertices;
+        indices = ret.indices;
+    }
+
+    //var ret = removeDuplicateVertices(vertices, indices);
+
+    randomModifier = 0.1;
+    var start = Math.round(Math.random() * (ret.vertices.length-62));
+
+    for (var i=start; i<start+60; i+=3)
+    {
+        let rand = 1 + Math.random()*randomModifier;
+        ret.vertices[i] = ret.vertices[i]*rand;
+        ret.vertices[i+1] = ret.vertices[i+1]*rand;
+        ret.vertices[i+2] = ret.vertices[i+2]*rand;
+    }
+
+    vertices = ret.vertices;
+    indices = ret.indices;
+
+
+    v = [];
+    ind = [];
+    n = [];
+    c = [];
+
+    var indOn = 0;
+    for(var i=0; i<indices.length; i+=3)
+    {
+        v.push(  vertices[indices[i]*3]  );
+        v.push(  vertices[indices[i]*3 + 1]  );
+        v.push(  vertices[indices[i]*3 + 2] );
+
+        v.push(  vertices[indices[i+1]*3]  );
+        v.push(  vertices[indices[i+1]*3 + 1]  );
+        v.push(  vertices[indices[i+1]*3 + 2] );
+
+        v.push(  vertices[indices[i+2]*3]  );
+        v.push(  vertices[indices[i+2]*3 + 1]  );
+        v.push(  vertices[indices[i+2]*3 + 2] );
+
+        ind.push(indOn, indOn +1, indOn +2);
+        indOn += 3;
+
+        var a = new vec4( 
+            vertices[indices[i+1]*3    ] - vertices[indices[i]*3    ],
+            vertices[indices[i+1]*3 + 1] - vertices[indices[i]*3 + 1],
+            vertices[indices[i+1]*3 + 2] - vertices[indices[i]*3 + 2], );
+        var b = new vec4( 
+            vertices[indices[i+2]*3    ] - vertices[indices[i]*3    ],
+            vertices[indices[i+2]*3 + 1] - vertices[indices[i]*3 + 1],
+            vertices[indices[i+2]*3 + 2] - vertices[indices[i]*3 + 2], );
+        b.scaleToUnit();
+        a.scaleToUnit();
+        
+        var nx = a.y*b.z - a.z*b.y;
+        var ny = a.z*b.x - a.x*b.z;
+        var nz = a.x*b.y - a.y*b.x;
+
+        n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz,);
+        
+        var rx = Math.random()*colorVariation;
+        var ry = Math.random()*colorVariation;
+        var rz = Math.random()*colorVariation;
+
+        for (var k=0; k<3; k++){
+            c.push(rx,ry,rz, 1);
+            //c.push(color.x + Math.random() * colorVariation, color.y + Math.random() * colorVariation, color.z + Math.random() * colorVariation, color.a);
+        }
+
+    }
+    //console.log(v, ind, n, c);
+    return {
+        vertices: v,
+        indices: ind,
+        normals: n,
+        colors: c,
     }
 }
