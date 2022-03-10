@@ -20,6 +20,7 @@ function buttonClick(buttonName) {
         case 'circuit_simulator': pageString = 'circuitSimulator/circuitSimulator.html'; break;
         case 'cad': pageString = 'CAD/cad.html'; break;
         case 'raytracing': pageString = 'raytracing/raytracing.html'; break;
+        case 'planet_generator': pageString = 'planetGenerator/planetGenerator.html'; break;
     }
     if (String(document.location).includes('index.html') || String(document.location).includes('resume.html'))
     {
@@ -124,6 +125,9 @@ if (menuProjectsElement != null) {
     </div>
     <div class = 'menu_dropdown_child' onclick='buttonClick("charged_particle_simulator")'>
         Charged Particle Simulator
+    </div>
+    <div class = 'menu_dropdown_child' onclick='buttonClick("planet_generator")'>
+        Planet Generator
     </div>
     <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
         Ray Tracing Project (in dev)

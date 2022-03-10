@@ -215,7 +215,7 @@ class TextSatellite extends Satellite {
         this.textColor = textColor;
         this.textScale = textScale;
         this.generateMesh();
-        this.orbitAngle = -3.14/6;
+        this.orbitAngle = -3.14/3;
     }
     generateMesh()
     {   
@@ -229,7 +229,6 @@ class TextSatellite extends Satellite {
         //Let's take these vertices and curl them a bit to make it look like htey actually wrap around the planet
         for (var i=0; i<this.vertices.length; i+=3)
         {
-            console.log(Math.cos(this.vertices[i]));
             this.vertices[i+2] = this.orbitRadius * Math.cos(this.vertices[i]/this.orbitRadius) - this.orbitRadius;
         }
 
@@ -273,27 +272,28 @@ setup();
 var objects = [];
 resetObjects();
 
+var resizeInterval;
+
 
 var updateInverval = setInterval(update,50);
 
 function setup() {
-    glCanvasElement.width = document.body.clientWidth;
-    glCanvasElement.height = document.body.clientHeight;
-    glCanvasElement.style.width = glCanvasElement.width;
-    glCanvasElement.style.height = glCanvasElement.height;
+    glCanvasElement.width = window.visualViewport.width;
+    glCanvasElement.height = window.visualViewport.height;
+    glCanvasElement.style.width = glCanvasElement.width + "px";
+    glCanvasElement.style.height = glCanvasElement.height + 'px';
 
-        gl = glCanvasElement.getContext("webgl");
-        if (gl === null) {
-            alert("Unable to initialize WebGL. Your browser or machine may not support it.");
-            return;
-        } else {
-            console.log("GL defined ")
-        }
-    
     updateCameraSettings();
 
+    gl = glCanvasElement.getContext("webgl");
+    if (gl === null) {
+        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+        return;
+    } else {
+        console.log("GL defined ")
+    }
+
     InitShader(gl);
-    //update();
 }
 
 function updateCameraSettings()
@@ -362,6 +362,7 @@ function resetObjects() {
         //objects.push(new ManMadeSatellite(Math.random()*6 + 6, 8-Math.random()*16, Math.random+0.1, Math.random()*5 + 2, 5) );
         objects.push(new ManMadeSatellite(7 + Math.random()*4, 8-Math.random()*16, Math.random()+0.25, 0.75 + Math.random()/5, Math.random(), Math.random()*2+2 ) );
     }
+    setup();
 }
 
 var rot = 0;
@@ -1352,123 +1353,3 @@ function generateBox(w=1, h=1, d = 1, color = new vec4(1,0,0,1))
 
 
 
-
-
-function generatePlanet_OLD(steps = 2, radius = 2, randomModifier = 0.1, colorVariation=0.2)
-{
-    var vertices = [0,-1,0, 1,0,0, 0,0,1, -1,0,0, 0,0,-1, 0,1,0];
-    for (var i in vertices)
-    {
-        vertices[i] = vertices[i]*radius;
-    }
-    var indices = [0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 4,5,1];
-    var zz = new vec4();
-    for (var s=0; s<steps; s++)
-    {
-        var inds = [];
-        var verts = [];
-
-        for( var i=0; i<indices.length; i+=3)
-        {
-            let v1 = new vec4(vertices[indices[i]*3], vertices[indices[i]*3 + 1], vertices[indices[i]*3 + 2]);
-            let v2 = new vec4(vertices[indices[i+1]*3], vertices[indices[i+1]*3 + 1], vertices[indices[i+1]*3 + 2]);
-            let v3 = new vec4(vertices[indices[i+2]*3], vertices[indices[i+2]*3 + 1], vertices[indices[i+2]*3 + 2]);
-
-            let b1 = (v1.add(v2)).muli(0.5);
-            b1.muli( radius/distanceBetweenPoints(b1, zz)  );
-            let b2 = (v2.add(v3)).muli(0.5);
-            b2.muli( radius/distanceBetweenPoints(b2, zz)  );
-            let b3 = (v1.add(v3)).muli(0.5);
-            b3.muli( radius/distanceBetweenPoints(b3, zz)  );
-
-            let lv = verts.length/3;
-
-            inds.push( lv, lv+3, lv+5 );  //bottom-left
-            inds.push( lv+3, lv+1, lv+4); //top
-            inds.push( lv+5, lv+4, lv+2); //bottom-right
-            inds.push( lv+3, lv+4, lv+5); //center
-
-            verts.push(v1.x, v1.y, v1.z,   v2.x, v2.y, v2.z,  v3.x, v3.y, v3.z);
-            verts.push(b1.x, b1.y, b1.z,   b2.x, b2.y, b2.z,  b3.x, b3.y, b3.z);
-        }
-
-        var ret = removeDuplicateVertices(verts, inds);
-        vertices = ret.vertices;
-        indices = ret.indices;
-    }
-
-    //var ret = removeDuplicateVertices(vertices, indices);
-
-    randomModifier = 0.1;
-    var start = Math.round(Math.random() * (ret.vertices.length-62));
-
-    for (var i=start; i<start+60; i+=3)
-    {
-        let rand = 1 + Math.random()*randomModifier;
-        ret.vertices[i] = ret.vertices[i]*rand;
-        ret.vertices[i+1] = ret.vertices[i+1]*rand;
-        ret.vertices[i+2] = ret.vertices[i+2]*rand;
-    }
-
-    vertices = ret.vertices;
-    indices = ret.indices;
-
-
-    v = [];
-    ind = [];
-    n = [];
-    c = [];
-
-    var indOn = 0;
-    for(var i=0; i<indices.length; i+=3)
-    {
-        v.push(  vertices[indices[i]*3]  );
-        v.push(  vertices[indices[i]*3 + 1]  );
-        v.push(  vertices[indices[i]*3 + 2] );
-
-        v.push(  vertices[indices[i+1]*3]  );
-        v.push(  vertices[indices[i+1]*3 + 1]  );
-        v.push(  vertices[indices[i+1]*3 + 2] );
-
-        v.push(  vertices[indices[i+2]*3]  );
-        v.push(  vertices[indices[i+2]*3 + 1]  );
-        v.push(  vertices[indices[i+2]*3 + 2] );
-
-        ind.push(indOn, indOn +1, indOn +2);
-        indOn += 3;
-
-        var a = new vec4( 
-            vertices[indices[i+1]*3    ] - vertices[indices[i]*3    ],
-            vertices[indices[i+1]*3 + 1] - vertices[indices[i]*3 + 1],
-            vertices[indices[i+1]*3 + 2] - vertices[indices[i]*3 + 2], );
-        var b = new vec4( 
-            vertices[indices[i+2]*3    ] - vertices[indices[i]*3    ],
-            vertices[indices[i+2]*3 + 1] - vertices[indices[i]*3 + 1],
-            vertices[indices[i+2]*3 + 2] - vertices[indices[i]*3 + 2], );
-        b.scaleToUnit();
-        a.scaleToUnit();
-        
-        var nx = a.y*b.z - a.z*b.y;
-        var ny = a.z*b.x - a.x*b.z;
-        var nz = a.x*b.y - a.y*b.x;
-
-        n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz,);
-        
-        var rx = Math.random()*colorVariation;
-        var ry = Math.random()*colorVariation;
-        var rz = Math.random()*colorVariation;
-
-        for (var k=0; k<3; k++){
-            c.push(rx,ry,rz, 1);
-            //c.push(color.x + Math.random() * colorVariation, color.y + Math.random() * colorVariation, color.z + Math.random() * colorVariation, color.a);
-        }
-
-    }
-    //console.log(v, ind, n, c);
-    return {
-        vertices: v,
-        indices: ind,
-        normals: n,
-        colors: c,
-    }
-}
