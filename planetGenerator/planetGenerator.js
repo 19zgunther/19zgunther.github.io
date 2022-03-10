@@ -385,7 +385,7 @@ function update() {
     //viewMatrix = (new mat4().makeRotation(rotation.x,rotation.y,rotation.z)).mul( new mat4().makeTranslation(position.x, position.y, position.z) );
     
     //viewMatrix = (new mat4().makeRotation(rotation.x,rotation.y,rotation.z)).mul( new mat4().makeTranslation(position.x, position.y, position.z) );
-    viewMatrix = new mat4().makeRotation(0,0,0).mul( new mat4().makeTranslation(-position.x, position.y, position.z) );
+    viewMatrix = new mat4().makeRotation(0,0,0).mul( new mat4().makeTranslation(-position.x, position.y, position.z + 5*Math.sin(rot)) );
 
 
 
@@ -409,7 +409,7 @@ function update() {
     }
 
     rot += 0.005;
-    rotation.y += 0.005;
+    //rotation.y += 0.005;
 }
 
 
