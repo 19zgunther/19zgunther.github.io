@@ -82,7 +82,8 @@
         <img class="image_downarrow" src='LakeWaterSquare.jpg'>
     </div>-->
 
-    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <div style='height:50%; width: 90%;'>
+    </div>
 
 
     <!--Project List-->
@@ -125,18 +126,29 @@
             </div>
         </div>
 
+
+
     </div>
 
-    <br>
-    fov:
-    <input id = 'fovSlider' type='range' min=0 max=180 step=0.1 value='10' onchange = updateCameraSettings()>
-    <br>
-    zfar:
-    <input id = 'zFarSlider' type='range' min=0 max=100 step=0.1 onchange = updateCameraSettings()>
-    <br>
-    zNear:
-    <input id = 'zNearSlider' type='range' min=0 max=10 step=0.1 value = '4' onchange = updateCameraSettings()>
-    <br>
+    <div style='height:70%; width: 90%;'>
+    </div>
+
+    <div style='opacity: 0.3; padding: 1%; font-size: smaller;'>
+        <br>
+        fov:
+        <input id = 'fovSlider' type='range' min=0 max=180 step=0.1 value='10' onchange = updateCameraSettings()>
+        <br>
+        zfar:
+        <input id = 'zFarSlider' type='range' min=0 max=100 step=0.1 onchange = updateCameraSettings()>
+        <br>
+        zNear:
+        <input id = 'zNearSlider' type='range' min=0 max=10 step=0.1 value = '4' onchange = updateCameraSettings()>
+        <br>
+        <div style = 'font-style: italic;'>
+            Use WASD to move camera origin <br>
+            Left & Right arrows change orbit & rotation speeds
+        </div>
+    </div>
 
 
 </body>
