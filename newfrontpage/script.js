@@ -31,8 +31,8 @@ class Planet {
         //this.objectMatrix = new mat4().makeRotation(this.rotation).mul( new mat4().makeTranslation(this.position));
     }
 
-    update() {
-        this.setRotation(this.rotation.addi(0,0.002));
+    update(dt=1) {
+        this.setRotation(this.rotation.addi(0,0.002*dt));
     }
 
     draw(gl, perspectiveMatrix, viewMatrix) {
@@ -81,10 +81,10 @@ class Astroid {
         this.rotation = rot;
         this.rotationMatrix.makeRotation(this.rotation);
     }
-    update(){
-        this.setRotation(this.rotation.addi(this.deltaRotation/20,this.deltaRotation,this.deltaRotation/10));
+    update(dt=1){
+        this.setRotation(this.rotation.addi(this.deltaRotation/20 * dt,this.deltaRotation*dt,this.deltaRotation/10 * dt));
         this.setPosition(new vec4(this.orbitRadius*Math.sin(this.orbitAngle), this.orbitTilt*Math.sin(this.orbitAngle + this.orbitTiltOffset), this.orbitRadius*Math.cos(this.orbitAngle)));
-        this.orbitAngle += this.deltaOrbitAngle;
+        this.orbitAngle += this.deltaOrbitAngle*dt;
     }
     draw(gl, perspectiveMatrix, viewMatrix) {
         DrawDefault(gl, perspectiveMatrix, viewMatrix, this.positionMatrix, this.rotationMatrix, this.indices, this.buffer, true);
@@ -127,11 +127,11 @@ class Satellite extends Object{
         console.error("Satellite.generateMesh() not implemented");
         return;
     }
-    update(){
+    update(dt=1){
         this.setRotation(this.rotation.addi(this.localRotationSpeedMultiplier/50,this.localRotationSpeedMultiplier,this.localRotationSpeedMultiplier/10));
         //this.setRotation(new vec4(this.orbitAngle + this.orbitTiltOffset,this.orbitAngle + 3.14));
         this.setPosition(new vec4(this.orbitRadius*Math.sin(this.orbitAngle), this.orbitTilt*Math.sin(this.orbitAngle + this.orbitTiltOffset), this.orbitRadius*Math.cos(this.orbitAngle)));
-        this.orbitAngle += this.deltaOrbitAngle;
+        this.orbitAngle += this.deltaOrbitAngle*dt;
     }
 }
 
@@ -178,11 +178,11 @@ class SpaceStation extends Satellite{
         this.buffer = initBuffers(this.vertices, this.normals, this.colors, this.indices);
     }
 
-    update(){
+    update(dt=1){
         //this.setRotation(this.rotation.addi(this.deltaRotation/20,this.deltaRotation,this.deltaRotation/10));
         this.setRotation(new vec4(this.orbitAngle + this.orbitTiltOffset,this.orbitAngle + 3.14));
         this.setPosition(new vec4(this.orbitRadius*Math.sin(this.orbitAngle), this.orbitTilt*Math.sin(this.orbitAngle + this.orbitTiltOffset), this.orbitRadius*Math.cos(this.orbitAngle)));
-        this.orbitAngle += this.deltaOrbitAngle;
+        this.orbitAngle += this.deltaOrbitAngle*dt;
         //this.setPosition(new vec4(0,0,7));
     }
 }
@@ -203,9 +203,37 @@ class Airplane extends Object {
         this.colors = ret.colors;
         this.buffer = initBuffers(ret.vertices, ret.normals, ret.colors, ret.indices);
     }
-    update(){
-        this.setRotation(this.rotation.addi(.01, .01, .01));
+    update(dt=1){
+        this.setRotation(this.rotation.addi(.01*dt, .01*dt, .01*dt));
     }
+}
+
+class TextSatellite extends Satellite {
+    constructor(text = "hello world", textColor = new vec4(1,1,1,1), textScale = 0.5, orbitRadius = 8, orbitTilt = 0, orbitSpeedMultiplier = 0.5) {
+        super(orbitRadius, orbitTilt, orbitSpeedMultiplier, 0);
+        this.text = text;
+        this.textColor = textColor;
+        this.textScale = textScale;
+        this.generateMesh();
+        this.orbitAngle = -3.14/6;
+    }
+    generateMesh()
+    {   
+        let ret = BakeText(this.text, this.textColor, new vec4(this.textScale,this.textScale,this.textScale));
+        this.vertices = ret.vertices;
+        this.indices = ret.indices;
+        this.normals = ret.normals;
+        this.colors = ret.colors;
+        this.buffer = initBuffers(ret.vertices, ret.normals, ret.colors, ret.indices);
+    }
+    update(dt = 1){
+        //this.setRotation(this.rotation.addi(this.deltaRotation/20,this.deltaRotation,this.deltaRotation/10));
+        this.setRotation(new vec4(0,this.orbitAngle));
+        this.setPosition(new vec4(this.orbitRadius*Math.sin(this.orbitAngle), this.orbitTilt*Math.sin(this.orbitAngle), this.orbitRadius*Math.cos(this.orbitAngle)));
+        this.orbitAngle += this.deltaOrbitAngle*dt;
+        //this.setPosition(new vec4(0,0,7));
+    }
+
 }
 
 
@@ -235,6 +263,7 @@ setup();
 var objects = [
     new Planet(),
     new SpaceStation(),
+    new TextSatellite("Made By Zack Gunther"), 
     //new Airplane, 
 ];
 
@@ -245,7 +274,7 @@ for( var i=0; i<50; i++)
 for (var i=0; i<20; i++)
 {
     //objects.push(new ManMadeSatellite(Math.random()*6 + 6, 8-Math.random()*16, Math.random+0.1, Math.random()*5 + 2, 5) );
-    objects.push(new ManMadeSatellite(7, 8-Math.random()*16, Math.random()+0.25, 0.75 + Math.random()/5, Math.random() ) );
+    objects.push(new ManMadeSatellite(7, 8-Math.random()*16, Math.random()+0.25, 0.75 + Math.random()/5, Math.random(), Math.random()*2+2 ) );
 }
 
 
@@ -255,10 +284,9 @@ var updateInverval = setInterval(update,50);
 function setup() {
     glCanvasElement.width = document.body.clientWidth;
     glCanvasElement.height = document.body.clientHeight;
-    glCanvasElement.style.width = glCanvasElement.width
-    glCanvasElement.style.height = glCanvasElement.height
-    if (gl == null)
-    {
+    glCanvasElement.style.width = glCanvasElement.width;
+    glCanvasElement.style.height = glCanvasElement.height;
+
         gl = glCanvasElement.getContext("webgl");
         if (gl === null) {
             alert("Unable to initialize WebGL. Your browser or machine may not support it.");
@@ -266,7 +294,7 @@ function setup() {
         } else {
             console.log("GL defined ")
         }
-    }
+    
     updateCameraSettings();
 
     InitShader(gl);
@@ -290,7 +318,25 @@ window.onkeydown = function (e) {
 window.onkeyup = function(e) {
     keys[e.key] = false;
 }
+var lastScrollTop =0;
+window.onscroll = function(e) {
 
+    let dt = 2;
+    if (window.scrollY < lastScrollTop) {
+        dt = -2;
+    }
+
+    //console.log(window.scrollY);
+
+    lastScrollTop = window.scrollY;
+
+    for (var i in objects) {
+        objects[i].update(dt);
+    }
+}
+window.onresize = function(e) {
+    setup();
+}
 
 var rot = 0;
 
@@ -316,13 +362,16 @@ function update() {
 
 
 
-    if (keys['ArrowUp'] == true)
+    if (keys['ArrowLeft'] == true)
     {
         for(var i in objects) {
-            for (var j=0; j<10; j++)
-            {
-                objects[i].update();
-            }
+            objects[i].update(-10);
+            objects[i].draw(gl, perspectiveProjectionMatrix, viewMatrix);
+        }
+    } else if (keys['ArrowRight'] == true)
+    {
+        for(var i in objects) {
+            objects[i].update(10);
             objects[i].draw(gl, perspectiveProjectionMatrix, viewMatrix);
         }
     } else {
@@ -704,10 +753,10 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
 
             if (mag < 1.01)
             {
-                c.push(0,0,1,1);
+                c.push(0,0,.8,1);
             } else if (mag < 1 + randomModifier*1.2)
             {
-                c.push(cv,1-cv-yvar/5,cv,1);
+                c.push(cv,.9-cv-yvar/5,cv,1);
             } else if (mag < 1 + randomModifier*1.4)
             {
                 c.push(.45,.41,.33,1);
@@ -920,7 +969,10 @@ function generateSatellite(size = 1, numSolarPanels = 6, color = new vec4(0.5,0.
         var ny = a.z*b.x - a.x*b.z;
         var nz = a.x*b.y - a.y*b.x;
 
-        n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz);
+        let newN = new vec4(nx,ny,nz).scaleToUnit();
+
+        n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+        //n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz);
 
         c.push( colors[indices[i]].x, colors[indices[i]].y, colors[indices[i]].z, colors[indices[i]].a );
         c.push( colors[indices[i+1]].x, colors[indices[i+1]].y, colors[indices[i+1]].z, colors[indices[i+1]].a );
@@ -986,7 +1038,10 @@ function generateSpaceStation(size=1, color=new vec4(0.5,.5,.5,1))
         var ny = a.z*b.x - a.x*b.z;
         var nz = a.x*b.y - a.y*b.x;
 
-        n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz);
+        let newN = new vec4(nx,ny,nz).scaleToUnit();
+
+        n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+        //n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz);
 
         c.push( colors[indices[i]].x, colors[indices[i]].y, colors[indices[i]].z, colors[indices[i]].a );
         c.push( colors[indices[i+1]].x, colors[indices[i+1]].y, colors[indices[i+1]].z, colors[indices[i+1]].a );
