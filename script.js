@@ -80,7 +80,7 @@ if (scrollIndicatorElement != null)
             let maxHeight = Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );
             scrollIndicatorElement.style.width = Math.round(window.pageYOffset/(maxHeight-window.innerHeight)*100) + "%";
         }
-    }, 200)
+    }, 200);
 }
 
 

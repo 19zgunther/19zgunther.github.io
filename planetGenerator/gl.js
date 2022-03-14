@@ -7,6 +7,9 @@ var defaultProgramInfo;
 var textShaderProgram;
 var textProgramInfo;
 
+var textureShaderProgram;
+var textureProgramInfo;
+
 
 
 
@@ -61,6 +64,7 @@ function InitShader(gl)
 {
     [defaultShaderProgram, defaultProgramInfo] =  initDefaultShaderProgram(gl);
     [textShaderProgram, textProgramInfo] =  initTextShaderProgram(gl);
+    [textureShaderProgram, textureProgramInfo] =  initTextureShaderProgram(gl);
 }
 
 // creates a shader of the given type, uploads the source and compiles it.
@@ -90,33 +94,48 @@ function initDefaultShaderProgram(gl) {
     uniform mat4 uObjectRotationMatrix;
 
     varying highp vec4 color;
+    varying highp vec4 vertexPos;
+
+
 
     void main() {
         vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
         gl_Position = uProjectionMatrix * uViewMatrix * uObjectPositionMatrix * uObjectRotationMatrix * vPos;
         color = aNormalVector;
 
-        float vari = dot(vec4( 0.7, 0.2, 0.8, 0), uObjectRotationMatrix* aNormalVector);
+        float vari = dot(vec4( 0.6, 0.2, 0.78, 0), uObjectRotationMatrix* aNormalVector);
         vari += 0.01;
+        vari = vari*vari*vari;
+        //vari = vari * (1.0-fract(sin(vPos.x)*49284.38272)/10.0);
         if (vari < 0.1)
         {
             vari = 0.1;
         }
-
-        color.x = aColor.x * vari;
-        color.y = aColor.y * vari;
-        color.z = aColor.z * vari;
+        if (vari > 10.01 && aColor.z > 0.6 && aColor.x < 0.5) {
+            color.x = 0.9;
+            color.y = 0.7;
+            color.z = 0.2;
+        } else {
+            color.x = aColor.x * vari;
+            color.y = aColor.y * vari;
+            color.z = aColor.z * vari;
+        }
         color.a = 1.0;
-        //color = vec4(aColor.x*aNormalVector.x, aColor.y*aNormalVector.y, aColor.z*aNormalVector.z, aColor.a*aNormalVector.a);
-        //color = vec3(0.5 * (aNormalVector.x/2.0+0.25), 0.5 * (aNormalVector.y/2.0+0.25), 0.5*(aNormalVector/2.0+0.25));
+
+        vertexPos = vPos;
     }
     `;
     const fsSource = `
     precision mediump float;
 
     varying vec4 color;
+    varying vec4 vertexPos;
+
+
 
     void main() {
+        //gl_FragColor = color + vec4(fract(vertexPos.x/100.0), fract(vertexPos.y/100.0), fract(vertexPos.z/100.0), 1.0)/10.0;
+        //gl_FragColor = color + vec4(fract(sin(vertexPos.x*22.5392)), fract(sin(vertexPos.y*3.5392)), fract(sin(vertexPos.z*4.539)), 1.0)/10.0;
         gl_FragColor = color;
     }
     `;
@@ -611,7 +630,77 @@ function BakeText(string = 'Hello World', color = new vec4(1,1,1,1), scale = new
 
 
 
+function initTextureShaderProgram(gl) {
+    const vsSource = `
+    attribute vec4 aVertexPosition;
+    attribute vec2 aTextureCoords;
 
+    uniform mat4 uProjectionMatrix;
+    uniform mat4 uViewMatrix;
+    uniform mat4 uObjectMatrix;
+
+    varying highp vec2 texCoord;
+
+    void main() {
+        vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
+        gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
+        texCoord = aTextureCoords;
+    }
+    `;
+    const fsSource = `
+    precision mediump float;
+
+    varying vec2 texCoord;
+
+    uniform sampler2D uSampler;
+    uniform vec4 uColor;
+
+    void main() {
+        //gl_FragColor = texture2D(uSampler, texCoord);
+
+        if (texture2D(uSampler, texCoord).x > 0.5)
+        {
+            gl_FragColor = uColor;
+        } else {
+            return;
+            ///gl_FragColor = vec4(0,0,0,0);   
+        }
+    }
+    `;
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    // Create the shader program
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    // If creating the shader program failed, alert
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+        return null;
+    }
+
+
+    const programInfo = {
+        program: shaderProgram,
+        attribLocations: {
+          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+          textureCoordsLocation: gl.getAttribLocation(shaderProgram, 'aTextureCoords'),
+        },
+        uniformLocations: {
+          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
+          objectMatrix: gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
+          uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
+          colorVector: gl.getUniformLocation(shaderProgram, 'uColor'),
+        },
+    };
+
+
+    return [shaderProgram, programInfo]
+}
 
 function initBuffersTexture(vertices, textureCoords, indices, textureImageData) {
     const verticesBuffer = gl.createBuffer();
@@ -670,4 +759,57 @@ function initBuffersTexture(vertices, textureCoords, indices, textureImageData) 
         indices: indicesBuffer,
         texture: textureBuffer,
     };
+}
+
+function DrawTexture(gl, projectionMatrix, viewMatrix, objectMatrix, indices, buffers, color = new vec4(1,100,0,1))
+{
+    var programInfo = textProgramInfo;
+
+    // Tell WebGL to use our program when drawing
+    gl.useProgram(programInfo.program);
+
+    {
+        const numComponents = 3  // pull out 3 values per iteration
+        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
+        const normalize = false;  // don't normalize
+        const stride = 0;         // how many bytes to get from one set of values to the next
+        const offset = 0;         // how many bytes inside the buffer to start from
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
+        gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
+        gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
+    }
+    // tell webgl how to pull out the texture coordinates from buffer
+    {
+        const num = 2; // every coordinate composed of 2 values
+        const type = gl.FLOAT; // the data in the buffer is 32 bit float
+        const normalize = false; // don't normalize
+        const stride = 0; // how many bytes to get from one set to the next
+        const offset = 0; // how many bytes inside the buffer to start from
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoords);
+        gl.vertexAttribPointer(programInfo.attribLocations.textureCoordsLocation, num, type, normalize, stride, offset);
+        gl.enableVertexAttribArray(programInfo.attribLocations.textureCoordsLocation);
+    }
+
+    // Tell WebGL we want to affect texture unit 0
+    gl.activeTexture(gl.TEXTURE0);
+
+    // Bind the texture to texture unit 0
+    gl.bindTexture(gl.TEXTURE_2D, buffers.texture);
+
+    // Tell the shader we bound the texture to texture unit 0
+    gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
+
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+
+    gl.getExtension('EXT_frag_depth');
+
+    // Set the shader uniforms
+    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
+    gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
+    gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix, false, objectMatrix.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.colorVector, color.getFloat32Array());
+
+    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 }

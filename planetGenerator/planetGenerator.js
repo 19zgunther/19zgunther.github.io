@@ -209,7 +209,7 @@ class Airplane extends Object {
 }
 
 class TextSatellite extends Satellite {
-    constructor(text = "hello world", textColor = new vec4(1,1,1,1), textScale = 0.5, orbitRadius = 8, orbitTilt = 0, orbitSpeedMultiplier = 0.5) {
+    constructor(text = "hello world", textColor = new vec4(1,1,1,1), textScale = 0.3, orbitRadius = 8, orbitTilt = 0, orbitSpeedMultiplier = 0.5) {
         super(orbitRadius, orbitTilt, orbitSpeedMultiplier, 0);
         this.text = text;
         this.textColor = textColor;
@@ -245,7 +245,6 @@ class TextSatellite extends Satellite {
     }
 
 }
-
 
 
 const glCanvasElement = document.getElementById("glcanvas");
@@ -626,7 +625,6 @@ function removeDuplicateVertices(verts, inds, norms, cols)
 //Returns dicitonary of: vertices, indices, normals, colors
 function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariation=0.2)
 {
-
     //var vertices = [0,-1,0, 1,0,0, 0,0,1, -1,0,0, 0,0,-1, 0,1,0];
     var indices = [0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 4,5,1];
     var vertices = [
@@ -645,7 +643,6 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
         vertices[i].muli(radius);
         vertDict.set(vertices[i], i);
     }
-
    
     var zz = new vec4();
     for (var s=0; s<steps; s++)
