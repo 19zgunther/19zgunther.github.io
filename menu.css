@@ -4,7 +4,6 @@
     transition: background-color 0.2s, color 0.2s;
     font-size: 1vmax;
     font-family:'Courier New';
-    font-size: 1vmax;
     color: white;
 
     /*--theme_color: #ac4d2d;*/
@@ -44,7 +43,7 @@
     color: rgba(200,200,200);
     /*font-weight: bold;*/
     text-align: center;
-
+    float: left;
     min-width: 5vmax;
     position: relative;
     width: fit-content;
@@ -187,4 +186,13 @@
     height: fit-content;
     width: 100%;
     background-color: transparent;
+}
+
+
+
+
+@media (max-aspect-ratio: 3/3) {
+    *{ 
+        font-size: 1.2vmax;
+    }
 }

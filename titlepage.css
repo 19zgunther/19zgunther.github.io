@@ -349,6 +349,9 @@ body.loaded .image_downarrow{
         width: 100%;
         padding-left:0;
     }
+    .image_me{
+        width: 80%;
+    }
     .content_column{
         width:90%;  
         margin-left:5%; 
