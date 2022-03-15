@@ -7,6 +7,7 @@
     --trapezoid_border_color_highlight: var(--theme_color_dark);
 }
 
+
 #welcome_section{
     transition: transform 1s;
     background-color: rgba(0,0,0,0.4);
@@ -94,9 +95,6 @@ body.loaded .subtitleA{
     -ms-transition: color 2s 8.5s;
     transition: color 2s 8.5s;
 }
-
-
-
 
 
 
@@ -329,10 +327,39 @@ body.loaded .image_downarrow{
 
 
 #controls_box {
-    opacity: 0.3; padding: 1%; font-size: smaller;
+    opacity: 0.3; 
+    padding: 1%; 
+    font-size: smaller;
     width: fit-content;
     transition: opacity 0.5s;
 }
 #controls_box:hover {
     opacity: 1;
+}
+
+
+@media (max-aspect-ratio: 3/3) {
+    .titleA {
+        font-size:5em;
+    }
+    .subtitleA{
+        font-size: 1.5em;
+    }
+    .dualSection{ 
+        width: 100%;
+        padding-left:0;
+    }
+    .content_column{
+        width:90%;  
+        margin-left:5%; 
+    }
+    .right_trapezoid {
+        background-attachment:local;
+    }
+    .left_trapezoid {
+        background-attachment:local;
+    }
+    #controls_box {
+        font-size:medium;
+    }
 }
