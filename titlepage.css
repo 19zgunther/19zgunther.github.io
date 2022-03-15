@@ -207,16 +207,16 @@ body.loaded .image_downarrow{
 }
 
 
-#left_trapezoid{
+.left_trapezoid{
     border-radius: 15px;
     border-style:solid;
     border-width: 2px;
     border-color: var(--trapezoid_border_color);
-    height:90%;
+    height:98%;
     font-size: 5em;
     text-align: left;
     width:90%;
-    padding: 2%;
+    padding: 0%;
 
     float:left;
     background-size:cover;
@@ -236,22 +236,23 @@ body.loaded .image_downarrow{
 
     transition: border-color 0.5s, color 0.5s;
 }
-#left_trapezoid:hover {
+.left_trapezoid:hover {
     /*border-color: rgba(55,55,55,1);*/
     border-color: var(--trapezoid_border_color_highlight);
     color: var(--theme_color_light);
 }
-#left_text {
+.left_text {
     margin-top:auto;
     margin-bottom:auto;
     text-align:left;
     line-height: 1.5;
+    padding: 1%;
 }
 
 
 
 
-#right_trapezoid{
+.right_trapezoid{
     border-radius: 15px;
     border-style:solid;
     border-width: 2px;
@@ -280,13 +281,58 @@ body.loaded .image_downarrow{
     transition: border-color 0.5s, color 0.5s;
 
 }
-#right_trapezoid:hover {
+.right_trapezoid:hover {
     border-color: var(--trapezoid_border_color_highlight);
     color: var(--theme_color_light);
 }
-#right_text {
+.right_text {
     margin-top:auto;
     margin-bottom:auto;
     text-align:left;
     line-height: 1.5;
+    padding: 1%;
+}
+
+
+.project_container_cutout{
+    z-index: -1;
+    opacity:1;
+    width: 70%;
+    height: 50vh;
+    background-color: var(--project_container_background_color);
+    padding: 0%;
+    border-radius: 10px;
+    border-width: 2px;
+    border-style:solid;
+    border-color: var(--project_container_border_color);
+    justify-self: center;
+
+    transition: opacity 0.5s, border-color 0.5s;
+
+    position: absolute;
+
+    --cutPath: 0 0, 100% 0%, 100% 50%, 98% 50%, 
+    98% 2%, 34% 2%, 53% 98%, 98% 98%, 
+    98% 50%, 100% 50%, 100% 100%, 0% 100%;
+
+    -webkit-clip-path: polygon(var(--cutPath));
+    clip-path: polygon(var(--cutPath));
+
+    -webkit-shape-outside: polygon(var(--cutPath));
+    shape-outside: polygon(var(--cutPath));
+}
+.project_container_cutout:hover {
+    border-color: var(--project_container_border_color_highlight);
+}
+
+
+
+
+#controls_box {
+    opacity: 0.3; padding: 1%; font-size: smaller;
+    width: fit-content;
+    transition: opacity 0.5s;
+}
+#controls_box:hover {
+    opacity: 1;
 }

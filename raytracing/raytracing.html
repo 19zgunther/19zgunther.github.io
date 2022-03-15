@@ -98,24 +98,27 @@
         <div style="font-size:2em;">
             About:
         </div>
-        One day I was wandering aimlessly around the internet and found an image of reflective spheres and a few other basic objects. After a quick search, I discovered
-        the image was generated using ray tracing, a rendering technique I had heard of but knew nothing about. After a few hours of research and programming
-        I created this: The world's most inefficient single threaded ray tracing renderer!
+
+        One day while I was browsing through social media I found an image of reflective spheres and a few other basic objects. 
+        The caption stated the image was rendered using ray tracing, a rendering technique I had heard of but knew little about.
+        After a few hours of research, I began working on this project: A JS ray tracing program.
         <br><br>
         This renderer (currently) can render two basic objects: Spheres and planes. It works by projecting a ray for each pixel and seeing what the ray intersects with. If the ray intersects with
         an object the object color is recorded, a ray from that intersection is shot to the point light source to determine the light level (based on distance and blocking objects), and finally a 
         new ray is recursively shot from the intersection in the reflected direction. The reflected ray returns a color value from what it hit, and all of the colors and light levels are accumulated
         to find the final pixel color to display on the screen.
         <br><br>
-        Obviously this implementation has some shortcomings. Firstly, this program sequentially computes each pixel even though each could be computed independently. 
-        For a 500 by 500 pixel rendering with 7 objects, this program takes a painfully long time to render. On my computer it takes a full second, although
-        results may vary depending on which processor used. I have plans to use webGL and fragment shaders to parallelize this rendering technique to decrease rendering time, 
-        although this would require a complete restart to do so, and I do not currently have the time.
-        <br>
+        My implemenation of this rendering technique has some shortcomings. To start, each pixel can be computed completely independently of each other, thus it would make sense
+        to create a parallelized program which computes each pixel at the same time (say by using the GPU). My implementation is purely single-threaded, thus it takes a significant
+        amount of time to render even basic scenes (each pixel can be computed quickly, but there are very many pixels in each image). 
+        In the future I plan to restart and use webgl to program the GPU to allow for parallelization, potentially even allowing for real-time rendering.
+        <br><br>
         Secondly, only two types of objects are currently renderable (Spheres and Planes) and no other light sources besides point light sources have been implemented.
-        This means only hard shadows are renderable, and light source reflections are... less than optimal. Currently the point light source appears to be a rather large sphere,
-        but only the very center is used for computing shadows whereas the rest is simply a white-colored object.
+        This means only hard shadows are renderable, and light source reflections are less than optimal. Currently the point light source appears to be a rather large sphere,
+        but only the very center is used for computing shadows whereas the rest is simply a white-colored object. In the future I would like to change this lightsource issue
+        and add more object types, but for now I am satisfied with the program.
         <br>
+
     </div>
     <br><br>
 

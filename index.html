@@ -93,12 +93,12 @@
     <div class="content_column"id="cps_content_column">
         <!-- charged particle simulator -->
         <div class="project_container">
-            <div id = 'left_trapezoid' style="background-image: url(chargedParticleSimulatorIMG.png)" onclick='buttonClick("charged_particle_simulator")'>
+            <div class = 'left_trapezoid' style="background-image: url(chargedParticleSimulatorIMG.png)" onclick='buttonClick("charged_particle_simulator")'>
                 Charged<br>Particle<br>Simulator
             </div>
-            <div id="left_text"> 
+            <div class="left_text"> 
                 While taking Physics II, I realized all of the simulators my school used were created and hosted by other colleges. 
-                I felt and still feel that RPI, being a technical institution, should have it's own suite of simulators available for students and the general public. 
+                I felt and still feel that RPI, being a technical institution, should have it's own suite of simulators available to students and the general public. 
                 This was the motivation behind working on this project, with the long-run goal being gifting the simulator to the RPI physics department.
                 Please go to the "Charge Simulator" page to check it out!
             </div>
@@ -107,28 +107,68 @@
         <br><br><br><br><br><br><br><br>
         <!-- circuit simulator -->
         <div class="project_container">
-            <div id = 'right_trapezoid'style="background-image: url(circuitSimulatorIMG.png)" onclick='buttonClick("circuit_simulator")'>
+            <div class = 'right_trapezoid'style="background-image: url(circuitSimulatorIMG.png)" onclick='buttonClick("circuit_simulator")'>
                 Circuit<br>Simulator
             </div>
-            <div id="right_text"> 
+            <div class="right_text"> 
                 In RPI's Circuits class, students are tasked with solving basic circuits over and over again. Quickly, I became frustrated with the number of circuits 
                 we had to solve and how similar each circuit was. To aid in checking my homework and practice problems, I decided to create my own basic circuit simulator. 
                 I worked on this project in my free time for a few weeks, and am satisfied with the functionality of the project at this point. In the future I plan to 
-                add more components and improve the functionality of the program.
+                add more electrical components and improve the speed of the program.
+                Please go to the "Circuit Simulator" page to check it out!
+
             </div>
         </div>
 
         <br><br><br><br><br><br><br><br>
 
         <div class="project_container">
-            <div id = 'left_trapezoid' style="background-image: url(rayTracingIMG.png)" onclick='buttonClick("raytracing")'>
+            <div class = 'left_trapezoid' style="background-image: url(rayTracingIMG.png)" onclick='buttonClick("raytracing")'>
                 Ray<br>Tracing<br>Project
             </div>
-            <div id="left_text"> 
-                
+            <div class="left_text"> 
+                Among my friends, the phrase 'ray tracing' is commonly thrown around when we talk about high performance graphics for games or simulations.
+                I never fully understood what raytracing was and how it works until I began this project. Raytracing is a 
+                graphics rendering method which can produce realistic lighting by tracing the path of light from lightsources to the camera.
+                In reality the reverse path is found by firing rays out of a camera and seeing what objects they hit, this way all possible photon
+                paths from the light sources which do not enter the camera do not have to be computed.
+                Please go to the "Ray Tracing" page to check it out!
             </div>
         </div>
 
+        <!--
+        <br><br><br><br><br><br><br><br>
+        <div class = "project_container"> 
+            <div class = 'right_trapezoid' style="background-image: url(planetGeneratorIMG.png)" onclick='buttonClick("planet_generator")'>
+                Planet<br>Generator
+            </div>
+            <div class = 'right_text'>
+                I have always been interested in procedurally generated terrain and objects. 
+                The idea that I can generate different 3d objects by simply modifying a few input parameters prompted me to build this model.
+                In this project I learned about generating different 3d models, and randomly augmenting those models to produce familiar-looking 
+                objects. In the end algorithms to generate earth-like planets, astroids, satellites, and space stations were implemented.
+                Please go to the "Planet Generator" page to check it out!
+            </div>
+        </div> -->
+
+        <br><br><br><br><br><br><br><br>
+
+
+        <div class = "project_container" style='opacity: 1;background-color: transparent;border-style:hidden;'> 
+            <div class = "project_container_cutout">
+                
+            </div>
+            <div class = 'right_trapezoid' style="background-color: rgba(0,0,0,0);" onclick='buttonClick("planet_generator")'>
+                Planet<br>Generator
+            </div>
+            <div class = 'right_text'>
+                I have always been interested in procedurally generated terrain and objects. 
+                The idea that I can generate different 3d objects by simply modifying a few input parameters prompted me to build this model.
+                In this project I learned about generating different 3d models, and randomly augmenting those models to produce familiar-looking 
+                objects. In the end algorithms to generate earth-like planets, astroids, satellites, and space stations were implemented.
+                Please go to the "Planet Generator" page to check it out!
+            </div>
+        </div>
 
 
     </div>
@@ -137,7 +177,7 @@
         
     </div>
 
-    <div style='opacity: 0.3; padding: 1%; font-size: smaller;'>
+    <div id = 'controls_box'>
         <br>
         fov:
         <input id = 'fovSlider' type='range' min=0 max=180 step=0.1 value='10' onchange = updateCameraSettings()>

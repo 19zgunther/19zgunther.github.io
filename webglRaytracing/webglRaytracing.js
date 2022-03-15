@@ -87,7 +87,7 @@ function initDefaultShaderProgram(gl) {
         //color = vec3(0.5 * (aNormalVector.x/2.0+0.25), 0.5 * (aNormalVector.y/2.0+0.25), 0.5*(aNormalVector/2.0+0.25));
     }
     `;
-    const fsSource_OLD = `
+    const fsSource_OLDer = `
     precision mediump float;
 
     varying vec4 color;
@@ -197,7 +197,7 @@ function initDefaultShaderProgram(gl) {
     }
     `;
 
-    const fsSource  = `
+    const fsSource_OLD  = `
     precision highp float;
 
     varying vec4 color;
@@ -353,6 +353,163 @@ function initDefaultShaderProgram(gl) {
         gl_FragColor = fireRay(rayD, rayP);
     }
     `;
+
+    const fsSource  = `
+    precision highp float;
+
+    varying vec4 color;
+    varying vec4 pos;
+
+    vec3 unit(vec3 r)
+    {
+        float d = sqrt(r.x*r.x + r.y*r.y + r.z+r.z);
+        r.x = r.x / d;
+        r.y = r.y / d;
+        r.z = r.z / d;
+        return r;
+    }
+
+    vec3 reflectRay(vec3 rayD, vec3 N)
+    {
+        //float d = (rayD.x*N.x + rayD.y*N.y + rayD.z*N.z)*2.0;
+        float d = dot(rayD, N)*2.0;
+        return unit( rayD - N*d );
+    }
+
+
+    float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
+    {
+        float a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
+        float b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
+        float c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
+        float top = b*b - 4.0*a*c;
+
+        if (top >= 0.0)
+        {
+            float t1 = (-b-top)/(2.0*a);
+            float t2 = (-b+top)/(2.0*a);
+            if (t1 > 0.1 && (t1 < t2 || t2 < 0.1))
+            {
+                return t1;
+            } else if (t2 > 0.1 && (t2 < t1 || t1 < 0.1))
+            {
+                return t2;
+            }
+        }
+        return 10000.0;
+    }
+
+    float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
+    {
+        float t = dot(pP-rayP, pN) / dot(rayD, pN);
+        if (t > 0.001)
+        {
+            return t;
+        }
+        return 10000.0;
+    }
+
+
+    float distToPoint(vec3 rayP, vec3 P)
+    {
+        vec3 x = P-rayP;
+        return sqrt( dot(x,x) );
+    }
+
+    vec3 newRayP(vec3 rayD, vec3 rayP, float t)
+    {
+        return rayP + rayD*t;
+    }
+
+
+    vec4 fireRay(vec3 rayD, vec3 rayP)
+    {
+        vec4 color = vec4(0,0,0,1);
+        float percentDone = 0.0;
+
+
+        vec3 sC = vec3(0,0,4);
+        float sR = 1.0;
+
+        vec3 lC = vec3(4,0,8);
+
+        bool leavingSphere = false;
+
+        for (int i=0; i<10; i++) {
+            float sD = 10000.0;
+            if (!leavingSphere) { sD = distToSphere(rayD, rayP, sC, sR); }
+            float pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
+            float pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
+            float pD3 = distToPlane(rayD, rayP, vec3(-5, 0,  0), vec3(1,0,0));
+            float pD4 = distToPlane(rayD, rayP, vec3(0,  5,  0), vec3(0,1,0));
+            float pD5 = distToPlane(rayD, rayP, vec3(0,  -5, 0), vec3(0,1,0));
+
+            float m = min(min(min(sD, pD1), min(pD2, pD3)), min(pD4, pD5));
+
+            if (m == sD)
+            {
+                rayP = rayP + rayD*m;
+                rayD = reflectRay(rayD, unit(sC-rayP));
+
+                float d2 = distToSphere(rayD, rayP, sC, sR);
+                float d = distToPoint(rayP, lC);
+
+                if (d2 < d)
+                {
+                    color += (1.0-percentDone)*0.3*vec4(1,1,1,0);
+                    percentDone += (1.0-percentDone)*0.3;
+                }
+
+
+                leavingSphere = true;
+            } else {
+                leavingSphere = false;
+                vec3 newRayP = rayP + rayD*m;
+                vec3 newRayD = unit( lC - newRayP);
+                float d = distToPoint(newRayP, lC);
+
+                float d2 = distToSphere(newRayD, newRayP, sC, sR);
+
+                if ( d2 < d && d2 > 0.0) {
+                    d = d*2.0;
+                }
+
+
+                if (m == pD1)
+                {
+                    return vec4(1.0/d,0,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD2)
+                {
+                    return vec4(0,1.0/d,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD3)
+                {
+                    return vec4(0,0.5/d,0.5/d,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD4)
+                {
+                    return vec4(0.5/d,0.5/d,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD5)
+                {
+                    return vec4(1.0/d,1.0/d,1.0/d,1)*(1.0-percentDone) + percentDone*color;
+                }
+            }
+            
+        }
+
+        return vec4(0,0,0,1);
+
+    }
+
+
+
+    void main() {
+
+        vec3 rayD = unit(vec3(pos.x*2.0, pos.y*2.0, 1.0));
+        vec3 rayP = vec3(0.0, 0.0, 0.0);
+
+        gl_FragColor = fireRay(rayD, rayP);
+    }
+    `;
+
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
     const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
