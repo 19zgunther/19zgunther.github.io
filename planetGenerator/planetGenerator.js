@@ -265,15 +265,13 @@ const rotation = new vec4();
 
 const keys = {};
 
+var objects = [];
 
 
 setup();
-var objects = [];
 resetObjects();
 
 var resizeInterval;
-
-
 var updateInverval = setInterval(update,50);
 
 function setup() {
@@ -329,7 +327,8 @@ window.onscroll = function(e) {
     }
 }
 window.onresize = function(e) {
-    setup();
+    var padding = window.innerWidth - glCanvasElement.width;
+    glCanvasElement.style.paddingLeft = Math.round(padding/2) + "px";
 }
 function addAstroids() {
     for( var i=0; i<50; i++)
@@ -371,7 +370,7 @@ var rot = 0;
 function update() {
     //RENDERING PART///////////////////////////////
     //Clear Screen
-    gl.clearColor(0.01, 0.01, 0.01, 1);    // Clear to black, fully opaque
+    gl.clearColor(0.0, 0.01, 0.01, 0);    // Clear to black, fully opaque
     gl.clearDepth(1);                   // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
