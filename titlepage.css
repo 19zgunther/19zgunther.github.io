@@ -116,6 +116,11 @@ body.loaded .subtitleA{
     border-width: .3vmax;
     border-style:solid;
     border-color: transparent;
+
+    animation-name: wiggle_border_radius;
+    animation-duration: 10s;
+    animation-iteration-count: 100;
+    
 }
 .image_me:hover {
     border-color: var(--theme_color);
@@ -364,5 +369,19 @@ body.loaded .image_downarrow{
     }
     #controls_box {
         font-size:medium;
+    }
+}
+
+
+@keyframes wiggle_border_radius {
+
+    0% {
+        border-radius: 50%;
+    }
+    50% {
+        border-radius: 45%;
+    }
+    100% {
+        border-radius: 50%;
     }
 }

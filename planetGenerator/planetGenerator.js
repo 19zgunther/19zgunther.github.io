@@ -643,6 +643,7 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
         vertDict.set(vertices[i], i);
     }
    
+    //Generate sphere mesh
     var zz = new vec4();
     for (var s=0; s<steps; s++)
     {
@@ -698,7 +699,7 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
         indices = inds;
     }
 
-    
+    //Modifying the shape to make it into a planet
     for (var t=0; t<50; t++) {
         var r = new vec4(0.5-Math.random(), 0.5-Math.random(), 0.5-Math.random()).scaleToUnit().mul(radius);
         var multiplier = 1 + Math.random()*randomModifier;
@@ -721,9 +722,12 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
     var n = [];
     var c = [];
 
+    //transform...
+
     var indOn = 0;
     for(var i=0; i<indices.length; i+=3)
     {
+
         v.push( vertices[indices[i]].x, vertices[indices[i]].y, vertices[indices[i]].z);
         v.push( vertices[indices[i+1]].x, vertices[indices[i+1]].y, vertices[indices[i+1]].z);
         v.push( vertices[indices[i+2]].x, vertices[indices[i+2]].y, vertices[indices[i+2]].z);
@@ -734,10 +738,8 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
 
         var a = vertices[indices[i+1]].sub(vertices[indices[i]]);
         var b = vertices[indices[i+2]].sub(vertices[indices[i]]);
-
         b.scaleToUnit();
         a.scaleToUnit();
-        
         var nx = a.y*b.z - a.z*b.y;
         var ny = a.z*b.x - a.x*b.z;
         var nz = a.x*b.y - a.y*b.x;

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zack Gunther</title>
+    <link rel="stylesheet" href="../menu.css">
+    <link rel="stylesheet" href="webExperiments.css">
+</head>
+
+<body style = "background-color: rgba(0,0,0,1);">
+
+
+
+    
+    <!-- Menu -->
+    <div class='menu'>
+        <div style='position: absolute; left:0; justify-self:left;'>
+            <div class='logo' onclick='buttonClick("home")'>
+                ZG
+            </div>
+        </div>
+        <div class='menu_item' onclick='buttonClick("resume")'> 
+            Resume
+        </div>
+        <div class='menu_item'>
+            Projects
+            <div class='menu_dropdown'>
+                <div id="INSERT_MENU_PROJECTS">
+                    null
+                </div>
+            </div>
+        </div>
+        <!--Scroll Progress Bar-->
+        <div id='scrollIndicatorBackground' class='scrollIndicatorBackground'>
+            <div id='scrollIndicator' class='scrollIndicator'>
+
+            </div>
+        </div>
+    </div>
+
+    <div class = "column">
+        <div class = "experiment_section">
+            
+            <div style='width:100%; display: inline-flex;  position: absolute; height:100%; margin:auto; justify-content:center; justify-self:center;'>
+                <load_spinner>
+                    <load_spinner_ring style='border-color:rgb(200,50,50);'>
+                        <load_spinner_ring style = 'border-color:rgb(130,100,0);'>
+                            <load_spinner_ring style = 'border-color:rgb(50,200,50);'>
+                                <load_spinner_ring style='border-color:rgb(0,100,100);'>
+                                    <load_spinner_ring style = 'border-color:rgb(50,50,200);'>
+                                    </load_spinner_ring>
+                                </load_spinner_ring>
+                            </load_spinner_ring>
+                        </load_spinner_ring>
+                    </load_spinner_ring>
+                </load_spinner>
+
+                <load_bouncer>
+                    <load_bouncer_ball style='animation-delay: 0s; background-color:rgb(200,50,50);'> </load_bouncer_ball>
+                    <load_bouncer_ball style='animation-delay:-1s; background-color:rgb(50,200,200);'> </load_bouncer_ball>
+                    <load_bouncer_ball style='animation-delay:-2s; background-color:rgb(50,200,50);'> </load_bouncer_ball>
+                    <load_bouncer_ball style='animation-delay:-3s; background-color:rgb(50,50,200);'> </load_bouncer_ball>
+                </load_bouncer>
+            </div>
+
+            <div class = "experiment_section_title">
+                Loading Animations
+            </div>
+
+
+
+        </div>
+        <div class = "experiment_section">
+            hi2
+        </div>
+        <div class = "experiment_section">
+            hi2
+        </div>
+        <div class = "experiment_section">
+            hi2
+        </div>
+    </div>
+
+
+
+</body>
+
+<script src="../script.js"></script>
+<script src="webExperiments.js"></script>
+</html>
