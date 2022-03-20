@@ -736,20 +736,31 @@ function generatePlanet(steps = 5, radius = 2, randomModifier = 0.1, colorVariat
         ind.push(indOn, indOn+1, indOn+2);
         indOn += 3;
 
-        var a = vertices[indices[i+1]].sub(vertices[indices[i]]);
-        var b = vertices[indices[i+2]].sub(vertices[indices[i]]);
-        b.scaleToUnit();
-        a.scaleToUnit();
-        var nx = a.y*b.z - a.z*b.y;
-        var ny = a.z*b.x - a.x*b.z;
-        var nz = a.x*b.y - a.y*b.x;
+        
 
-        let newN = new vec4(nx,ny,nz).scaleToUnit();
-
-        n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+       
         //n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz);
         
         var maxMag = Math.max(vertices[indices[i+0]].getLength(), vertices[indices[i+1]].getLength(), vertices[indices[i+2]].getLength())/radius;
+
+        if (maxMag < -1)
+        {
+            var n1 = vertices[indices[i]].copy().scaleToUnit();
+            var n2 = vertices[indices[i+1]].copy().scaleToUnit();
+            var n3 = vertices[indices[i+2]].copy().scaleToUnit();
+            n.push( n1.x, n1.y, n1.z,  n2.z, n2.y, n2.z, n3.x, n3.y, n3.z);
+        } else {
+            var a = vertices[indices[i+1]].sub(vertices[indices[i]]);
+            var b = vertices[indices[i+2]].sub(vertices[indices[i]]);
+            b.scaleToUnit();
+            a.scaleToUnit();
+            var nx = a.y*b.z - a.z*b.y;
+            var ny = a.z*b.x - a.x*b.z;
+            var nz = a.x*b.y - a.y*b.x;
+            let newN = new vec4(nx,ny,nz).scaleToUnit();
+            n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+        }
+
 
         for (var k=0; k<3; k++){
             let mag = vertices[indices[i+k]].getLength()/radius;

@@ -97,13 +97,11 @@ function initDefaultShaderProgram(gl) {
     varying highp vec4 vertexPos;
 
 
-
     void main() {
         vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
         gl_Position = uProjectionMatrix * uViewMatrix * uObjectPositionMatrix * uObjectRotationMatrix * vPos;
-        color = aNormalVector;
 
-        float vari = dot(vec4( 0.6, 0.2, 0.78, 0), uObjectRotationMatrix* aNormalVector);
+        float vari = dot(vec4( 0.6, 0.2, 0.78, 0), uObjectRotationMatrix * aNormalVector);
         vari += 0.01;
         vari = vari*vari*vari;
         //vari = vari * (1.0-fract(sin(vPos.x)*49284.38272)/10.0);
@@ -130,7 +128,6 @@ function initDefaultShaderProgram(gl) {
 
     varying vec4 color;
     varying vec4 vertexPos;
-
 
 
     void main() {

@@ -723,11 +723,14 @@ class vec4 {
     {
         return Math.sqrt(  this.x*this.x + this.y*this.y + this.z*this.z  );
     }
+    getMagnitude() {
+        return Math.sqrt(  this.x*this.x + this.y*this.y + this.z*this.z  + this.a * this.a);
+    }
 
     scaleToUnit()
     {
         //divide each component by the length of the vector
-        var L = this.getLength();
+        var L = this.getMagnitude();
         this.x = this.x/L;
         this.y = this.y/L;
         this.z = this.z/L;
