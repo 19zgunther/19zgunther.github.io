@@ -12,6 +12,17 @@
     height: fit-content;
     justify-content:center;
 }
+@media (max-aspect-ratio: 3/3) {
+    .column {
+        width: 100%;
+    }
+    .experiment_section {
+        width: 100%;
+        margin-left: 0%;
+        margin-right: 0%;
+    }
+}
+
 
 .experiment_section {
     background-color: var(--background-color);
