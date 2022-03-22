@@ -17,10 +17,10 @@ let bb = glCanvasElement_reflective.getBoundingClientRect();
 glCanvasElement_reflective.width = bb.width;
 glCanvasElement_reflective.height = bb.height
 var aspect = bb.width/bb.height;
-var zNear = 40;
+var zNear = 10;
 var zFar = 100;
 var perspectiveProjectionMatrix = new mat4().makePerspective(FOV, aspect, zNear, zFar);
-var viewMatrix = (new mat4().makeRotation(0,0,0)).mul( new mat4().makeTranslation(0,0,-3) );
+var viewMatrix = (new mat4().makeRotation(0,0,0)).mul( new mat4().makeTranslation(0,0,-15) );
 var tick = 0;
 
 
@@ -99,13 +99,6 @@ function initBuffers(gl, vertices, normals, colors, indices) {
     };
 }
 
-//Init shaders//////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-function InitShader(gl)
-{
-    [reflectiveShaderProgram, reflectiveProgramInfo] =  initReflectiveShaderProgram(gl);
-}
-
 // creates a shader of the given type, uploads the source and compiles it.
 function loadShader(gl, type, source) {
     const shader = gl.createShader(type);
@@ -121,7 +114,7 @@ function loadShader(gl, type, source) {
     return shader;
 }
 
-function initReflectiveShaderProgram(gl) {
+function initReflectiveShaderProgram(gl, includeBlueAmbientSource = true, includeRedAmbientSource = true, includeBlueReflectiveSource = true, includeRedReflectiveSource = true) {
     const vsSource = `
     attribute vec4 aVertexPosition;
     attribute vec4 aNormalVector;
@@ -198,35 +191,42 @@ function initReflectiveShaderProgram(gl) {
 
     void main() {
 
-        gl_FragColor = vec4(0,0,0,1);
-
-
-        float c = dot(normal, vec4(0.4, 0.85, 0.4, 0) );
+        gl_FragColor = vec4(0,0,0,1); 
+        float c = 0.0;
+        float ret = 0.0;`;
+        
+    
+    const redAmbientSource = `
+        c = dot(normal, vec4(0.4, 0.85, 0.4, 0) );
         if (c < 0.1) {c = 0.1;}
-        gl_FragColor += color*vec4(c, c/2.0, 0, 0);
-
-
-        c = dot(normal, vec4(-0.4, 0.85, 0.4, 0) );
-        if (c < 0.1) {c = 0.1;}
-        gl_FragColor += color*vec4(0, c/2.0, c, 0);
-
-
-        float ret = distToSphere(unit(normal.xyz), pos.xyz, vec3(70,50,100), 20.0);
+        gl_FragColor += color*vec4(c, c/2.0, 0, 0); `;
+    const redReflectiveSource = `
+        ret = distToSphere(unit(normal.xyz), pos.xyz, vec3(70,50,100), 20.0);
         if (ret > 0.0 && ret < 10000.0)
         {
             gl_FragColor += vec4(ret/50.0, ret/100.0, 0, 0);
-        }
-
+        }`;
+    const blueAmbientSource = `
+        c = dot(normal, vec4(-0.4, 0.85, 0.4, 0) );
+        if (c < 0.1) {c = 0.1;}
+        gl_FragColor += color*vec4(0, c/2.0, c, 0);`;
+    const blueReflectiveSource = `
         ret = distToSphere(unit(normal.xyz), pos.xyz, vec3(-70,50,100), 20.0);
         if (ret > 0.0 && ret < 10000.0)
         {
             gl_FragColor += vec4(0, ret/100.0, ret/50.0, 0);
-        }
-
-    }
-    `;
+        }`;
+    const fsSourceEnd = `}`;
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    var fsShaderComplete = fsSource;
+    if (includeBlueAmbientSource) { fsShaderComplete += blueAmbientSource; }
+    if (includeRedAmbientSource) { fsShaderComplete += redAmbientSource; }
+    if (includeBlueReflectiveSource) { fsShaderComplete += blueReflectiveSource; }
+    if (includeRedReflectiveSource) { fsShaderComplete += redReflectiveSource; }
+    fsShaderComplete +=fsSourceEnd;
+
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsShaderComplete);
 
     // Create the shader program
     const shaderProgram = gl.createProgram();
@@ -412,10 +412,14 @@ setup_reflective();
 
 
 var objects = [
-    new Sphere(new vec4(-1.1,1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.2,0.2,1), 0.2, 2),
-    new Sphere(new vec4( 1.1,1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.2,0.7,0.2,1), 0.2, 3),
-    new Sphere(new vec4(-1.1,-1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.2,0.2,0.7,1), 0.2, 4),
-    new Sphere(new vec4( 1.1,-1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.7,0.7,1), 0.2, 5),
+    new Cube(new vec4(-4,1.1), new vec4(), new vec4(0.5,0.5,0.5,1)),
+    new Cube(new vec4(-4,-1.1), new vec4(), new vec4(0.5,0.5,0.5,1)),
+    new Sphere(new vec4( -1.4,1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.2,0.2,1), 0.2, 0),
+    new Sphere(new vec4( -1.4,-1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.2,0.2,1), 0.2, 1),
+    new Sphere(new vec4( 1.4,1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.2,0.2,1), 0.2, 2),
+    new Sphere(new vec4( 4,1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.2,0.7,0.2,1), 0.2, 3),
+    new Sphere(new vec4( 1.4,-1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.2,0.2,0.7,1), 0.2, 4),
+    new Sphere(new vec4( 4,-1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.7,0.7,1), 0.2, 5),
 ];
 
 const updateInterval = setInterval(update_reflective, 50);
@@ -431,12 +435,12 @@ function setup_reflective() {
     } else {
         console.log("GL defined ")
     }
-    InitShader(gl_reflective);
+    [reflectiveShaderProgram, reflectiveProgramInfo] = initReflectiveShaderProgram(gl_reflective);
 }
 
 
 function update_reflective() {
-    tick += 0.05;
+    tick += Number(document.getElementById("reflectiveSpeed").value);
     gl_reflective.clearColor(0.01, 0.01, 0.01, 0);    // Clear to black, fully opaque
     gl_reflective.clearDepth(1);                   // Clear everything
     gl_reflective.enable(gl_reflective.DEPTH_TEST);           // Enable depth testing
@@ -452,6 +456,20 @@ function update_reflective() {
     }
 }
 
+
+
+function inputChange_reflective() {
+    if (document.getElementById("includeRedAmbientSourceCheckbox") == null)
+    {
+        return;
+    }
+
+    [reflectiveShaderProgram, reflectiveProgramInfo] = initReflectiveShaderProgram(gl_reflective, 
+        document.getElementById("includeBlueAmbientSourceCheckbox").checked, 
+        document.getElementById("includeRedAmbientSourceCheckbox").checked,
+        document.getElementById("includeBlueReflectiveSourceCheckbox").checked,
+        document.getElementById("includeRedReflectiveSourceCheckbox").checked  );
+}
 
 
 
