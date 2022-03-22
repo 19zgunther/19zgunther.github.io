@@ -1,9 +1,80 @@
-let defaultShaderProgram;
-let defaultProgramInfo;
+
+
+
+
+
+
+
+
+
+let reflectiveShaderProgram;
+let reflectiveProgramInfo;
+
+const glCanvasElement_reflective = document.getElementById('glCanvas_reflective');
+var gl_reflective;
+var FOV = (Math.PI/180.0) * 1;
+let bb = glCanvasElement_reflective.getBoundingClientRect();
+glCanvasElement_reflective.width = bb.width;
+glCanvasElement_reflective.height = bb.height
+var aspect = bb.width/bb.height;
+var zNear = 40;
+var zFar = 100;
+var perspectiveProjectionMatrix = new mat4().makePerspective(FOV, aspect, zNear, zFar);
+var viewMatrix = (new mat4().makeRotation(0,0,0)).mul( new mat4().makeTranslation(0,0,-3) );
+var tick = 0;
+
+
+const cube_vertices = [
+    -1,1,1, 1,1,1, 1,-1,1, -1,-1,1, //front
+    -1,1,-1, -1,-1,-1, 1,-1,-1, 1,1,-1, //back
+    -1,1,1, -1,1,-1, 1,1,-1, 1,1,1, //top
+    -1,1,1, -1,-1,1, -1,-1,-1, -1,1,-1, //left
+    1,1,1, 1,1,-1, 1,-1,-1, 1,-1,1, //right
+    -1,-1,1, 1,-1,1, 1,-1,-1, -1,-1,-1, //bottom
+];
+const cube_indices = [
+    0,2,1, 0,3,2, //front
+    4,6,5, 4,7,6, //back
+    8,10,9, 8,11,10, //top
+    12,14,13, 12,15,14, //left
+    16,18,17, 16,19,18, //right
+    20,22,21, 20,23,22, //bottom
+];
+const cube_normals = [
+    /*0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1, //front
+    0,0,1, 0,0,1, 0,0,1, 0,0,1,  //back
+    0,1,0, 0,1,0, 0,1,0, 0,1,0, //top
+    -1,0,0, -1,0,0, -1,0,0, -1,0,0, //left
+    1,0,0, 1,0,0, 1,0,0, 1,0,0, //right
+    0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, //bottom*/
+
+    0,0,1, 0,0,1, 0,0,1, 0,0,1,
+    0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
+    0,1,0, 0,1,0, 0,1,0, 0,1,0,
+    -1,0,0, -1,0,0, -1,0,0, -1,0,0, //left
+    1,0,0, 1,0,0, 1,0,0, 1,0,0, //right
+    0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, //bottom
+
+];
+const cube_colors = [
+    1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1,
+    0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1,
+    0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1,
+    1,1,0,1, 1,1,0,1, 1,1,0,1, 1,1,0,1,
+    1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
+    0,1,1,1, 0,1,1,1, 0,1,1,1, 0,1,1,1
+];
+
+
+
+
+
+
+
 
 //BUFFERS//////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-function initBuffers(vertices, normals, colors, indices) {
+function initBuffers(gl, vertices, normals, colors, indices) {
     const verticesBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -20,7 +91,6 @@ function initBuffers(vertices, normals, colors, indices) {
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
-
     return {
         vertices: verticesBuffer,
         normals: normalsBuffer,
@@ -33,7 +103,7 @@ function initBuffers(vertices, normals, colors, indices) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 function InitShader(gl)
 {
-    [defaultShaderProgram, defaultProgramInfo] =  initDefaultShaderProgram(gl);
+    [reflectiveShaderProgram, reflectiveProgramInfo] =  initReflectiveShaderProgram(gl);
 }
 
 // creates a shader of the given type, uploads the source and compiles it.
@@ -51,7 +121,7 @@ function loadShader(gl, type, source) {
     return shader;
 }
 
-function initDefaultShaderProgram(gl) {
+function initReflectiveShaderProgram(gl) {
     const vsSource = `
     attribute vec4 aVertexPosition;
     attribute vec4 aNormalVector;
@@ -61,50 +131,28 @@ function initDefaultShaderProgram(gl) {
     uniform mat4 uViewMatrix;
     uniform mat4 uObjectPositionMatrix;
     uniform mat4 uObjectRotationMatrix;
+    uniform vec4 uObjectScaleVector;
 
     varying highp vec4 color;
-    varying highp vec4 vertexPos;
-    varying highp mat4 objRotMat;
-    varying highp vec4 normalVec;
-
+    varying highp vec4 normal;
+    varying highp vec4 pos;
 
     void main() {
-        vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
+        vec4 vPos = uObjectScaleVector * vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
         gl_Position = uProjectionMatrix * uViewMatrix * uObjectPositionMatrix * uObjectRotationMatrix * vPos;
-
-        /*
-        float vari = dot(vec4( 0.6, 0.2, 0.78, 0), uObjectRotationMatrix * aNormalVector);
-        vari += 0.01;
-        vari = vari*vari*vari;
-        //vari = vari * (1.0-fract(sin(vPos.x)*49284.38272)/10.0);
-        if (vari < 0.1)
-        {
-            vari = 0.1;
-        }
-        if (vari > 10.01 && aColor.z > 0.6 && aColor.x < 0.5) {
-            color.x = 0.9;
-            color.y = 0.7;
-            color.z = 0.2;
-        } else {
-            color.x = aColor.x * vari;
-            color.y = aColor.y * vari;
-            color.z = aColor.z * vari;
-        }
-        color.a = 1.0;
-        */
-        color = aColor;
-        objRotMat = uObjectRotationMatrix;
-        normalVec = aNormalVector;
-        vertexPos = vPos;
+        normal = uObjectRotationMatrix * aNormalVector;
+        //float c = dot(uObjectRotationMatrix*normal, vec4(0.4, 0.4, 0.9, 0) );
+        color = aColor;// * c;
+        pos = uProjectionMatrix * uViewMatrix * uObjectRotationMatrix * vPos;
     }
     `;
     const fsSource = `
-    precision mediump float;
+    precision highp float;
 
     varying vec4 color;
-    varying vec4 vertexPos;
-    varying mat4 objRotMat;
-    varying vec4 normalVec;
+    varying vec4 normal;
+    varying vec4 pos;
+
 
     float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
     {
@@ -117,6 +165,14 @@ function initDefaultShaderProgram(gl) {
         {
             float t1 = (-b-top)/(2.0*a);
             float t2 = (-b+top)/(2.0*a);
+
+            float t = t1 - t2;
+            if (t < 0.0)
+            {
+                return -t/sR;
+            }
+            return t/sR;
+
             if (t1 > 0.1 && (t1 < t2 || t2 < 0.1))
             {
                 return t1;
@@ -125,50 +181,47 @@ function initDefaultShaderProgram(gl) {
                 return t2;
             }
         }
-        return 10000.0;
+        return 1000000.0;
     }
 
 
-    vec3 unit(vec3 ray)
+    vec3 unit(vec3 r)
     {
-        float mag = sqrt(ray.x*ray.x + ray.y*ray.y + ray.z*ray.z);
-        ray.x = ray.x/mag;
-        ray.y = ray.y/mag;
-        ray.z = ray.z/mag;
-        return ray;
-    }
-    vec4 unit(vec4 ray)
-    {
-        float mag = sqrt(ray.x*ray.x + ray.y*ray.y + ray.z*ray.z + ray.a*ray.a);
-        ray.x = ray.x/mag;
-        ray.y = ray.y/mag;
-        ray.z = ray.z/mag;
-        ray.a = ray.a/mag;
-        return ray;
+        float mag = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
+        r.x = r.x/mag;
+        r.y = r.y/mag;
+        r.z = r.z/mag;
+        return r;
     }
 
 
     void main() {
-        //gl_FragColor = color + vec4(fract(vertexPos.x/100.0), fract(vertexPos.y/100.0), fract(vertexPos.z/100.0), 1.0)/10.0;
-        //gl_FragColor = color + vec4(fract(sin(vertexPos.x*22.5392)), fract(sin(vertexPos.y*3.5392)), fract(sin(vertexPos.z*4.539)), 1.0)/10.0;
-        
-        vec4 sun =  vec4( -1, 1, 1, 1) ;
-        float v = 1.0;//dot(sun, objRotMat * normalVec);
-        vec4 ray = objRotMat * normalVec;
 
-        v = distToSphere(ray.xyz, vertexPos.xyz, sun.xyz, 1.0); 
-        
-        
-        v = 1.0/v;
+        gl_FragColor = vec4(0,0,0,1);
 
-        //v = dot(ray.xyz, sun.xyz);
 
-        if (v < 0.02) {
-            v = 0.2;
+        float c = dot(normal, vec4(0.4, 0.85, 0.4, 0) );
+        if (c < 0.1) {c = 0.1;}
+        gl_FragColor += color*vec4(c, c/2.0, 0, 0);
+
+
+        c = dot(normal, vec4(-0.4, 0.85, 0.4, 0) );
+        if (c < 0.1) {c = 0.1;}
+        gl_FragColor += color*vec4(0, c/2.0, c, 0);
+
+
+        float ret = distToSphere(unit(normal.xyz), pos.xyz, vec3(70,50,100), 20.0);
+        if (ret > 0.0 && ret < 10000.0)
+        {
+            gl_FragColor += vec4(ret/50.0, ret/100.0, 0, 0);
         }
 
+        ret = distToSphere(unit(normal.xyz), pos.xyz, vec3(-70,50,100), 20.0);
+        if (ret > 0.0 && ret < 10000.0)
+        {
+            gl_FragColor += vec4(0, ret/100.0, ret/50.0, 0);
+        }
 
-        gl_FragColor = vec4(color.x*v, color.y*v, color.z*v, 1.0);
     }
     `;
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
@@ -199,6 +252,7 @@ function initDefaultShaderProgram(gl) {
           viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
           objectPositionMatrix: gl.getUniformLocation(shaderProgram, 'uObjectPositionMatrix'),
           objectRotationMatrix: gl.getUniformLocation(shaderProgram, 'uObjectRotationMatrix'),
+          objectScaleVector: gl.getUniformLocation(shaderProgram, 'uObjectScaleVector'),
         },
     };
 
@@ -209,13 +263,12 @@ function initDefaultShaderProgram(gl) {
 //Render & Drawing //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 //Used for rendering tringles or lines
-function drawDefault(gl, projectionMatrix, viewMatrix, objectPositionMatrix, objectRotationMatrix, indices, buffers, drawTriangles = true)
+function drawReflective(gl, projectionMatrix, viewMatrix, objectPositionMatrix, objectRotationMatrix, objectScaleVector, indices, buffers, drawTriangles = true)
 {
-    var programInfo = defaultProgramInfo;
+    var programInfo = reflectiveProgramInfo;
 
     // Tell WebGL to use our program when drawing
     gl.useProgram(programInfo.program);
-
     {
         const numComponents = 3  // pull out 3 values per iteration
         const type = gl.FLOAT;    // the data in the buffer is 32bit floats
@@ -257,6 +310,7 @@ function drawDefault(gl, projectionMatrix, viewMatrix, objectPositionMatrix, obj
     gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
     gl.uniformMatrix4fv(programInfo.uniformLocations.objectPositionMatrix, false, objectPositionMatrix.getFloat32Array());
     gl.uniformMatrix4fv(programInfo.uniformLocations.objectRotationMatrix, false, objectRotationMatrix.getFloat32Array());
+    gl.uniform4fv(programInfo.uniformLocations.objectScaleVector, objectScaleVector.getFloat32Array());
 
     const vertexCount = indices.length;
     if (drawTriangles == true)
@@ -272,77 +326,268 @@ function drawDefault(gl, projectionMatrix, viewMatrix, objectPositionMatrix, obj
 
 
 
-const glCanvasElement = document.getElementById('reflectiveObjectCanvas');
-var gl;
-var FOV = (Math.PI/180.0) * 10;
-var aspect = glCanvasElement.width/glCanvasElement.height;
-var zNear = 4;
-var zFar = 50;
-var perspectiveProjectionMatrix = new mat4().makePerspective(FOV, aspect, zNear, zFar);
-var viewMatrix = (new mat4().makeRotation(0,0,0)).mul( new mat4().makeTranslation(0,0,-4) );
-var tick = 0;
 
-setup();
+class Object {
+    constructor(position = new vec4(), rotation = new vec4(), scale = new vec4(1,1,1,1)) {
+        this.position = position;
+        this.rotation = rotation;
+        this.scale = scale;
+        this.translationMatrix = new mat4().makeTranslation(this.position.x, this.position.y, this.position.z);
+        this.rotationMatrix = new mat4().makeRotation(this.rotation.x, this.rotation.y, this.rotation.z);
 
-const updateInterval = setInterval(update, 50);
+        this.vertices = [];
+        this.indices = [];
+        this.normals = [];
+        this.colors = [];
+        this.buffers = initBuffers(gl_reflective, this.vertices, this.normals, this.colors, this.indices);
+    }
+
+    setPosition(position = new vec4())
+    {
+        this.position = position;
+        this.translationMatrix.makeTranslation(this.position.x, this.position.y, this.position.z);
+    }
+    setRotation(rotation = new vec4())
+    {
+        this.rotation = rotation;
+        this.rotationMatrix.makeRotation(this.rotation.x, this.rotation.y, this.rotation.z);
+    }
+    setScale(scale = new vec4(1,1,1,1))
+    {
+        this.scale = scale;
+    }
+    setColor(color = new vec4(), variation = 0.0)
+    {
+        for (var i=0; i<this.colors.length; i+=4)
+        {
+            colors[i] = color.x + Math.random() * variation;
+            colors[i+1] = color.x + Math.random() * variation;
+            colors[i+2] = color.x + Math.random() * variation;
+            colors[i+3] = 1;
+        }
+        this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
+    }
+    draw(gl, projectionMatrix, viewMatrix)
+    {
+        drawReflective(gl, projectionMatrix, viewMatrix, 
+            this.translationMatrix, 
+            this.rotationMatrix,
+            this.scale,
+            this.indices, this.buffers, true );
+    }
+}
+class Cube extends Object {
+    constructor(position = new vec4(), rotation = new vec4(), scale = new vec4(1,1,1,1)) {
+        super(position, rotation, scale);
+
+        this.vertices = cube_vertices;
+        this.indices = cube_indices;
+        this.normals = cube_normals;
+        this.colors = cube_colors;
+
+        this.buffers = initBuffers(gl_reflective, this.vertices, this.normals, this.colors, this.indices);
+    }
+}
+class Sphere extends Object {
+    constructor(position = new vec4(), rotation = new vec4(), scale = new vec4(1,1,1,1), color = new vec4(0,0,1,1), colorMod = 0.05, numSides = 1) {
+        super(position, rotation, scale);
+        this.numSides = numSides;
+        this.color = color;
+        this.colorMod = colorMod;
+        this.generateMesh();
+    }
+
+    generateMesh() {
+        let ret = generateSphere(this.numSides, 1, this.color, this.colorMod);
+        this.vertices = ret.vertices;
+        this.indices = ret.indices;
+        this.normals = ret.normals;
+        this.colors = ret.colors;
+        this.buffers = initBuffers(gl_reflective, this.vertices, this.normals, this.colors, this.indices);
+    }
+}
+
+setup_reflective();
 
 
+var objects = [
+    new Sphere(new vec4(-1.1,1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.2,0.2,1), 0.2, 2),
+    new Sphere(new vec4( 1.1,1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.2,0.7,0.2,1), 0.2, 3),
+    new Sphere(new vec4(-1.1,-1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.2,0.2,0.7,1), 0.2, 4),
+    new Sphere(new vec4( 1.1,-1.1,0,0), new vec4(), new vec4(1,1,1,1), new vec4(0.7,0.7,0.7,1), 0.2, 5),
+];
 
-function setup() {
+const updateInterval = setInterval(update_reflective, 50);
 
-    glCanvasElement.width = glCanvasElement.width*2;
-    glCanvasElement.height = glCanvasElement.height*2;
 
-    gl = glCanvasElement.getContext("webgl");
-    if (gl === null) {
+function setup_reflective() {
+    glCanvasElement_reflective.width = glCanvasElement_reflective.width*2;
+    glCanvasElement_reflective.height = glCanvasElement_reflective.height*2;
+    gl_reflective = glCanvasElement_reflective.getContext("webgl");
+    if (gl_reflective === null) {
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
         return;
     } else {
         console.log("GL defined ")
     }
-
-    InitShader(gl);
+    InitShader(gl_reflective);
 }
 
 
-function update() {
+function update_reflective() {
     tick += 0.05;
-    gl.clearColor(0.01, 0.01, 0.01, 0);    // Clear to black, fully opaque
-    gl.clearDepth(1);                   // Clear everything
-    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+    gl_reflective.clearColor(0.01, 0.01, 0.01, 0);    // Clear to black, fully opaque
+    gl_reflective.clearDepth(1);                   // Clear everything
+    gl_reflective.enable(gl_reflective.DEPTH_TEST);           // Enable depth testing
+    gl_reflective.depthFunc(gl_reflective.LEQUAL);            // Near things obscure far things
 
-    //gl.enable(gl.CULL_FACE);
+    gl_reflective.enable(gl_reflective.CULL_FACE);
     // Clear the canvas before we start drawing on it.
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl_reflective.clear(gl_reflective.COLOR_BUFFER_BIT | gl_reflective.DEPTH_BUFFER_BIT);
 
-    vertices = [-1,1,1, 1,1,1, 1,-1,1, -1,-1,1, //front
-        -1,1,-1, -1,-1,-1, 1,-1,-1, 1,1,-1, //back
-        -1,1,1, -1,1,-1, 1,1,-1, 1,1,1, //top
-        -1,1,1, -1,-1,1, -1,-1,-1, -1,1,-1, //left
-    ];
-    indices = [0,1,2, 0,2,3, //front
-        4,5,6, 4,6,7, //back
-        8,9,10,8,10,11, //top
-        12,13,14,12,14,15, //left
-    ];
-    normals = [0,0,1, 0,0,1, 0,0,1, 0,0,1, //front
-        0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,  //back
-        0,1,0, 0,1,0, 0,1,0, 0,1,0, //top
-        -1,0,0, -1,0,0, -1,0,0, -1,0,0, //left
+    for (var i=0; i<objects.length; i++){
+        objects[i].setRotation(new vec4(tick, tick/(i+1), tick/(i%2 + 1)));
+        objects[i].draw(gl_reflective, perspectiveProjectionMatrix, viewMatrix);
+    }
+}
+
+
+
+
+
+
+function generateSphere(steps = 5, radius = 1, color = new vec4(0,0,1,1), colorMod = 0.1)
+{
+    //var vertices = [0,-1,0, 1,0,0, 0,0,1, -1,0,0, 0,0,-1, 0,1,0];
+    var indices = [0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 4,5,1];
+    var vertices = [
+        new vec4(0,-1,0),
+        new vec4(1,0,0),
+        new vec4(0,0,1),
+        new vec4(-1,0,0),
+        new vec4(0,0,-1),
+        new vec4(0,1,0),
     ];
 
-    colors = [1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1,
-        0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1,
-        0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1,
-        1,1,0,1, 1,1,0,1, 1,1,0,1, 1,1,0,1,
-    ];
 
-    var buffers = initBuffers(vertices, normals, colors, indices);
+    var vertDict = new Map();
+    for (var i in vertices)
+    {
+        vertices[i].muli(radius);
+        vertDict.set(vertices[i], i);
+    }
+   
+    //Generate sphere mesh
+    var zz = new vec4();
+    for (var s=0; s<steps; s++)
+    {
+        var inds = [];
 
-    drawDefault(gl, perspectiveProjectionMatrix, viewMatrix, 
-        new mat4().makeTranslation(), 
-        new mat4().makeRotation(tick,tick,tick),
-        indices, buffers, true
-        );
+        for( var i=0; i<indices.length; i+=3)
+        {
+            let v1 = vertices[indices[i]];
+            let v2 = vertices[indices[i+1]];
+            let v3 = vertices[indices[i+2]];
+
+            let b1 = (v1.add(v2)).muli(0.5);
+            b1.muli( radius/distanceBetweenPoints(b1, zz)  );
+            let b2 = (v2.add(v3)).muli(0.5);
+            b2.muli( radius/distanceBetweenPoints(b2, zz)  );
+            let b3 = (v1.add(v3)).muli(0.5);
+            b3.muli( radius/distanceBetweenPoints(b3, zz)  );
+
+
+            let r = vertDict.get(b1);
+            if (r != null) {
+                b1 = r;
+            } else {
+                r = vertices.length;
+                vertDict.set(b1,r);
+                vertices.push(b1);
+                b1 = r;
+            }
+
+            r = vertDict.get(b2);
+            if (r != null) {
+                b2 = r;
+            } else {
+                r = vertices.length;
+                vertDict.set(b2,r);
+                vertices.push(b2);
+                b2 = r;
+            }
+
+            r = vertDict.get(b3);
+            if (r != null) {
+                b3 = r;
+            } else {
+                r = vertices.length;
+                vertDict.set(b3,r);
+                vertices.push(b3);
+                b3 = r;
+            }
+
+            inds.push(indices[i], b1, b3,   b1, indices[i+1], b2,   b3, b2, indices[i+2],  b1,b2,b3);
+        }
+
+        indices = inds;
+    }
+
+    var v = [];
+    var ind = [];
+    var n = [];
+    var c = [];
+
+    //transform...
+
+    var indOn = 0;
+    for(var i=0; i<indices.length; i+=3)
+    {
+
+        v.push( vertices[indices[i]].x, vertices[indices[i]].y, vertices[indices[i]].z);
+        v.push( vertices[indices[i+1]].x, vertices[indices[i+1]].y, vertices[indices[i+1]].z);
+        v.push( vertices[indices[i+2]].x, vertices[indices[i+2]].y, vertices[indices[i+2]].z);
+
+
+        ind.push(indOn, indOn+1, indOn+2);
+        indOn += 3;
+
+        
+        //n.push( nx,ny,nz, nx,ny,nz, nx,ny,nz);
+        
+        var maxMag = Math.max(vertices[indices[i+0]].getLength(), vertices[indices[i+1]].getLength(), vertices[indices[i+2]].getLength())/radius;
+
+        if (maxMag < -1)
+        {
+            var n1 = vertices[indices[i]].copy().scaleToUnit();
+            var n2 = vertices[indices[i+1]].copy().scaleToUnit();
+            var n3 = vertices[indices[i+2]].copy().scaleToUnit();
+            n.push( n1.x, n1.y, n1.z,  n2.z, n2.y, n2.z, n3.x, n3.y, n3.z);
+        } else {
+            var a = vertices[indices[i+1]].sub(vertices[indices[i]]);
+            var b = vertices[indices[i+2]].sub(vertices[indices[i]]);
+            b.scaleToUnit();
+            a.scaleToUnit();
+            var nx = a.y*b.z - a.z*b.y;
+            var ny = a.z*b.x - a.x*b.z;
+            var nz = a.x*b.y - a.y*b.x;
+            let newN = new vec4(nx,ny,nz).scaleToUnit();
+            n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+        }
+
+
+        let mod = Math.random() * colorMod;
+        for (var k=0; k<3; k++){
+            c.push(color.x+mod, color.y+mod, color.z+mod, color.a);
+        }
+
+    }
+
+
+    return {
+        vertices: v,
+        indices: ind,
+        normals: n,
+        colors: c,
+    }
 }

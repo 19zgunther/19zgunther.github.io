@@ -132,8 +132,6 @@ function mouseWheel(event)
 
 
 
-
-
 function move_camera_home_button_press()
 {
     if (currentSketch == null)
@@ -143,8 +141,6 @@ function move_camera_home_button_press()
         currentSketch.slideTo();
     }
 }
-
-
 function updateCameraSettings(element = null)
 {
     FOV = (Math.PI/180.0) * perspective_fovSliderElement.value;
@@ -176,7 +172,6 @@ function updateCameraSettings(element = null)
         currentSketch.updateProjectionMatrix();
     }
 }
-
 
 
 
@@ -355,6 +350,9 @@ function speedTest() {
     
 
 }
+
+
+
 
 
 

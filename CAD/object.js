@@ -94,7 +94,6 @@ class Object {
     }
 }
 
-
 class Grid extends Object{
     constructor(position = new vec4(), rotation = new vec4(), gridScale = 1, colorMod = new vec4(1,1,1,1)) {
         super(position, rotation);
@@ -221,7 +220,6 @@ class Grid extends Object{
     }
 }
 
-
 class Compass extends Object{
     constructor(position, rotation){
         super(position, rotation);
@@ -244,7 +242,6 @@ class Compass extends Object{
     }
 }
 
-
 class Body extends Object {
     draw(gl, projectionMatrix, viewMatrix)
     {
@@ -252,7 +249,6 @@ class Body extends Object {
         DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
     }
 }
-
 
 class Text {
     constructor(pos = new vec4(), rot = new vec4(), text = "default_text", textColor = new vec4(0,0,0,255), shouldBake = false)
@@ -388,8 +384,6 @@ class Text {
         }
     }
 }
-
-
 
 
 

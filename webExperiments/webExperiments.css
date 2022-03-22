@@ -25,6 +25,7 @@
     min-height: fit-content;
     
     position: relative;
+    
 }
 
 .experiment_section_title {
@@ -43,6 +44,7 @@
     animation-timing-function: linear;
 
     display:inline;
+    position: absolute;
 }
 
 @keyframes pulse_opacity {
