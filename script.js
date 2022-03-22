@@ -21,6 +21,7 @@ function buttonClick(buttonName) {
         case 'cad': pageString = 'CAD/cad.html'; break;
         case 'raytracing': pageString = 'raytracing/raytracing.html'; break;
         case 'planet_generator': pageString = 'planetGenerator/planetGenerator.html'; break;
+        case 'web_experiments': pageString = 'webExperiments/webExperiments.html'; break;
     }
     if (String(document.location).includes('index.html') || String(document.location).includes('resume.html'))
     {
@@ -129,11 +130,14 @@ if (menuProjectsElement != null) {
     <div class = 'menu_dropdown_child' onclick='buttonClick("planet_generator")'>
         Planet Generator
     </div>
+    <div class = 'menu_dropdown_child' onclick='buttonClick("web_experiments")'>
+        Web Dev Experiments <br> (in dev)
+    </div>
     <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
-        Ray Tracing Project (in dev)
+        Ray Tracing Project <br> (in dev)
     </div>
     <div class = 'menu_dropdown_child' onclick='buttonClick("cad")'>
-        CAD (in dev)
+        CAD <br>(in dev)
     </div>
     `;
 
