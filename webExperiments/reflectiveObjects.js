@@ -166,12 +166,13 @@ function initReflectiveShaderProgram(gl) {
             float t1 = (-b-top)/(2.0*a);
             float t2 = (-b+top)/(2.0*a);
 
-            float t = t1 - t2;
+            float t = (t1 - t2)/sR;
+
             if (t < 0.0)
             {
-                return -t/sR;
+                return -t;
             }
-            return t/sR;
+            return t;
 
             if (t1 > 0.1 && (t1 < t2 || t2 < 0.1))
             {

@@ -21,9 +21,8 @@
     margin-bottom: 10vh;
     justify-self: center;
     width: 90%;
-    height: 30vh;
-    min-height: fit-content;
-    
+    min-height: 30vh;
+    height: fit-content;
     position: relative;
     
 }
