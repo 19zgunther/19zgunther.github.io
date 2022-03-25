@@ -113,20 +113,34 @@
             <canvas id = 'glCanvas_water' style='height: 100%; width:100%;'> </canvas>
             <div style='width: 100%; height: fit-content; position: relative;'>
                 
-                <div style='padding: 2%; width: fit-content; height: fit-content;'>
-
-                    <input type='range' min ='0' max='5' value ='0' step='1' id ='waveTypeInput' onchange=inputChange_water()>Wave Type</input> <br>
-                    <input type='range' min ='0' max='3' value='0.5' step='.01' id ='waveAmplitudeInput' onchange=inputChange_water()>Wave Amplitude</input> <br>
-                    <input type='range' min ='0' max='0.2' value='0.05' step='.01' id ='waveSpeedInput' onchange=inputChange_water()>Wave Speed</input> <br>
-                    <input type='range' min ='0' max='0.2' value='0.02' step='.01' id ='lightRotationSpeedInput' onchange=inputChange_water()>Light Source Rotation Speed</input> <br>
-                    <input type='range' min ='4' max='100' value='10' step='1' id ='lightRadiusInput' onchange=inputChange_water()>Light Source Radius</input> <br>
-                    <input type='range' min ='4' max='100' value='7' step='1' id ='lightHeightInput' onchange=inputChange_water()>Light Source Height</input> <br>
-
-                    <!--TODO Add more Inputs: Cam Position, Light Height-->
+                <div style='padding: 2%; width: 100%; height: fit-content; display: flex; flex-wrap:wrap;'>
+                    <div stlye='width:fit-content; height:fit-content;  margin: 10px;'>
+                        <input type='range' min ='10' max='100' value ='30' step='10' id ='meshSizeInput' oninput=inputChange_water()>Mesh Size</input> <br>
+                    </div>
+                    <br>
+                    <div stlye='width:fit-content; height:fit-content;'>
+                        <input type='range' min ='0' max='5' value ='1' step='1' id ='waveTypeInput' oninput=inputChange_water()>Wave Type</input> <br>
+                        <input type='range' min ='0' max='3' value='0.5' step='.01' id ='waveAmplitudeInput' oninput=inputChange_water()>Wave Amplitude</input> <br>
+                        <input type='range' min ='0' max='0.2' value='0.05' step='.01' id ='waveSpeedInput' oninput=inputChange_water()>Wave Speed</input> <br>
+                    </div>
+                    <br>
+                    <div stlye='width:fit-content; height:fit-content;'>
+                        <input type='range' min ='0' max='100' value='10' step='1' id ='cameraPositionYInput' oninput=inputChange_water()>Camera Y</input> <br>
+                        <input type='range' min ='0' max='100' value='20' step='1' id ='cameraPositionZInput' oninput=inputChange_water()>Camera Z</input> <br>
+                        <input type='range' min ='0' max='1' value='0.6' step='.01' id ='cameraRotationZInput' oninput=inputChange_water()>Camera Rotation</input> <br>    
+                    </div>
+                    <br>
+                    <div stlye='width:fit-content; height:fit-content;'>
+                        <input type='range' min ='0' max='0.2' value='0.02' step='.01' id ='lightRotationSpeedInput' oninput=inputChange_water()>Light Source Rotation Speed</input> <br>
+                        <input type='range' min ='4' max='100' value='10' step='1' id ='lightRadiusInput' oninput=inputChange_water()>Light Source Radius</input> <br>
+                        <input type='range' min ='4' max='100' value='7' step='1' id ='lightHeightInput' oninput=inputChange_water()>Light Source Height</input> <br>
+                    </div>
                     
+                    <!--TODO Add more Inputs: Cam Position, Light Height-->
                 </div>
-                <div style='padding: 2%;'>
+                <div style='padding: 2%; flex-grow: 1;'>
                     TODO ***Description***
+                    
                 </div>
             </div>
         </div>

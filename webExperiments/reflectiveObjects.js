@@ -4,7 +4,7 @@
 
 
 
-
+{
 
 
 let reflectiveShaderProgram;
@@ -609,4 +609,6 @@ function generateSphere(steps = 5, radius = 1, color = new vec4(0,0,1,1), colorM
         normals: n,
         colors: c,
     }
+}
+
 }

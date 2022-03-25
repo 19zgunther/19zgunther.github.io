@@ -26,11 +26,12 @@ let objectPositionMatrix = new mat4().makeTranslation();
 let objectRotationMatrix = new mat4().makeRotation();
 let objectScaleVector = new vec4(1,1,1,1);
 let lightSourceVector = new vec4();
-let cameraVector = new vec4(0, 10, 25);
+let cameraPositionVector = new vec4(0, 10, 25);
+let cameraRotationVector = new vec4(0, 0, 0.4);
 
 
 let projectionMatrix = new mat4().makePerspective(FOV, aspect, zNear, zFar);
-let viewMatrix = (new mat4().makeRotation(0,0,0.4)).mul( new mat4().makeTranslation(-cameraVector.x, -cameraVector.y, -cameraVector.z) );
+let viewMatrix = (new mat4().makeRotation(cameraRotationVector.x,cameraRotationVector.y,cameraRotationVector.z)).mul( new mat4().makeTranslation(-cameraPositionVector.x, -cameraPositionVector.y, -cameraPositionVector.z) );
 
 let meshSize = 30;
 let ret = generateMesh(meshSize);
@@ -151,7 +152,7 @@ function initWaterShaderProgram(gl) {
 
         //General Illuminance
         vec4 ls = unit(pos - uLightSourceVector);
-        v = dot(ls, normal)/4.0 + 0.75;
+        v = dot(ls, normal)/1.0 + 1.0;
         gl_FragColor += color * v;
         gl_FragColor.a = 1.0;
     }`;
@@ -245,7 +246,6 @@ function update() {
     {
         for (var x=1; x<meshSize-1; x++)
         {
-
             if (waveType  < 0.5) {
                 ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick*1.1 + z/2) + Math.cos(waveTick + x/2) + Math.sin(z/2 + x/3+ waveTick) ) *waveAmplitude;
             } else if (waveType < 1.5)
@@ -272,9 +272,9 @@ function update() {
             n.z = ret.vertices[((z-1)*meshSize + x)*3 + 1] - ret.vertices[((z+1)*meshSize + x)*3 + 1];
             n.scaleToUnit();
 
-            ret.normals[ (z*meshSize + x)*3    ] = n.x * 3;
+            ret.normals[ (z*meshSize + x)*3    ] = n.x;
             ret.normals[ (z*meshSize + x)*3 + 1] = n.y;
-            ret.normals[ (z*meshSize + x)*3 + 2] = n.z * 3;
+            ret.normals[ (z*meshSize + x)*3 + 2] = n.z;
         }
     }
     lightRotationTick += lightRotationSpeed
@@ -310,7 +310,7 @@ function update() {
     gl.uniformMatrix4fv(waterProgramInfo.uniformLocations.objectRotationMatrix, false, objectRotationMatrix.getFloat32Array());
     gl.uniform4fv(waterProgramInfo.uniformLocations.objectScaleVector, objectScaleVector.getFloat32Array());
     gl.uniform4fv(waterProgramInfo.uniformLocations.lightSourceVector, lightSourceVector.getFloat32Array());
-    gl.uniform4fv(waterProgramInfo.uniformLocations.cameraVector, cameraVector.getFloat32Array());
+    gl.uniform4fv(waterProgramInfo.uniformLocations.cameraVector, cameraPositionVector.getFloat32Array());
 
     gl.drawElements(gl.TRIANGLES, ret.indices.length, gl.UNSIGNED_SHORT, 0);
 }
@@ -318,12 +318,30 @@ function update() {
 
 function inputChange_water() {
     try {
+
+        let nms = Math.round(Number(document.getElementById('meshSizeInput').value));
+        if (nms != meshSize)
+        {
+            meshSize = nms; 
+            ret = generateMesh(meshSize);   
+        }
+
+
         waveType = Number(document.getElementById('waveTypeInput').value);
         waveAmplitude = Number(document.getElementById('waveAmplitudeInput').value);
         waveSpeed =  Number(document.getElementById('waveSpeedInput').value);
+
         lightRotationSpeed = Number(document.getElementById('lightRotationSpeedInput').value);
         lightRadius = Math.pow(Number(document.getElementById('lightRadiusInput').value), 2);
-        lightHeight = Math.pow(Number(document.getElementById('lightHeightInput').value), 2);        
+        lightHeight = Math.pow(Number(document.getElementById('lightHeightInput').value), 2);    
+    
+        cameraPositionVector.y = Number(document.getElementById('cameraPositionYInput').value);
+        cameraPositionVector.z = Number(document.getElementById('cameraPositionZInput').value);
+        cameraRotationVector.z = Number(document.getElementById('cameraRotationZInput').value);
+        viewMatrix = (new mat4().makeRotation(cameraRotationVector.x,cameraRotationVector.y,cameraRotationVector.z)).mul( new mat4().makeTranslation(-cameraPositionVector.x, -cameraPositionVector.y, -cameraPositionVector.z) );
+
+
+
     } catch {
 
     }
