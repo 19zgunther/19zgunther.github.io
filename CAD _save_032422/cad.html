@@ -92,6 +92,7 @@
 
     
 
+
     <!-- Overlays! -->
     <div style="width: 1; height:1;">
         <div id = 'sketchMenu' style = 'display:none;'>
@@ -155,32 +156,21 @@
     </div>
 
     <!-- Canvas! -->
-    <div style="position: relative; width: fit-content; height: fit-content;">
+    <div style="position: relative; z-index: -1; width: 100%; height: fit-content;">
         <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown="mouseDown(event)"  onmouseup="mouseUp(event)"></canvas>
-        
-        
-        
-        <div id='addObjectsContainer'>
-            <div class = 'button' id='cube' onclick = addObjectButtonPress(this)>Add Cube</div>
-            <div class = 'button' id='cylinder' onclick = addObjectButtonPress(this)>Add Cylinder</div>
-        </div>
-        
-        <div id='objectContainer'>
-            <item>
-                hi
-            </item>
-        </div>
         <div id = 'cameraPositionDetailsElement' style = 'z-index: 0.1; left:600; display:flex; position: absolute; font-size: small; width: fit-content; flex-wrap: nowrap;'>
-            Camera Position, Rotation, and <br> OTher
+            Camera Position, Rotation, and <br>OTher
         </div>
-
     </div>
+
+
 
     <div class = 'button' style='position:relative' onclick = createSketchMenu_show()>Create Sketch</div>
     
     <div class = 'button'  onclick = move_camera_home_button_press()>Move to home position</div>
 
     <!--<div style="height: 800px;">tall_boi_div</div>-->
+
 
 </body>
 

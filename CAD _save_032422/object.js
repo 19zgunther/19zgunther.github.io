@@ -1,7 +1,17 @@
 class Object {
-    constructor(pos = new vec4(), rot = new vec4()) {
-        this.position = pos;
-        this.rotation = rot;
+    constructor(pos, rot) {
+        if (pos instanceof vec4)
+        {
+            this.position = pos;
+        } else {
+            this.position = new vec4();
+        }
+        if (rot instanceof vec4)
+        {
+            this.rotation = rot;
+        } else {
+            this.rotation = new vec4();
+        }
         
         this.translationMatrix = new mat4().makeTranslation(this.position);
         this.rotationMatrix = new mat4().makeRotation(this.rotation);
@@ -232,6 +242,14 @@ class Compass extends Object{
     }
 }
 
+class Body extends Object {
+    draw(gl, projectionMatrix, viewMatrix)
+    {
+        if (!this.enableDraw) {return;}
+        DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
+    }
+}
+
 class Text {
     constructor(pos = new vec4(), rot = new vec4(), text = "default_text", textColor = new vec4(0,0,0,255), shouldBake = false)
     {
@@ -367,142 +385,8 @@ class Text {
     }
 }
 
-class Body extends Object {
-    constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
-        super(pos, rot);
-        this.scale = scale;
-        this.type = 'Body'
-        this.id = Math.round(Math.random()*1000000); //assign random id
 
-        this.lineIndices = [0,1];
-        this.lineBuffers = initBuffers(this.vertices, [], [], this.lineIndices);
-    }
-    setScale(scale = vec4())
-    {
-        this.scale = scale;
-    }
-    draw(gl, projectionMatrix, viewMatrix, highlightVector = new vec4())
-    {
-        if (!this.enableDraw) {return;}
-        //DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
-        //DrawBody(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.indices, this.buffers, highlightVector);
-        DrawLine(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.lineIndices, this.lineBuffers);
-        DrawBody(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.indices, this.buffers, highlightVector);
-    }
-    refresh(){
-        super.refresh();
-        this.lineBuffers = initBuffers(this.vertices, [], [], this.lineIndices);
-    }
-    getHTMLText()
-    {
-        return "<item id = \'"+this.id+"\' onclick = objectClicked(this) >" + 
-            this.type + 
-            "</item>"
-    }
-}
 
-class Cube extends Body {
-    constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
-        super(pos, rot, scale);
-
-        this.type = 'Cube';
-
-        this.vertices = [
-            -1,1,1, 1,1,1, 1,-1,1, -1,-1,1, //front
-            -1,1,-1, -1,-1,-1, 1,-1,-1, 1,1,-1, //back
-            -1,1,1, -1,1,-1, 1,1,-1, 1,1,1, //top
-            -1,1,1, -1,-1,1, -1,-1,-1, -1,1,-1, //left
-            1,1,1, 1,1,-1, 1,-1,-1, 1,-1,1, //right
-            -1,-1,1, 1,-1,1, 1,-1,-1, -1,-1,-1, //bottom
-        ];
-        this.indices = [
-            0,2,1, 0,3,2, //front
-            4,6,5, 4,7,6, //back
-            8,10,9, 8,11,10, //top
-            12,14,13, 12,15,14, //left
-            16,18,17, 16,19,18, //right
-            20,22,21, 20,23,22, //bottom
-        ];
-        this.normals = [
-            0,0,1, 0,0,1, 0,0,1, 0,0,1,
-            0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
-            0,1,0, 0,1,0, 0,1,0, 0,1,0,
-            -1,0,0, -1,0,0, -1,0,0, -1,0,0, //left
-            1,0,0, 1,0,0, 1,0,0, 1,0,0, //right
-            0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, //bottom
-        ];
-        this.colors = [
-            /*
-            1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1,
-            0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1,
-            0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1,
-            1,1,0,1, 1,1,0,1, 1,1,0,1, 1,1,0,1,
-            1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
-            0,1,1,1, 0,1,1,1, 0,1,1,1, 0,1,1,1*/
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-        ];
-
-        this.lineIndices = [0,1, 1,2, 2,3, 3,0, 
-            4,5,5,6,6,7,7,4, 
-            0,4, 7,1, 2,6, 5,3];
-        this.refresh();
-    }
-}
-
-class Cylinder extends Body {
-    constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
-        super(pos, rot, scale);
-
-        this.type = 'Cylinder';
-
-        this.vertices = [
-            -1,1,1, 1,1,1, 1,-1,1, -1,-1,1, //front
-            -1,1,-1, -1,-1,-1, 1,-1,-1, 1,1,-1, //back
-            -1,1,1, -1,1,-1, 1,1,-1, 1,1,1, //top
-            -1,1,1, -1,-1,1, -1,-1,-1, -1,1,-1, //left
-            1,1,1, 1,1,-1, 1,-1,-1, 1,-1,1, //right
-            -1,-1,1, 1,-1,1, 1,-1,-1, -1,-1,-1, //bottom
-        ];
-        this.indices = [
-            0,2,1, 0,3,2, //front
-            4,6,5, 4,7,6, //back
-            8,10,9, 8,11,10, //top
-            12,14,13, 12,15,14, //left
-            16,18,17, 16,19,18, //right
-            20,22,21, 20,23,22, //bottom
-        ];
-        this.normals = [
-            0,0,1, 0,0,1, 0,0,1, 0,0,1,
-            0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
-            0,1,0, 0,1,0, 0,1,0, 0,1,0,
-            -1,0,0, -1,0,0, -1,0,0, -1,0,0, //left
-            1,0,0, 1,0,0, 1,0,0, 1,0,0, //right
-            0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, //bottom
-        ];
-        this.colors = [
-            /*
-            1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1,
-            0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1,
-            0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1,
-            1,1,0,1, 1,1,0,1, 1,1,0,1, 1,1,0,1,
-            1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
-            0,1,1,1, 0,1,1,1, 0,1,1,1, 0,1,1,1*/
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-        ];
-
-        this.refresh();
-    }
-}
 
 
 

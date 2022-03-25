@@ -10,12 +10,6 @@ var gridProgramInfo;
 var textShaderProgram;
 var textProgramInfo;
 
-var bodyShaderProgram;
-var bodyProgramInfo;
-
-var lineShaderProgram;
-var lineProgramInfo;
-
 
 
 
@@ -158,8 +152,6 @@ function InitShader(gl)
     [defaultShaderProgram, defaultProgramInfo] =  initDefaultShaderProgram(gl);
     [gridShaderProgram, gridProgramInfo] =  initGridShaderProgram(gl);
     [textShaderProgram, textProgramInfo] =  initTextShaderProgram(gl);
-    [bodyShaderProgram, bodyProgramInfo] = initBodyShaderProgram(gl);
-    [lineShaderProgram, lineProgramInfo] = initLineShaderProgram(gl);
 }
 
 // creates a shader of the given type, uploads the source and compiles it.
@@ -239,85 +231,6 @@ function initDefaultShaderProgram(gl) {
 
 
     return [shaderProgram, programInfo]
-}
-
-function initBodyShaderProgram(gl) {
-    const vsSource = `
-    attribute vec4 aVertexPosition;
-    attribute vec4 aNormalVector;
-    attribute vec4 aColor;
-
-    uniform mat4 uProjectionMatrix;
-    uniform mat4 uViewMatrix;
-    uniform mat4 uObjectRotationMatrix;
-    uniform mat4 uObjectTranslationMatrix;
-    uniform vec4 uScaleVector;
-    uniform vec4 uHighlightVector;
-
-    varying highp vec4 color;
-
-    void main() {
-        vec4 vPos = vec4(uScaleVector.x*aVertexPosition.x, uScaleVector.y*aVertexPosition.y, uScaleVector.z*aVertexPosition.z, 1.0);
-        gl_Position = uProjectionMatrix * uViewMatrix * uObjectTranslationMatrix * uObjectRotationMatrix * vPos;
-
-        if (uHighlightVector.x < 0.1)
-        {
-            float ret = dot( uObjectRotationMatrix*aNormalVector, vec4(0.5, .7, .6, 0) );
-            if (ret < 0.4)
-            {
-                ret = 0.4;
-            }
-            color = aColor * ret + aNormalVector * .02;
-            color.a = 1.0;
-        } else {
-            color = uHighlightVector;
-        }
-    }
-    `;
-    const fsSource = `
-    precision mediump float;
-
-    varying vec4 color;
-
-    void main() {
-        gl_FragColor = color;
-    }
-    `;
-    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-    // Create the shader program
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    // If creating the shader program failed, alert
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-        return null;
-    }
-
-
-    const programInfo = {
-        program: shaderProgram,
-        attribLocations: {
-          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-          normalLocation: gl.getAttribLocation(shaderProgram, 'aNormalVector'),
-          colorLocation: gl.getAttribLocation(shaderProgram, 'aColor'),
-        },
-        uniformLocations: {
-          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
-          translationMatrix: gl.getUniformLocation(shaderProgram, 'uObjectTranslationMatrix'),
-          rotationMatrix: gl.getUniformLocation(shaderProgram, 'uObjectRotationMatrix'),
-          scaleVector: gl.getUniformLocation(shaderProgram, 'uScaleVector'),
-          highlightVector: gl.getUniformLocation(shaderProgram, 'uHighlightVector')
-        },
-    };
-
-
-    return [shaderProgram, programInfo];
 }
 
 function initGridShaderProgram(gl)
@@ -515,67 +428,7 @@ function initTextureShaderProgram(gl) {
     return [shaderProgram, programInfo]
 }
 
-function initLineShaderProgram(gl) {
-    const vsSource = `
-    attribute vec4 aVertexPosition;
 
-    uniform mat4 uProjectionMatrix;
-    uniform mat4 uViewMatrix;
-    uniform mat4 uObjectRotationMatrix;
-    uniform mat4 uObjectTranslationMatrix;
-    uniform vec4 uScaleVector;
-    uniform vec4 uColorVector;
-
-    varying highp vec4 color;
-
-    void main() {
-        vec4 vPos = vec4(uScaleVector.x*aVertexPosition.x, uScaleVector.y*aVertexPosition.y, uScaleVector.z*aVertexPosition.z, 1.0);
-        gl_Position = uProjectionMatrix * uViewMatrix * uObjectTranslationMatrix * uObjectRotationMatrix * vPos;
-        color = uColorVector;
-    }
-    `;
-    const fsSource = `
-    precision mediump float;
-
-    varying vec4 color;
-    void main() {
-        gl_FragColor = color;
-    }
-    `;
-    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
-
-    // Create the shader program
-    const shaderProgram = gl.createProgram();
-    gl.attachShader(shaderProgram, vertexShader);
-    gl.attachShader(shaderProgram, fragmentShader);
-    gl.linkProgram(shaderProgram);
-
-    // If creating the shader program failed, alert
-    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
-        return null;
-    }
-
-
-    const programInfo = {
-        program: shaderProgram,
-        attribLocations: {
-          vertexLocation: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-        },
-        uniformLocations: {
-          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-          viewMatrix: gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
-          translationMatrix: gl.getUniformLocation(shaderProgram, 'uObjectTranslationMatrix'),
-          rotationMatrix: gl.getUniformLocation(shaderProgram, 'uObjectRotationMatrix'),
-          scaleVector: gl.getUniformLocation(shaderProgram, 'uScaleVector'),
-          colorVector: gl.getUniformLocation(shaderProgram, 'uColorVector')
-        },
-    };
-
-
-    return [shaderProgram, programInfo]
-}
 
 
 
@@ -846,94 +699,7 @@ function DrawBakedText(gl, projectionMatrix, viewMatrix, objectMatrix, buffers, 
 }
 
 
-function DrawBody(gl, projectionMatrix, viewMatrix, translationMatrix, rotationMatrix, scaleVector, indices, buffers, highlightVector = new vec4())
-{
-    var programInfo = bodyProgramInfo;
-
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
-
-    {
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
-        gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
-    }
-    {
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
-        gl.vertexAttribPointer(programInfo.attribLocations.normalLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.normalLocation);
-    }
-    {
-        const numComponents = 4;  // pull out 4 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colors);
-        gl.vertexAttribPointer(programInfo.attribLocations.colorLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.colorLocation);
-    }
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-    // Set the shader uniforms
-    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.translationMatrix, false, translationMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.rotationMatrix, false, rotationMatrix.getFloat32Array());
-    gl.uniform4fv(programInfo.uniformLocations.scaleVector, scaleVector.getFloat32Array());
-    
-    gl.uniform4fv(programInfo.uniformLocations.highlightVector, highlightVector.getFloat32Array());
-
-    //gl.drawElements(gl.LINES, indices.length, gl.UNSIGNED_SHORT, 0);
-    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-}
-
-function DrawLine(gl, projectionMatrix, viewMatrix, translationMatrix, rotationMatrix, scaleVector, indices, buffers, colorVector = new vec4(0,0,0,1))
-{
-    var programInfo = lineProgramInfo;
-
-    // Tell WebGL to use our program when drawing
-    gl.useProgram(programInfo.program);
-
-    {
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertices);
-        gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
-    }
 
 
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
-
-    // Set the shader uniforms
-    gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix,  false, projectionMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.translationMatrix, false, translationMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.rotationMatrix, false, rotationMatrix.getFloat32Array());
-    gl.uniform4fv(programInfo.uniformLocations.scaleVector, scaleVector.getFloat32Array());
-    gl.uniform4fv(programInfo.uniformLocations.colorVector, colorVector.getFloat32Array());
-
-    //gl.drawElements(gl.LINES, indices.length, gl.UNSIGNED_SHORT, 0);
-    gl.drawElements(gl.LINES, indices.length, gl.UNSIGNED_SHORT, 0);
-}
 
 

@@ -107,6 +107,26 @@
             </div>
         </div>
         <div class = "experiment_section">
+            <div class = "experiment_section_title">
+                Water Graphics
+            </div>
+            <canvas id = 'glCanvas_water' style='height: 100%; width:100%;'> </canvas>
+            <div style='width: 100%; height: fit-content; position: relative;'>
+                
+                <div style='padding: 2%; width: fit-content; height: fit-content; flex-shrink: 0; float:right;'>
+
+                    <input type='range' min ='0' max='5' value ='0' step='1' id ='waveTypeInput' onchange=inputChange_water()>Wave Type</input> <br>
+                    <input type='range' min ='0.1' max='3' value='1' step='.01' id ='waveAmplitudeInput' onchange=inputChange_water()>Wave Amplitude</input> <br>
+                    <input type='range' min ='0.00' max='0.2' value='0.05' step='.01' id ='waveSpeedInput' onchange=inputChange_water()>Wave Speed</input> <br>
+                    <!--TODO Add more Inputs: Cam Position, Light Rotation Speed, Light Height-->
+               
+                </div>
+                <div style='padding: 2%;'>
+                    ***Description***
+                </div>
+            </div>
+        </div>
+        <div class = "experiment_section">
             More to come!
         </div>
     </div>
@@ -119,4 +139,5 @@
 <script src="../CAD/myMath.js"></script>
 <script src="webExperiments.js"></script>
 <script src="reflectiveObjects.js"></script>
+<script src="water.js"></script>
 </html>

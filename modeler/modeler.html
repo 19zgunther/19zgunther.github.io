@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zack Gunther</title>
+    <link rel="stylesheet" href="../menu.css">
+</head>
+
+<body style = "background-color: rgba(0,0,0,1);">
+
+
+
+    
+    <!-- Menu -->
+    <div class='menu'>
+        <div style='position: absolute; left:0; justify-self:left;'>
+            <div class='logo' onclick='buttonClick("home")'>
+                ZG
+            </div>
+        </div>
+        <div class='menu_item' onclick='buttonClick("resume")'> 
+            Resume
+        </div>
+        <div class='menu_item'>
+            Projects
+            <div class='menu_dropdown'>
+                <div id="INSERT_MENU_PROJECTS">
+                    null
+                </div>
+            </div>
+        </div>
+        <!--Scroll Progress Bar-->
+        <div id='scrollIndicatorBackground' class='scrollIndicatorBackground'>
+            <div id='scrollIndicator' class='scrollIndicator'>
+
+            </div>
+        </div>
+    </div>
+
+
+    <canvas id='glCanvas'></canvas>
+
+
+
+
+</body>
+
+<script src="../script.js"></script>
+<script src="../CAD/myMath.js"></script>
+<script src="modeler.js"></script>
+</html>

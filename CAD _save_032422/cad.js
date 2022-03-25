@@ -8,9 +8,6 @@ const orthogonal_zoomSliderElement = document.getElementById('orthogonalZoomSlid
 const perspective_checkboxElement = document.getElementById('perspectiveViewCheckbox');
 const orthogonal_checkboxElement = document.getElementById('orthogonalViewCheckbox');
 
-//Object list elements
-const objectContainerElement = document.getElementById('objectContainer');
-
 
 
 //web gl stuff
@@ -39,8 +36,6 @@ var grids = [];
 var objects = [];
 var sketches = [];
 var compass;
-var selectedObject = null;
-var editingObject = false;
 
 
 var mouseCanvasPos = new vec4();
@@ -51,7 +46,7 @@ document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
 //document.addEventListener('mousemove', mouseMoved);
 var interval = setInterval(main, 1000/30);
-var objectsContainerUpdateInterval = setInterval(objectsContainerUpdate, 1000);
+
 
 
 function keyPressed(event)
@@ -69,22 +64,6 @@ function keyPressed(event)
     if (createSketchMenuIsOpen && createSketchMenu_keyPressed(event))
     {
         return;
-    }
-
-    switch (keyCode)
-    {
-        case "Escape": selectedObject = null;
-        case "Backspace": 
-            if (selectedObject != null && editingObject == false)
-            for (var i=0; i<objects.length; i++)
-            {
-                if (selectedObject == objects[i])
-                {
-                    objects.splice(i);
-                }
-            }
-            selectedObject = null;
-            
     }
 }
 function keyReleased(event)
@@ -153,27 +132,6 @@ function mouseWheel(event)
 
 
 
-function addObjectButtonPress(buttonElement) {
-    console.log(buttonElement.id);
-
-    switch (buttonElement.id) {
-        case "cube": let o = new Cube(); objects.push(o); objectContainerElement.innerHTML += (o.getHTMLText()); break;
-        case "cylinder": objects.push(new Cylinder()); break;
-    }
-}
-function objectClicked(element) {
-    console.log(element.id + "  h");
-    for (var i=0; i<objects.length; i++)
-    {
-        if (objects[i].id == element.id)
-        {
-            selectedObject = objects[i];
-        }
-    }
-}
-
-
-
 function move_camera_home_button_press()
 {
     if (currentSketch == null)
@@ -219,12 +177,14 @@ function updateCameraSettings(element = null)
 
 
 function setup() {
-    glCanvasElement.width = window.visualViewport.width;
-    glCanvasElement.height =  window.visualViewport.height * 0.8;
+    glCanvasElement.width = document.body.clientWidth * 0.9;
+    glCanvasElement.height = document.body.clientHeight * 0.7;
     glCanvasElement.style.width = glCanvasElement.width
     glCanvasElement.style.height = glCanvasElement.height
 
     // Initialize the GL context
+    //const gl = glCanvasElement.getContext("webgl");
+
     // Only continue if WebGL is available and working
     if (gl == null)
     {
@@ -238,8 +198,15 @@ function setup() {
     }
     updateCameraSettings();
 
+    //perspectiveProjectionMatrix.makePerspective(FOV, aspect, zNear, zFar);
+
     InitShader(gl);
     run = true;
+
+    //var m = (new mat4()).setValues([1,5,9,12, 4,3,18,4, 7,7,7,7, 4,8,3,6]);
+    //var inv = m.invert();
+    //console.log("inverse: \n" + inv.toString());
+    //conso le.log (  (m.mul(inv)).toString() );
 
     compass = new Compass();
 
@@ -248,13 +215,15 @@ function setup() {
     grids.push(   new Grid(new vec4(0,50,50), new vec4(0,Math.PI/2,0))  );
     grids.push(   new Grid(new vec4(50,0,50), new vec4(0,0,Math.PI/2))  );
     
-    //objects.push(   new Body()      );
+    objects.push(   new Body()      );
 
-    //objects.push(   new Text(new vec4(5,5,5),     new vec4(), '5, 5, 5',      new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(-5,-5,-5),  new vec4(), '-5, -5, -5',   new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(5,5,-5),    new vec4(), '5, 5, -5',     new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(5,-5,-5),   new vec4(), '5, -5, -5',    new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(-5,5,5), new vec4(0,Math.PI/2,0), '-5, 5, 5 rot90', new vec4(), true)  );
+    objects.push(   new Text(new vec4(5,5,5),     new vec4(), '5, 5, 5',      new vec4(),   true)  );
+    objects.push(   new Text(new vec4(-5,-5,-5),  new vec4(), '-5, -5, -5',   new vec4(),   true)  );
+    objects.push(   new Text(new vec4(5,5,-5),    new vec4(), '5, 5, -5',     new vec4(),   true)  );
+    objects.push(   new Text(new vec4(5,-5,-5),   new vec4(), '5, -5, -5',    new vec4(),   true)  );
+
+
+    objects.push(   new Text(new vec4(-5,5,5), new vec4(0,Math.PI/2,0), '-5, 5, 5 rot90', new vec4(), true)  );
 }
 
 function main() {
@@ -292,7 +261,6 @@ function main() {
 
 
 
-
     //RENDERING PART///////////////////////////////
     //Clear Screen
     gl.clearColor(1, 1, 1, 1);    // Clear to black, fully opaque
@@ -308,12 +276,7 @@ function main() {
     //Draw Each object
     for (var i=0; i<objects.length; i++)
     {
-        if (selectedObject == objects[i])
-        {
-            objects[i].draw(gl, pm, vm, new vec4(0.9,0.3,0.3,1));
-        } else {
-            objects[i].draw(gl, pm, vm);
-        }
+        objects[i].draw(gl, pm, vm);
     }
 
      //Draw Compass
@@ -354,14 +317,6 @@ function main() {
     //drawLite(gl, projectionMatrix, viewMatrix);    
 }
 
-function objectsContainerUpdate() {
-    if (editingObject) { return; }
-    objectContainerElement.innerHTML = '';
-    for (var i=0; i<objects.length; i++)
-    {
-        objectContainerElement.innerHTML += objects[i].getHTMLText() + "<br>";
-    }
-}
 
 
 
