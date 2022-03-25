@@ -151,7 +151,7 @@ function initWaterShaderProgram(gl) {
 
         //General Illuminance
         vec4 ls = unit(pos - uLightSourceVector);
-        v = dot(ls, normal)/10.0 + 1.0;
+        v = dot(ls, normal)/4.0 + 0.75;
         gl_FragColor += color * v;
         gl_FragColor.a = 1.0;
     }`;
