@@ -37,9 +37,10 @@ let ret = generateMesh(meshSize);
 
 
 
-let lightRotationSpeed = 0.01;
+let lightRotationSpeed = 0.04;
 let lightRotationTick = 0;
 let lightHeight = 50;
+let lightRadius = 100;
 
 let waveSpeed = 0.05;
 let waveTick = 0;
@@ -111,12 +112,9 @@ function initWaterShaderProgram(gl) {
     void main() {
         vec4 vPos = uObjectScaleVector * vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
         gl_Position = uProjectionMatrix * uViewMatrix * uObjectPositionMatrix * uObjectRotationMatrix * vPos;
-        //gl_Position = aVertexPosition;
-        //gl_Position.a = 1.0;
+        
         normal = uObjectRotationMatrix * aNormalVector;
         color = aColor;
-        //pos = uProjectionMatrix * uViewMatrix * uObjectRotationMatrix * vPos;
-        //pos = uObjectRotationMatrix * vPos;
         pos = uObjectPositionMatrix * uObjectRotationMatrix * vPos;
     }
     `;
@@ -145,16 +143,16 @@ function initWaterShaderProgram(gl) {
         gl_FragColor = vec4(0,0,0,0);
         float v = 0.0;
 
-        
+        //Reflective part
         vec4 LtoF = unit(pos - uLightSourceVector);
         vec4 CtoF = unit(pos - uCameraVector);
         v = dot(LtoF + CtoF, normal);
-        gl_FragColor = vec4(1,.8,.1,0) * v/5.0;
+        gl_FragColor = vec4(1,.8,0,0) * v/5.0;
 
-        
+        //General Illuminance
         vec4 ls = unit(pos - uLightSourceVector);
-        v = dot(ls, normal);
-        gl_FragColor += color * v/3.0;
+        v = dot(ls, normal)/10.0 + 1.0;
+        gl_FragColor += color * v;
         gl_FragColor.a = 1.0;
     }`;
 
@@ -219,6 +217,8 @@ function setup() {
         console.log("GL defined ")
     }
     [waterShaderProgram, waterProgramInfo] = initWaterShaderProgram(gl_water);
+
+    inputChange_water();
 }
 
 
@@ -250,21 +250,21 @@ function update() {
                 ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick*1.1 + z/2) + Math.cos(waveTick + x/2) + Math.sin(z/2 + x/3+ waveTick) ) *waveAmplitude;
             } else if (waveType < 1.5)
             {
-                ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick + z + x) ) *waveAmplitude;
-            } else if (waveType < 2.5)
-            {
-                ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick + z) ) *waveAmplitude;
-            } else if (waveType < 3.5)
-            {
-                ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick + x) ) *waveAmplitude;
-            } else if (waveType < 4.5)
-            {
                 let r = Math.sqrt(Math.pow(x-meshSize/2,2) + Math.pow(z-meshSize/2,2)+1);
                 ret.vertices[(z*meshSize + x)*3 + 1] = ( 5*Math.sin(r - waveTick)/r ) *waveAmplitude;
-            } else if (waveType < 5.5)
+            } else if (waveType < 2.5)
             {
                 let r = Math.sqrt(Math.pow(x-meshSize/2,2) + Math.pow(z-meshSize/2,2)+1);
-                ret.vertices[(z*meshSize + x)*3 + 1] = ( 5*Math.sin(r - ((waveTick%10)*r))/r ) *waveAmplitude;
+                ret.vertices[(z*meshSize + x)*3 + 1] = ( 5*Math.sin(r - (2*Math.sin(waveTick/4)*r))/r ) *waveAmplitude;
+            } else if (waveType < 3.5)
+            {
+                ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick + z + x) ) *waveAmplitude;
+            } else if (waveType < 4.5)
+            {
+                ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick + z) ) *waveAmplitude;
+            } else if (waveType < 5.5)
+            {
+                ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick + x) ) *waveAmplitude;
             }
 
             let n = new vec4(0,1,0);
@@ -278,7 +278,7 @@ function update() {
         }
     }
     lightRotationTick += lightRotationSpeed
-    lightSourceVector = new vec4(100*Math.sin(lightRotationTick), lightHeight, 100*Math.cos(lightRotationTick));
+    lightSourceVector = new vec4(lightRadius*Math.sin(lightRotationTick), lightHeight, lightRadius*Math.cos(lightRotationTick));
 
 
     
@@ -319,12 +319,11 @@ function update() {
 function inputChange_water() {
     try {
         waveType = Number(document.getElementById('waveTypeInput').value);
-        waveType = Math.min(Math.max(waveType,0), 5);
-
         waveAmplitude = Number(document.getElementById('waveAmplitudeInput').value);
-
         waveSpeed =  Number(document.getElementById('waveSpeedInput').value);
-        
+        lightRotationSpeed = Number(document.getElementById('lightRotationSpeedInput').value);
+        lightRadius = Math.pow(Number(document.getElementById('lightRadiusInput').value), 2);
+        lightHeight = Math.pow(Number(document.getElementById('lightHeightInput').value), 2);        
     } catch {
 
     }
@@ -358,7 +357,7 @@ function generateMesh(meshSize = 20) {
             }
 
             n.push(0,1,0);
-            c.push(.1, Math.random()/10, Math.random()/10 + 0.7, 1.0);
+            c.push(Math.random()/30 + 0.3, Math.random()/30 + 0.3, Math.random()/30 + 0.7, 1.0);
         }
     }
 
@@ -370,6 +369,10 @@ function generateMesh(meshSize = 20) {
         colors: c,
     }
 }
+
+
+
+
 
 }
 

@@ -113,16 +113,20 @@
             <canvas id = 'glCanvas_water' style='height: 100%; width:100%;'> </canvas>
             <div style='width: 100%; height: fit-content; position: relative;'>
                 
-                <div style='padding: 2%; width: fit-content; height: fit-content; flex-shrink: 0; float:right;'>
+                <div style='padding: 2%; width: fit-content; height: fit-content;'>
 
                     <input type='range' min ='0' max='5' value ='0' step='1' id ='waveTypeInput' onchange=inputChange_water()>Wave Type</input> <br>
-                    <input type='range' min ='0.1' max='3' value='1' step='.01' id ='waveAmplitudeInput' onchange=inputChange_water()>Wave Amplitude</input> <br>
-                    <input type='range' min ='0.00' max='0.2' value='0.05' step='.01' id ='waveSpeedInput' onchange=inputChange_water()>Wave Speed</input> <br>
-                    <!--TODO Add more Inputs: Cam Position, Light Rotation Speed, Light Height-->
-               
+                    <input type='range' min ='0' max='3' value='0.5' step='.01' id ='waveAmplitudeInput' onchange=inputChange_water()>Wave Amplitude</input> <br>
+                    <input type='range' min ='0' max='0.2' value='0.05' step='.01' id ='waveSpeedInput' onchange=inputChange_water()>Wave Speed</input> <br>
+                    <input type='range' min ='0' max='0.2' value='0.02' step='.01' id ='lightRotationSpeedInput' onchange=inputChange_water()>Light Source Rotation Speed</input> <br>
+                    <input type='range' min ='4' max='100' value='10' step='1' id ='lightRadiusInput' onchange=inputChange_water()>Light Source Radius</input> <br>
+                    <input type='range' min ='4' max='100' value='7' step='1' id ='lightHeightInput' onchange=inputChange_water()>Light Source Height</input> <br>
+
+                    <!--TODO Add more Inputs: Cam Position, Light Height-->
+                    
                 </div>
                 <div style='padding: 2%;'>
-                    ***Description***
+                    TODO ***Description***
                 </div>
             </div>
         </div>
