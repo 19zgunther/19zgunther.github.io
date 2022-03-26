@@ -143,17 +143,23 @@ function initWaterShaderProgram(gl) {
     void main() {
         gl_FragColor = vec4(0,0,0,0);
         float v = 0.0;
+        vec4 p = pos;
 
-        //Reflective part
-        vec4 LtoF = unit(pos - uLightSourceVector);
-        vec4 CtoF = unit(pos - uCameraVector);
-        v = dot(LtoF + CtoF, normal);
-        gl_FragColor = vec4(1,.8,0,0) * v/5.0;
+        for (int j=0; j<10; j+=1)
+        {
+            //Reflective part
+            vec4 LtoF = unit(p - uLightSourceVector);
+            vec4 CtoF = unit(p - uCameraVector);
+            v = dot((LtoF + CtoF)/2.0, normal);
+            gl_FragColor = vec4(1,.8,0.2,0) * v/1.0;
+            p.x += 1.0;
+            p.y += 1.0;
+        }
 
         //General Illuminance
         vec4 ls = unit(pos - uLightSourceVector);
         v = dot(ls, normal)/1.0 + 1.0;
-        gl_FragColor += color * v;
+        gl_FragColor += color * v/1.0;
         gl_FragColor.a = 1.0;
     }`;
 
@@ -242,9 +248,9 @@ function update() {
 
     waveTick += waveSpeed;
 
-    for (var z=1; z<meshSize-1; z++)
+    for (var z=2; z<meshSize-2; z++)
     {
-        for (var x=1; x<meshSize-1; x++)
+        for (var x=2; x<meshSize-2; x++)
         {
             if (waveType  < 0.5) {
                 ret.vertices[(z*meshSize + x)*3 + 1] = ( Math.sin(waveTick*1.1 + z/2) + Math.cos(waveTick + x/2) + Math.sin(z/2 + x/3+ waveTick) ) *waveAmplitude;
@@ -375,7 +381,7 @@ function generateMesh(meshSize = 20) {
             }
 
             n.push(0,1,0);
-            c.push(Math.random()/30 + 0.3, Math.random()/30 + 0.3, Math.random()/30 + 0.7, 1.0);
+            c.push(Math.random()/100 + 0.2, Math.random()/100 + 0.2, Math.random()/30 + 0.5, 1.0);
         }
     }
 
