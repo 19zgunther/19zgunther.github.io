@@ -60,6 +60,8 @@ function Update()
     p.SetStrokeWidth(2);
 
     //computeEquation2(equationTextboxElement.value, 10.0);
+    var eq = new Equation(equationTextboxElement.value);
+    //console.log("eq.compute returned: " + eq.compute(10));
     
     var height = 600;
     var width = 600;
@@ -77,7 +79,7 @@ function Update()
 
         var x = Math.pow(10,i/2000);
 
-        var result = computeEquation2(equationTextboxElement.value, x);
+        var result = eq.compute(x);
         if (result == null || isNaN(result))
         {
             //console.error("failed to compute equation on x = " + i + "  result = " + result);
@@ -179,6 +181,249 @@ function replaceSubstringWithSubstring(text, ss, newss)
     }
     return text;
 }
+
+
+
+
+
+class Equation
+{
+    constructor(text)
+    {
+        this.inputText = text;
+        this.dict = null;
+        this.equation = null;
+        this._parseEquation(text);
+
+        console.log("Eq; " + this.equation);
+    }
+
+    _parseEquation(text)
+    {
+        text = '0+'+text;
+        text = replaceSubstringWithSubstring(text, ' ', '');
+        //text = replaceSubstringWithSubstring(text, 'x', xval);
+
+        text = replaceSubstringWithSubstring(text, '+-', '-');
+        text = replaceSubstringWithSubstring(text, '--', '+');
+        text = replaceSubstringWithSubstring(text, '++', '+');
+        text = replaceSubstringWithSubstring(text, 'pi', 'π');
+        text = replaceSubstringWithSubstring(text, 'Pi', 'π');
+        text = replaceSubstringWithSubstring(text, 'PI', 'π');
+
+        var dict = {};
+        dict['e'] = Math.e;
+        dict['π'] = Math.PI;
+        var dictIndex = 65;
+
+
+        //We'll start by parsing all numbers out of the text, and putting them into a dictionary.
+        var numS = -1; //current number start & end
+        var numE = -1;
+
+        var newEq = "";
+        for (var i=0; i<text.length; i++)
+        {
+            var n = Number(text[i]);
+            var c = text[i];
+            if ((isNaN(n) == false && n != null ) || c == '.') 
+            {
+                //It is a number!
+                if (numS == -1)
+                {
+                    numS = i;
+                    numE = i;
+                } else {
+                    numE = i;
+                }
+            } else {
+                //it is not a number..
+                
+                if (numS != -1 && (c != 'x' && c != 'e' && c != 'π'))
+                {
+                    var numberParsed = Number(getSubstringInclusive(text, numS, numE));
+                    if (isNaN(numberParsed) || numberParsed == null)
+                    {
+                        console.error("Error parsing in computeEquation2.");
+                        return;
+                    }
+                    var charV = String.fromCharCode(dictIndex);
+                    dictIndex += 1;
+
+                    //Store value in dict
+                    dict[charV] = numberParsed;
+                    newEq += charV; //add charV to newEquation
+                    numS = -1;
+                    numE = -1;
+                }
+                newEq += c;
+            }
+        }
+
+        if (numE == text.length-1)
+        {
+            var numberParsed = Number(getSubstringInclusive(text, numS, numE));
+            if (isNaN(numberParsed) || numberParsed == null)
+            {
+                console.error("Error parsing in computeEquation2.");
+                return;
+            }
+            var charV = String.fromCharCode(dictIndex);
+            dictIndex += 1;
+
+            //Store value in dict
+            dict[charV] = numberParsed;
+            newEq += charV; //add charV to newEquation
+            numS = -1;
+            numE = -1;
+        }
+
+        console.log(newEq + "  " + this.dict);
+        //Now, we need to remove '-' marks where they're not needed.
+        for (var i=0; i<newEq.length-2; i++)
+        {
+            if (dict[newEq[i]] == null && newEq[i+1] == '-' && dict[newEq[i+2]] != null)
+            {
+                var c = newEq[i+2];
+                dict[c] = -dict[c];
+                newEq = replaceSubstringWithSubstring(newEq, '-' + c, c );
+            }
+        }
+
+        this.dict = dict;
+        this.equation = newEq;
+    }
+
+    compute(xval)
+    {
+        var keys = Object.keys(this.dict);
+        var vals = Object.values(this.dict);
+        
+        var dict = {};
+        var text = this.equation;
+        for(var i=0; i<keys.length; i++)
+        {
+            dict[keys[i]] = vals[i];
+        }
+
+        dict['x'] = xval;
+        var res = this._innerCompute(text, dict, keys.length+1);
+        
+        if (res.length == 1)
+        {
+            return dict[res];
+        } else {
+            console.error("_innerCompute returned: "+ res + "  given xval: "+ xval+". Eq: " + this.equation);
+        }
+    }
+
+
+    _innerCompute(text, dict, dictIndex)
+    {
+        //PEMDAS
+        //Reduce all parentheses
+        var sp = -1;
+        var ep = -1;
+        var c;
+        for (var i=0; i<text.length; i++)
+        {
+            c = text[i];
+            if (c=='(')
+            {
+                sp = i;
+                ep = -1;
+            }
+            if (c ==')' || (sp != -1 && i == text.length - 1))
+            {
+                if (c == ')')
+                {
+                    ep = i;
+                } else {
+                    ep = i+1;
+                }
+
+                if (sp =='-1')
+                {
+                    console.error("error parsing (). Equation: " + text);
+                    return;
+                }
+                var E = compute2(getSubstringExclusive(text, sp, ep), dict, dictIndex);
+                var result = dict[E];
+                if (result == null || isNaN(result))
+                {
+                    console.error('error parsing(). Computing inside () returned null or NaN.');
+                    return;
+                }
+                //Alrighty, at this point we have computed what was inside the parentheses, and it gave us the number "result"
+                var charV = String.fromCharCode(dictIndex);
+                dictIndex += 1;
+                dict[charV] = result;
+                text = replaceSubstringInclusive(text, charV, sp, ep);
+                i = 0;
+                sp = -1;
+                ep = -1;
+            }
+        }
+
+
+        //We've gotten rid of all of those pesky parentheses at this point.
+        for (var i=0; i<text.length; i++)
+        {
+            if (text[i] == '^')
+            {
+                dict[text[i-1]] = Math.pow( dict[text[i-1]], dict[text[i+1]]);
+                text = replaceSubstringInclusive( text, '', i, i+1 );
+                //console.log("^ - " + text);
+                i=0;
+            }
+        }
+
+
+        //Simplify multiply and divide!
+        for (var i=0; i<text.length; i++)
+        {
+            c = text[i];
+            if (text[i] == '*')
+            {
+                dict[text[i-1]] = dict[text[i-1]] * dict[text[i+1]];
+                text = replaceSubstringInclusive( text, '', i, i+1 );
+                //console.log("* - " + text);
+                i=0;
+            }
+            if (text[i] == '/')
+            {
+                dict[text[i-1]] = dict[text[i-1]] / dict[text[i+1]];
+                text = replaceSubstringInclusive( text, '', i, i+1 );
+                //console.log("/ - " + text);
+                i=0;
+            }
+        }
+
+        //Down to + & - ... do it!
+        for (var i=0; i<text.length; i++)
+        {
+            c = text[i];
+            if (text[i] == '+')
+            {
+                dict[text[i-1]] = dict[text[i-1]] + dict[text[i+1]];
+                text = replaceSubstringInclusive( text, '', i, i+1 );
+                //console.log("+ - " + text);
+                i=0;
+            }
+            if (text[i] == '-')
+            {
+                dict[text[i-1]] = dict[text[i-1]] - dict[text[i+1]];
+                text = replaceSubstringInclusive( text, '', i, i+1 );
+                //console.log("- - " + text);
+                i=0;
+            }
+        }
+
+        //console.log(text);
+        return text;
+    }
+}
+
 
 
 

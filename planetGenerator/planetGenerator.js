@@ -260,7 +260,7 @@ var zFar = 10;
 var perspectiveProjectionMatrix = new mat4().makePerspective(FOV, aspect, zNear, zFar);
 var viewMatrix = (new mat4().makeRotation(0,0,0)).mul( new mat4().makeTranslation(0,0,0) );
 
-const position = new vec4(0,0,-20);
+const position = new vec4(0,0,-100);
 const rotation = new vec4();
 
 const keys = {};
@@ -305,7 +305,7 @@ function updateCameraSettings()
 
 window.onkeydown = function (e) {
     keys[e.key] = true;
-    console.log(e.key);
+    //console.log(e.key);
 }
 window.onkeyup = function(e) {
     keys[e.key] = false;
@@ -383,6 +383,14 @@ function update() {
     //viewMatrix = (new mat4().makeRotation(rotation.x,rotation.y,rotation.z)).mul( new mat4().makeTranslation(position.x, position.y, position.z) );
     
     //viewMatrix = (new mat4().makeRotation(rotation.x,rotation.y,rotation.z)).mul( new mat4().makeTranslation(position.x, position.y, position.z) );
+    
+    if (rot < 0.5)
+    {
+        position.z -= (position.z + 20)/20;// + 5*Math.sin(rot)))/10;
+    } else {
+        //position.z += Math.sin(rot);
+    }
+    
     viewMatrix = new mat4().makeRotation(0,0,0).mul( new mat4().makeTranslation(-position.x, position.y, position.z + 5*Math.sin(rot)) );
 
 

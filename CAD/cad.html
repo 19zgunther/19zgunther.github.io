@@ -14,31 +14,7 @@
 <body style='background-color: rgba(30,30,30);'>
     
     
-    <!-- Menu -->
-    <div class='menu'>
-        <div style='position: absolute; left:0; justify-self:left;'>
-            <div class='logo' onclick='buttonClick("home")'>
-                ZG
-            </div>
-        </div>
-        <div class='menu_item' onclick='buttonClick("resume")'> 
-            Resume
-        </div>
-        <div class='menu_item'>
-            Projects
-            <div class='menu_dropdown'>
-                <div id="INSERT_MENU_PROJECTS">
-                    null
-                </div>
-            </div>
-        </div>
-        <!--Scroll Progress Bar-->
-        <div id='scrollIndicatorBackground' class='scrollIndicatorBackground'>
-            <div id='scrollIndicator' class='scrollIndicator'>
-
-            </div>
-        </div>
-    </div>
+    <!-- Menu Goes Here -->
 
 
     <div class = 'topbar'></div>
@@ -155,10 +131,8 @@
     </div>
 
     <!-- Canvas! -->
-    <div style="position: relative; width: fit-content; height: fit-content;">
+    <div style="position: relative; width: 100%; height: fit-content;">
         <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown="mouseDown(event)"  onmouseup="mouseUp(event)"></canvas>
-        
-        
         
         <div id='addObjectsContainer'>
             <div class = 'button' id='cube' onclick = addObjectButtonPress(this)>Add Cube</div>
@@ -170,15 +144,23 @@
                 hi
             </item>
         </div>
-        <div id = 'cameraPositionDetailsElement' style = 'z-index: 0.1; left:600; display:flex; position: absolute; font-size: small; width: fit-content; flex-wrap: nowrap;'>
+        <div id = 'cameraPositionDetailsElement' style = 'z-index: 0.1; font-size: small; width: fit-content; flex-wrap: nowrap; float:right;'>
             Camera Position, Rotation, and <br> OTher
         </div>
-
     </div>
 
     <div class = 'button' style='position:relative' onclick = createSketchMenu_show()>Create Sketch</div>
-    
     <div class = 'button'  onclick = move_camera_home_button_press()>Move to home position</div>
+    <div style='display:flex;'>
+        <div class = 'button'  onclick = save_file_button_press()>Save File</div>
+        <input id='fileSaveNameTextbox' type="text" value = 'mySave.txt' style="color:black;" >
+    </div>
+
+    <div style='display:flex;'>
+        <div class = 'button'  onclick = load_file_button_press()>Load File</div>
+    </div>
+
+</input>
 
     <!--<div style="height: 800px;">tall_boi_div</div>-->
 

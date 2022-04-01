@@ -42,6 +42,7 @@ var compass;
 var selectedObject = null;
 var editingObject = false;
 
+var pObjectsLength = 0; //used to determine if we need to refresh the objects list
 
 var mouseCanvasPos = new vec4();
 
@@ -51,7 +52,7 @@ document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
 //document.addEventListener('mousemove', mouseMoved);
 var interval = setInterval(main, 1000/30);
-var objectsContainerUpdateInterval = setInterval(objectsContainerUpdate, 1000);
+//var updateObjectsContainerInterval = setInterval(updateObjectsContainer, 1000);
 
 
 function keyPressed(event)
@@ -73,8 +74,20 @@ function keyPressed(event)
 
     switch (keyCode)
     {
-        case "Escape": selectedObject = null;
-        case "Backspace": 
+        case "Escape": 
+            selectedObject = null;
+            let ins_ = document.getElementsByTagName('input');
+            for (var i in ins_) { 
+                try {
+                    ins_[i].blur();
+                } catch {}
+            }
+            
+            break;    
+        case "Backspace":
+            break;
+            
+        case "Delete": 
             if (selectedObject != null && editingObject == false)
             for (var i=0; i<objects.length; i++)
             {
@@ -84,7 +97,9 @@ function keyPressed(event)
                 }
             }
             selectedObject = null;
+            updateObjectsContainer();
             
+            break;
     }
 }
 function keyReleased(event)
@@ -160,6 +175,8 @@ function addObjectButtonPress(buttonElement) {
         case "cube": let o = new Cube(); objects.push(o); objectContainerElement.innerHTML += (o.getHTMLText()); break;
         case "cylinder": objects.push(new Cylinder()); break;
     }
+
+    updateObjectsContainer();
 }
 function objectClicked(element) {
     console.log(element.id + "  h");
@@ -171,7 +188,78 @@ function objectClicked(element) {
         }
     }
 }
+function objectParameterChanged(element) {
+    let obj = null;
+    for(var i=0; i<objects.length; i++)
+    {
+        if (objects[i].id == element.id)
+        {
+            obj = objects[i];
+            break;
+        }
+    }
+    if (obj == null)
+    {
+        console.error("objectParameterchanged(element)  was passed unknown element");
+        return;
+    }
 
+    element.style.width = element.value.length + 'ch';
+ 
+    //console.log("changing obj="+obj.id+" value");
+    let pos = obj.getPosition();
+    let rot = obj.getRotation();
+    let sca = obj.getScale();
+    switch(element.name)
+    {
+        case "posX": pos.x = Number(element.value); console.log('posx');break;
+        case 'posY': pos.y = Number(element.value); break;
+        case 'posZ': pos.z = Number(element.value); break;
+        case "rotX": rot.x = Number(element.value)*Math.PI/180; break;
+        case "rotY": rot.y = Number(element.value)*Math.PI/180; break;
+        case "rotZ": rot.z = Number(element.value)*Math.PI/180; break;
+        case "scaX": sca.x = Number(element.value); break;
+        case "scaY": sca.y = Number(element.value); break;
+        case "scaZ": sca.z = Number(element.value); break;
+    }
+    obj.setPosition(pos);
+    obj.setRotation(rot);
+    obj.setScale(sca);
+    //at this point, we have the object and the element which changed it...
+}
+function save_file_button_press() {
+    let output = "";
+
+    for (var i in objects)
+    {
+        output += objects[i].getSaveText();
+    }
+    console.log(output);
+
+
+
+    let content = output;
+    let contentType = 'text/plain';
+    let filename = document.getElementById('fileSaveNameTextbox').value;
+
+    const a = document.createElement('a');
+    const file = new Blob([content], {type: contentType});
+    a.href= URL.createObjectURL(file);
+    a.download = filename;
+    a.click();
+	URL.revokeObjectURL(a.href);
+}
+function load_file_button_press() {
+    console.error("Zack has not finished implementing this... he is very busy with RPI these days");
+    return;
+    var fr=new FileReader();
+    fr.onload=function(){
+        document.getElementById('output')
+                .textContent=fr.result;
+    }
+        
+    fr.readAsText(this.files[0]);
+}
 
 
 function move_camera_home_button_press()
@@ -218,6 +306,7 @@ function updateCameraSettings(element = null)
 
 
 
+
 function setup() {
     glCanvasElement.width = window.visualViewport.width;
     glCanvasElement.height =  window.visualViewport.height * 0.8;
@@ -255,8 +344,9 @@ function setup() {
     //objects.push(   new Text(new vec4(5,5,-5),    new vec4(), '5, 5, -5',     new vec4(),   true)  );
     //objects.push(   new Text(new vec4(5,-5,-5),   new vec4(), '5, -5, -5',    new vec4(),   true)  );
     //objects.push(   new Text(new vec4(-5,5,5), new vec4(0,Math.PI/2,0), '-5, 5, 5 rot90', new vec4(), true)  );
-}
 
+    updateObjectsContainer();
+}
 function main() {
     if (!run)
     {
@@ -353,13 +443,22 @@ function main() {
     //Render!
     //drawLite(gl, projectionMatrix, viewMatrix);    
 }
-
-function objectsContainerUpdate() {
-    if (editingObject) { return; }
-    objectContainerElement.innerHTML = '';
+function updateObjectsContainer() {
+    //if (editingObject) { return; }
+    objectContainerElement.innerHTML = "<div style='font-size:large;'>Objects</div>";
     for (var i=0; i<objects.length; i++)
     {
         objectContainerElement.innerHTML += objects[i].getHTMLText() + "<br>";
+    }
+    let ins = document.getElementsByClassName('vectorInput');
+
+    for (var i in ins)
+    {
+        try {
+            ins[i].style.width = ins[i].value.length + "ch";
+        } catch {
+
+        }
     }
 }
 

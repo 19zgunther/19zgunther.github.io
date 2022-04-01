@@ -225,6 +225,10 @@ function setup() {
     }
     [waterShaderProgram, waterProgramInfo] = initWaterShaderProgram(gl_water);
 
+    glCanvasElement_water.style.borderStyle = 'solid';
+    glCanvasElement_water.style.borderColor = 'black';
+    glCanvasElement_water.style.borderWidth = '2px';
+    
     inputChange_water();
 }
 
@@ -319,6 +323,27 @@ function update() {
     gl.uniform4fv(waterProgramInfo.uniformLocations.cameraVector, cameraPositionVector.getFloat32Array());
 
     gl.drawElements(gl.TRIANGLES, ret.indices.length, gl.UNSIGNED_SHORT, 0);
+
+
+    
+    //glCanvasElement_water.st
+
+    /*
+    let amp = 5;
+    let topC = Math.max(Math.round(amp*Math.cos(lightRotationTick)), 0).toString(16);
+    let bottomC = Math.max(Math.round(-amp*Math.cos(lightRotationTick)), 0).toString(16);
+    let leftC = Math.max(Math.round(amp*Math.sin(lightRotationTick)), 0).toString(16);
+    let rightC = Math.max(Math.round(-amp*Math.sin(lightRotationTick)), 0).toString(16);
+    glCanvasElement_water.style.borderTopColor = '#' + topC + topC + topC + topC + topC + topC;
+    glCanvasElement_water.style.borderBottomColor = '#' + bottomC + bottomC + bottomC + bottomC + bottomC + bottomC;
+    glCanvasElement_water.style.borderLeftColor = '#' + leftC + leftC + leftC + leftC + leftC + leftC;
+    glCanvasElement_water.style.borderRightColor = '#' + rightC + rightC + rightC + rightC + rightC + rightC;*/
+
+    let amp = 100;
+    glCanvasElement_water.style.borderTopColor = toHexColor( amp*Math.cos(lightRotationTick) );
+    glCanvasElement_water.style.borderBottomColor = toHexColor( -amp*Math.cos(lightRotationTick) );
+    glCanvasElement_water.style.borderLeftColor = toHexColor( amp*Math.sin(lightRotationTick) );
+    glCanvasElement_water.style.borderRightColor = toHexColor( -amp*Math.sin(lightRotationTick) );
 }
 
 
@@ -396,6 +421,13 @@ function generateMesh(meshSize = 20) {
 
 
 
+function toHexColor(val = 100)
+{
+    val = Math.min(Math.max(val, 0),255);
+    let vS = Math.floor(val/16).toString(16);
+    let v = Math.floor(val%16).toString(16);
+    return '#'+vS+v+vS+v+vS+v;
+}
 
 
 }

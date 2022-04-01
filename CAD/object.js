@@ -377,6 +377,10 @@ class Body extends Object {
         this.lineIndices = [0,1];
         this.lineBuffers = initBuffers(this.vertices, [], [], this.lineIndices);
     }
+    getScale()
+    {
+        return this.scale;
+    }
     setScale(scale = vec4())
     {
         this.scale = scale;
@@ -395,9 +399,45 @@ class Body extends Object {
     }
     getHTMLText()
     {
-        return "<item id = \'"+this.id+"\' onclick = objectClicked(this) >" + 
-            this.type + 
-            "</item>"
+        return ""
+            + "<item id = \'"+this.id+"\' onclick = \"objectClicked(this);\" >" 
+                + "<div style='font-size: larger'>"    
+                    + this.type
+                + "</div>"
+                + "<div style = 'display: inline-block; transition:max-height 0.5s; overflow:hidden;' >"
+                    + "<div style='display:flex;'>"
+                        + "position"
+                        + "\<<input class = 'vectorInput' name='posX' id = \'"+this.id+"\' type='number' value = "+this.position.x+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='posY' id = \'"+this.id+"\' type='number' value = "+this.position.y+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='posZ' id = \'"+this.id+"\' type='number' value = "+this.position.z+" oninput=objectParameterChanged(this)></input> \>"
+                    +"</div>"
+                    + "<div style='display:flex;'>"
+                        + "rotation"
+                        + "\<<input class = 'vectorInput' name='rotX' id = \'"+this.id+"\' type='number' value = "+this.rotation.x+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='rotY' id = \'"+this.id+"\' type='number' value = "+this.rotation.y+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='rotZ' id = \'"+this.id+"\' type='number' value = "+this.rotation.z+" oninput=objectParameterChanged(this)></input> \>"
+                    +"</div>"
+                    + "<div style='display:flex;'>"
+                        + "scale"
+                        + "\<<input class = 'vectorInput' name='scaX' id = \'"+this.id+"\' type='number' value = "+this.scale.x+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='scaY' id = \'"+this.id+"\' type='number' value = "+this.scale.y+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='scaZ' id = \'"+this.id+"\' type='number' value = "+this.scale.z+" oninput=objectParameterChanged(this)></input> \>"
+                    +"</div>"
+                + "</div>"
+            + "</item>";
+    }
+    getSaveText(){
+        let out = "@"
+        +"_type\""+this.type+"\""
+        +"_id\""+this.id+"\""
+        +"_position<"+this.position.x+","+this.position.y+","+this.position.z+","+this.position.a+">"
+        +"_rotation<"+this.rotation.x+","+this.rotation.y+","+this.rotation.z+","+this.rotation.a+">"
+        +"_scale<"+this.scale.x+","+this.scale.y+","+this.scale.z+","+this.scale.a+">"
+        +"_vertices["+this.vertices+"]"
+        +"_indices["+this.indices+"]"
+        +"_normals["+this.normals+"]"
+        +"_colors["+this.colors+"]"
+        return out + "\n\n";
     }
 }
 

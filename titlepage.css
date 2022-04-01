@@ -9,8 +9,12 @@
 
 
 #welcome_section{
-    transition: transform 1s;
-    background-color: rgba(0,0,0,0.4);
+    transition: transform 1s, opacity 5s;
+    background-color: rgba(0,0,0,0.6);
+    opacity: 0;
+}
+body.loaded #welcome_section{
+    opacity: 1;
 }
 
 .titleA{
@@ -42,7 +46,7 @@ body.loaded .titleA{
     width: 100%;
 }
 .titleA:hover{
-    color: var(--theme_color);
+    color: var(--theme_color_low_opacity);
 }
 
 .subtitleA{
@@ -339,6 +343,17 @@ body.loaded .image_downarrow{
     transition: opacity 0.5s;
 }
 #controls_box:hover {
+    opacity: 1;
+}
+
+
+
+#glcanvas {
+    opacity: 0;
+
+    transition: opacity 2s 0s;
+}
+body.loaded #glcanvas {
     opacity: 1;
 }
 

@@ -7,13 +7,23 @@
     color: white;
 
     /*--theme_color: #ac4d2d;*/
+    /*
     --theme_color: rgb(70, 97, 114);
+    --theme_color_low_opacity: rgba(70, 97, 114, 0.7);
     --theme_color_light2: rgb(156, 215, 252);
     --theme_color_light: rgb(129, 177, 207);
-    --theme_color_dark: rgb(32, 44, 51);
+    --theme_color_dark: rgb(32, 44, 51);*/
     --background_color: rgba(20,20,20,.7);
     --button_highlight_color: rgba(40,40,40,1);
     --dropdown_child_color: rgba(30,30,30,1);
+
+    --scroll_indicator_color: rgb(255, 189, 118);
+
+    --theme_color: rgb(255, 189, 118);
+    --theme_color_low_opacity: rgba(255, 189, 118,0.5);
+    --theme_color_light2: rgb(253, 234, 214);
+    --theme_color_light: rgb(248, 203, 156);
+    --theme_color_dark: rgb(106, 78, 48);
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
@@ -122,21 +132,34 @@
 
 
 
-.logo{
+logo{
     cursor: pointer;
     /*color: #141A46;*/
     font-size:3.7vmax;
-    color: var(--background_color);
-    /*font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;*/
+    /*
+    color: rgba(1,1,1,1);
+    text-shadow: 0px 0px 5px var(--theme_color);
+    background-image:url('Lake3IMG.jpg');
+    background-size:cover; */
 
-    /*font-family: 'Abril Fatface', cursive;*/
-    background-color: var(--theme_color);
+    
+    background-image:url('LogoBackgroundImage.jpg');
+    background-size:cover; 
+    color: rgba(0,0,0,0);
+    -moz-background-clip: text;
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    background-color:var(--scroll_indicator_color);
+
+    /*background-color: var(--theme_color);
+    color: var(--theme_color_dark);*/
 
 
     height: fit-content;
     width: fit-content;
 
-    margin: 0px;
+    margin: auto;
     padding: 0px;
     
 
@@ -146,25 +169,28 @@
     -moz-transition: background-color 0.5s, color 0.5s 0.1s;
     -o-transition: background-color 0.5s, color 0.5s 0.1s;
     -ms-transition: background-color 0.5s, color 0.5s 0.1s;
-    transition: background-color 0.5s, color 0.5s 0.1s;
+    transition: background-color 0.5s, color 0.5s 0.1s, clip-path 1s;
 }
 
-.logo:hover {
-    background-color: var(--button_highlight_color);
-    color: var(--theme_color);
+logo:hover {
+    /*background-color: var(--button_highlight_color);*/
+    color: rgba(0,0,0,1);
+    background-clip: border-box;
 }
-
 
 
 
 
 .scrollIndicator {
     width: 0%;
-    height: 0.5vh;
-    background-color: var(--theme_color);
+    height:0.25vh;
+    background-color: var(--scroll_indicator_color);
     margin: 0;
     padding: 0;
-    z-index: 1001;
+
+    /*background-image: url('menu_scroll_indicator_background.jpg');
+    background-size: cover;*/
+    
 
     -webkit-transition: width 0.3s, background-color 0.5s, color 0.5s 0.1s;
     -moz-transition: width 0.3s, background-color 0.5s, color 0.5s 0.1s;
