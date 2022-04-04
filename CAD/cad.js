@@ -11,6 +11,9 @@ const orthogonal_checkboxElement = document.getElementById('orthogonalViewCheckb
 //Object list elements
 const objectContainerElement = document.getElementById('objectContainer');
 
+//History element
+const historyContainerElement = document.getElementById('historyContainer');
+
 
 
 //web gl stuff
@@ -35,16 +38,19 @@ var currentSketchObject = null; //current sketch object
 var pressedKeys = {};
 var tick = 0;
 
-var grids = [];
-var objects = [];
-var sketches = [];
-var compass;
+var grids = []; // holds all grid objects 
+var objects = []; //hold all body objects
+var sketches = []; //unusued at the moment because sketches are hard
+var compass; //view rotation compass object in the upper lefthand corner
 var selectedObject = null;
 var editingObject = false;
+var editHistory = [];
 
 var pObjectsLength = 0; //used to determine if we need to refresh the objects list
 
 var mouseCanvasPos = new vec4();
+
+var confirmBoxOpen = false; //used to keep track of it  aconfirm box is open. If it is, stop all key handling
 
 
 setup();
@@ -57,6 +63,10 @@ var interval = setInterval(main, 1000/30);
 
 function keyPressed(event)
 {
+    if (confirmBoxOpen)
+    {
+        return;
+    }
     if (currentSketch != null)
     {
         currentSketch.keyPressed(event);
@@ -82,24 +92,28 @@ function keyPressed(event)
                     ins_[i].blur();
                 } catch {}
             }
-            
-            break;    
+            break;
         case "Backspace":
             break;
             
         case "Delete": 
             if (selectedObject != null && editingObject == false)
-            for (var i=0; i<objects.length; i++)
+
+            confirmBoxOpen = true;
+            if (!confirm('Are you sure you want to delete object: ' + selectedObject.type + " " + selectedObject.id + "?\n(Action cannot be undone)"))
             {
-                if (selectedObject == objects[i])
-                {
-                    objects.splice(i);
-                }
+                confirmBoxOpen = false;
+                break;
             }
-            selectedObject = null;
-            updateObjectsContainer();
-            
+            confirmBoxOpen = false;
+            removeObject(selectedObject);
+            selectedObject = null;            
             break;
+        case "z":
+            if (pressedKeys['Control'])
+            {
+                revertEditHistory();
+            }
     }
 }
 function keyReleased(event)
@@ -171,12 +185,15 @@ function mouseWheel(event)
 function addObjectButtonPress(buttonElement) {
     console.log(buttonElement.id);
 
+    let o = null;
     switch (buttonElement.id) {
-        case "cube": let o = new Cube(); objects.push(o); objectContainerElement.innerHTML += (o.getHTMLText()); break;
-        case "cylinder": objects.push(new Cylinder()); break;
+        //case "cube": let o = new Cube(); objects.push(o); objectContainerElement.innerHTML += (o.getHTMLText()); break;
+        case "cube":o = new Cube(); break;
+        case "cylinder": o = new Cylinder(); break;
     }
-
-    updateObjectsContainer();
+    if (o != null) {
+        addObject(o);
+    }
 }
 function objectClicked(element) {
     console.log(element.id + "  h");
@@ -189,6 +206,7 @@ function objectClicked(element) {
     }
 }
 function objectParameterChanged(element) {
+    //Start by getting the correct object if it exists, return and error if element does not refer to active object in objects[]
     let obj = null;
     for(var i=0; i<objects.length; i++)
     {
@@ -204,27 +222,51 @@ function objectParameterChanged(element) {
         return;
     }
 
+    //Set the width of the text
     element.style.width = element.value.length + 'ch';
  
-    //console.log("changing obj="+obj.id+" value");
     let pos = obj.getPosition();
     let rot = obj.getRotation();
     let sca = obj.getScale();
+
+    let val = Number(element.value);
+    let valueChanged = false;
+    //First, check to see if the value is actually different
     switch(element.name)
     {
-        case "posX": pos.x = Number(element.value); console.log('posx');break;
-        case 'posY': pos.y = Number(element.value); break;
-        case 'posZ': pos.z = Number(element.value); break;
-        case "rotX": rot.x = Number(element.value)*Math.PI/180; break;
-        case "rotY": rot.y = Number(element.value)*Math.PI/180; break;
-        case "rotZ": rot.z = Number(element.value)*Math.PI/180; break;
-        case "scaX": sca.x = Number(element.value); break;
-        case "scaY": sca.y = Number(element.value); break;
-        case "scaZ": sca.z = Number(element.value); break;
+        case "posX": if (pos.x != val) {valueChanged = true;} break;
+        case 'posY': if (pos.y != val) {valueChanged = true;} break;
+        case 'posZ': if (pos.z != val) {valueChanged = true;} break;
+        case "rotX": if (rot.x != val*Math.PI/180) {valueChanged = true;} break;
+        case "rotY": if (rot.y != val*Math.PI/180) {valueChanged = true;} break;
+        case "rotZ": if (rot.z != val*Math.PI/180) {valueChanged = true;} break;
+        case "scaX": if (sca.x != val) {valueChanged = true;} break;
+        case "scaY": if (sca.y != val) {valueChanged = true;} break;
+        case "scaZ": if (sca.z != val) {valueChanged = true;} break;
     }
-    obj.setPosition(pos);
-    obj.setRotation(rot);
-    obj.setScale(sca);
+
+    //if the value has changed, then we need to save the current state
+    if (valueChanged) 
+    { 
+        saveEditHistory(obj, "objectParameterChange", pos, rot, sca, element.name); 
+       
+        //apply the change
+        switch(element.name)
+        {
+            case "posX": pos.x = val; break;
+            case 'posY': pos.y = val; break;
+            case 'posZ': pos.z = val; break;
+            case "rotX": rot.x = val*Math.PI/180; break;
+            case "rotY": rot.y = val*Math.PI/180; break;
+            case "rotZ": rot.z = val*Math.PI/180; break;
+            case "scaX": sca.x = val; break;
+            case "scaY": sca.y = val; break;
+            case "scaZ": sca.z = val; break;
+        }
+        obj.setPosition(pos);
+        obj.setRotation(rot);
+        obj.setScale(sca);
+    }   
     //at this point, we have the object and the element which changed it...
 }
 function save_file_button_press() {
@@ -260,6 +302,68 @@ function load_file_button_press() {
         
     fr.readAsText(this.files[0]);
 }
+
+
+function saveEditHistory(object_, eventType_, position_, rotation_, scale_, eventDetail_)
+{
+
+    //eventTypes: objectParameterChange, objectCreation, objectDeletion, 
+    if (position_ instanceof vec4) { position_ = position_.copy();}
+    if (rotation_ instanceof vec4) { rotation_ = rotation_.copy();}
+    if (scale_ instanceof vec4) { scale_ = scale_.copy();}
+
+    editHistory.push( 
+        {
+            object: object_,
+            eventType: eventType_,
+            position: position_,
+            rotation: rotation_,
+            scale: scale_,
+            eventDetail: eventDetail_
+        }
+    );
+    updateHistoryContainer();
+}
+function revertEditHistory()
+{
+    if (editHistory.length > 0)
+    {
+        let event = editHistory.pop();
+
+        if (event.eventType == 'objectParameterChange')
+        {
+            if (event.object instanceof Body == false) { console.error("Failed to revert edit. Event.body DNE"); return;}
+            event.object.setPosition(event.position);
+            event.object.setRotation(event.rotation);
+            event.object.setScale(event.scale);
+        } else if (event.eventType == 'objectCreation')
+        {
+            removeObject(event.object, false);
+        } else if (event.eventType == 'objectDeletion')
+        {
+            addObject(event.object, false);
+        } else {
+            console.error( "event.eventType is unknown. = " + event.eventType );
+        }
+    }
+    selectedObject = null;
+    updateHistoryContainer();
+}
+function updateHistoryContainer() {
+    historyContainerElement.innerHTML = '';
+    for (var i in editHistory)
+    {
+        historyContainerElement.innerHTML += editHistory[i].object.type + " " 
+                                + editHistory[i].object.id + " "
+                                + editHistory[i].eventType + " "
+                                + editHistory[i].eventDetail + " "
+                                + '<br>';
+    }
+    historyContainerElement.scrollTop = 100000;
+}
+
+
+
 
 
 function move_camera_home_button_press()
@@ -302,7 +406,44 @@ function updateCameraSettings(element = null)
         currentSketch.updateProjectionMatrix();
     }
 }
+function updateObjectsContainer() {
+    //if (editingObject) { return; }
+    objectContainerElement.innerHTML = "<div style='font-size:large;'>Objects</div>";
+    for (var i=0; i<objects.length; i++)
+    {
+        objectContainerElement.innerHTML += objects[i].getHTMLText() + "<br>";
+    }
+    let ins = document.getElementsByClassName('vectorInput');
 
+    for (var i in ins)
+    {
+        try {
+            ins[i].style.width = ins[i].value.length + "ch";
+        } catch {
+
+        }
+    }
+}
+
+
+function addObject(obj, saveEdit = true) 
+{
+    objects.push(obj);
+    if (saveEdit) { saveEditHistory(obj, 'objectCreation', null, null, null, " "); }
+    updateObjectsContainer();
+}
+function removeObject(obj, saveEdit = true)
+{
+    for (var i=0; i<objects.length; i++)
+    {
+        if (obj.id == objects[i].id)
+        {
+            objects.splice(i,1);
+        }
+    }
+    if (saveEdit) { saveEditHistory(obj, 'objectDeletion', null, null, null, " "); } 
+    updateObjectsContainer();
+}
 
 
 
@@ -358,57 +499,89 @@ function main() {
     //Update either the camera or the current sketch, and get the correct projectionMatrix and viewMatrix
     var pm; //projectionMatrix;
     var vm; //viewMatrix;
-    if (currentSketch != null && camera.sliding == false)
+    /*if (currentSketch != null && camera.sliding == false)
     {
         currentSketch.update();
         pm = currentSketch.getProjectionMatrix();
         vm = currentSketch.getViewMatrix();
-    } else {
-        camera.update(pressedKeys);
-        vm = camera.getViewMatrix();
+    } else {*/
+    camera.update(pressedKeys);
+    vm = camera.getViewMatrix();
 
-        //Get projection Matrix
-        if (projectionType == 'orthogonal')
-        {
-            pm = orthogonalProjectionMatrix;
-        } else if (projectionType == 'perspective')
-        {
-            pm = perspectiveProjectionMatrix;
-        } else {
-            console.error("Unknown projectionType. Needs to be orthogonal or perspective.");
-            pm = perspectiveProjectionMatrix;
-        }
+    //Get projection Matrix
+    if (projectionType == 'orthogonal')
+    {
+        pm = orthogonalProjectionMatrix;
+    } else if (projectionType == 'perspective')
+    {
+        pm = perspectiveProjectionMatrix;
+    } else {
+        console.error("Unknown projectionType. Needs to be orthogonal or perspective.");
+        pm = perspectiveProjectionMatrix;
     }
+    //}
 
 
 
 
     //RENDERING PART///////////////////////////////
     //Clear Screen
-    gl.clearColor(1, 1, 1, 1);    // Clear to black, fully opaque
+    gl.clearColor(1, 1, 1, 1);    // Clear to white, fully opaque
     gl.clearDepth(1);                   // Clear everything
-    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+    //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+    //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
-    //gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LESS);
+
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+    //gl.enable(gl.BLEND);
+    //gl.blendEquation( gl.FUNC_ADD );
+    //gl.blendFunc(gl.ONE, gl.ONE);
+    //gl.depthMask(false); // turn off depth write
+    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+    //gl.blendFunc(gl.SRC_COLOR, gl.ONE);
+    
+
+    gl.enable(gl.CULL_FACE);
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
-    //Draw Each object
+    //Draw each grid
+    for (var i=0; i<grids.length; i++)
+    {
+        grids[i].draw(gl, pm, vm);
+    }
+
+
+    gl.depthMask(false); // turn off depth write
+    if (selectedObject != null)
+    {
+        selectedObject.draw(gl, pm, vm, new vec4(0.9,0.3,0.3,0.5));
+    }
+    gl.depthMask(true);
+
+    //Draw Each object, all but selected object (selectde object has transparency, so render last)
     for (var i=0; i<objects.length; i++)
     {
-        if (selectedObject == objects[i])
+        if (selectedObject != objects[i])
         {
-            objects[i].draw(gl, pm, vm, new vec4(0.9,0.3,0.3,1));
-        } else {
-            objects[i].draw(gl, pm, vm);
+            if (selectedObject instanceof Body)
+            {
+                objects[i].draw(gl, pm, vm, new vec4(0,0,0,0.5));
+            } else {
+                objects[i].draw(gl, pm, vm);
+            }
         }
     }
 
      //Draw Compass
     compass.draw(gl,pm,vm);
 
+    /*
     //Draw All Sketches
     for (var i=0; i<sketches.length; i++)
     {
@@ -428,7 +601,7 @@ function main() {
         {
             grids[i].draw(gl, pm, vm);
         }
-    }
+    }*/
 
 
     //Messing around with projection matrices and switching between them linearly.
@@ -442,24 +615,6 @@ function main() {
 
     //Render!
     //drawLite(gl, projectionMatrix, viewMatrix);    
-}
-function updateObjectsContainer() {
-    //if (editingObject) { return; }
-    objectContainerElement.innerHTML = "<div style='font-size:large;'>Objects</div>";
-    for (var i=0; i<objects.length; i++)
-    {
-        objectContainerElement.innerHTML += objects[i].getHTMLText() + "<br>";
-    }
-    let ins = document.getElementsByClassName('vectorInput');
-
-    for (var i in ins)
-    {
-        try {
-            ins[i].style.width = ins[i].value.length + "ch";
-        } catch {
-
-        }
-    }
 }
 
 

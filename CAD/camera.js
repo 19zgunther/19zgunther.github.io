@@ -304,8 +304,8 @@ class Camera
         this.viewMatrix = this.rotationMatrix.mul(this.translationMatrix);
 
 
-        var detailsElement = document.getElementById('cameraPositionDetailsElement');
-        detailsElement.innerHTML = "Position: " + this.position.toString() +  "<br>Rotation: " + this.rot.toString() + "<br>Normal: "+this.getScreenNormalVector().toString();
+        //var detailsElement = document.getElementById('cameraPositionDetailsElement');
+        //detailsElement.innerHTML = "Position: " + this.position.toString() +  "<br>Rotation: " + this.rot.toString() + "<br>Normal: "+this.getScreenNormalVector().toString();
     }
     setPosition(pos = new vec4())
     {

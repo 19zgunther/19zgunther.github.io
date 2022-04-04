@@ -272,6 +272,10 @@ function initBodyShaderProgram(gl) {
         } else {
             color = uHighlightVector;
         }
+
+        if (uHighlightVector.a > 0.01) {
+            color.a = uHighlightVector.a;
+        }
     }
     `;
     const fsSource = `

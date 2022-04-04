@@ -15,10 +15,11 @@
 
 #glCanvas {
     width:100%;
-    min-width: 500px;
-    min-height: 500px;
-    height: 70%;
+    min-width: 300px;
+    min-height: 300px;
+    height: 100%;
     margin: auto;
+    display: inline-block;
 }
 
 /*Hover Drop Down components*/
@@ -188,3 +189,8 @@ itemDropdown:hover {
     background-color: rgba(1,1,1,0.2);
     outline: none;
 }
+
+
+
+
+

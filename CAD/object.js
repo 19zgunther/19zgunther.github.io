@@ -402,7 +402,7 @@ class Body extends Object {
         return ""
             + "<item id = \'"+this.id+"\' onclick = \"objectClicked(this);\" >" 
                 + "<div style='font-size: larger'>"    
-                    + this.type
+                    + this.type + ":" + this.id
                 + "</div>"
                 + "<div style = 'display: inline-block; transition:max-height 0.5s; overflow:hidden;' >"
                     + "<div style='display:flex;'>"
@@ -455,6 +455,7 @@ class Cube extends Body {
             1,1,1, 1,1,-1, 1,-1,-1, 1,-1,1, //right
             -1,-1,1, 1,-1,1, 1,-1,-1, -1,-1,-1, //bottom
         ];
+        for (var i in this.vertices) {this.vertices[i] /= 2;}
         this.indices = [
             0,2,1, 0,3,2, //front
             4,6,5, 4,7,6, //back
@@ -500,46 +501,37 @@ class Cylinder extends Body {
 
         this.type = 'Cylinder';
 
-        this.vertices = [
-            -1,1,1, 1,1,1, 1,-1,1, -1,-1,1, //front
-            -1,1,-1, -1,-1,-1, 1,-1,-1, 1,1,-1, //back
-            -1,1,1, -1,1,-1, 1,1,-1, 1,1,1, //top
-            -1,1,1, -1,-1,1, -1,-1,-1, -1,1,-1, //left
-            1,1,1, 1,1,-1, 1,-1,-1, 1,-1,1, //right
-            -1,-1,1, 1,-1,1, 1,-1,-1, -1,-1,-1, //bottom
-        ];
-        this.indices = [
-            0,2,1, 0,3,2, //front
-            4,6,5, 4,7,6, //back
-            8,10,9, 8,11,10, //top
-            12,14,13, 12,15,14, //left
-            16,18,17, 16,19,18, //right
-            20,22,21, 20,23,22, //bottom
-        ];
-        this.normals = [
-            0,0,1, 0,0,1, 0,0,1, 0,0,1,
-            0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1,
-            0,1,0, 0,1,0, 0,1,0, 0,1,0,
-            -1,0,0, -1,0,0, -1,0,0, -1,0,0, //left
-            1,0,0, 1,0,0, 1,0,0, 1,0,0, //right
-            0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0, //bottom
-        ];
-        this.colors = [
-            /*
-            1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1,
-            0,1,0,1, 0,1,0,1, 0,1,0,1, 0,1,0,1,
-            0,0,1,1, 0,0,1,1, 0,0,1,1, 0,0,1,1,
-            1,1,0,1, 1,1,0,1, 1,1,0,1, 1,1,0,1,
-            1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,
-            0,1,1,1, 0,1,1,1, 0,1,1,1, 0,1,1,1*/
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-            0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
-        ];
+        let rad = 0.5;
+        let height = 1;
+        let divisions = 20;
 
+
+        this.vertices = [0,height/2,0, 0,-height/2,0, ];
+        this.indices = [];
+        this.normals = [0,1,0,  0,-1,0];
+        this.colors = [0.5, 0.5, 0.5, 1,   0.5, 0.5, 0.5, 1];
+        this.lineIndices = [];
+
+        let i = 2;
+        let si = 2;
+
+        for (var a=0; a<2*Math.PI; a += 2*Math.PI/divisions)
+        {   
+            this.vertices.push( Math.cos(a)*rad, height/2, Math.sin(a)*rad ); //adding top vertice
+            this.vertices.push( Math.cos(a)*rad, -height/2, Math.sin(a)*rad ); //adding bottom vertice
+
+            this.colors.push( 0.5, 0.5, 0.5, 1,  0.5, 0.5, 0.5, 1, );
+            this.normals.push( Math.cos(a), 0, Math.sin(a),    Math.cos(a), 0, Math.sin(a),  );
+            i += 2;
+            if (a > 0)
+            {
+                //                 side triangle 1   side triangle 2  top triangle  bottom triangle
+                this.indices.push( i-1, i-3, i-2,   i-3, i-4, i-2,  0, i-2, i-4,  1,i-3,i-1);
+                this.lineIndices.push(i-1, i-3, i-2, i-4);
+            }
+        }
+        this.indices.push( i-1, i-2, si,   si,si+1, i-1,  i-2,0,si,   1, i-1, si+1);
+        this.lineIndices.push(i-1, si+1, i-2, si);
         this.refresh();
     }
 }

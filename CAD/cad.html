@@ -69,6 +69,7 @@
     
 
     <!-- Overlays! -->
+    <!--
     <div style="width: 1; height:1;">
         <div id = 'sketchMenu' style = 'display:none;'>
             <div class = 'sketchMenu_parent'>
@@ -88,7 +89,6 @@
             </div>
         </div>
 
-        <!--Create Sketch Menu-->
         <div style="position: absolute; z-index: 0; width: fit-content; height: fit-content; left: 200px; top: 200px;">
             <div id = 'createSketchMenu' style = 'z-index: 0.9; display:none; width:fit-content; min-width: 100; min-height: 100; height:fit-content; background-color: grey;'>
                 <div style="display: flex; flex-direction: row; flex-wrap: wrap; width:100%;">
@@ -129,25 +129,26 @@
             </div>
         </div>
     </div>
-
-    <!-- Canvas! -->
-    <div style="position: relative; width: 100%; height: fit-content;">
+    -->
+    <div style='display: auto; position: relative; width: 100vw; height: 70vh;'>
         <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown="mouseDown(event)"  onmouseup="mouseUp(event)"></canvas>
-        
         <div id='addObjectsContainer'>
             <div class = 'button' id='cube' onclick = addObjectButtonPress(this)>Add Cube</div>
             <div class = 'button' id='cylinder' onclick = addObjectButtonPress(this)>Add Cylinder</div>
         </div>
         
-        <div id='objectContainer'>
-            <item>
-                hi
-            </item>
+        <div id='objectContainer' style='position: absolute; display:block; top: 0%; bottom: auto;'>
         </div>
-        <div id = 'cameraPositionDetailsElement' style = 'z-index: 0.1; font-size: small; width: fit-content; flex-wrap: nowrap; float:right;'>
-            Camera Position, Rotation, and <br> OTher
+
+        <div id='historyContainer' class = 'backgroundPanel' style='position: absolute; display:block; top: auto; bottom:20%; max-height: 30%; overflow: scroll;'>
         </div>
     </div>
+        
+    <!-- 
+    <div id = 'cameraPositionDetailsElement' style = 'z-index: 0.1; font-size: small; width: fit-content; flex-wrap: nowrap; float:right;'>
+        Camera Position, Rotation, and <br> OTher
+    </div>-->
+
 
     <div class = 'button' style='position:relative' onclick = createSketchMenu_show()>Create Sketch</div>
     <div class = 'button'  onclick = move_camera_home_button_press()>Move to home position</div>
