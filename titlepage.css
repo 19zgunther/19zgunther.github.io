@@ -207,7 +207,7 @@ body.loaded .image_downarrow{
     border-color: var(--project_container_border_color);
     justify-self: center;
 
-    transition: opacity 0.5s, border-color 0.5s;
+    transition: opacity 0.5s, border-color 0.5s, transform 0.5s;
 }
 .project_container:hover {
     border-color: var(--project_container_border_color_highlight);

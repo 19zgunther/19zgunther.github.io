@@ -1,10 +1,11 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Menu - Load Project List
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 {
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Menu - Load Project List
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //var menuProjectsElement = document.getElementById("INSERT_MENU_PROJECTS");
     var menuElement = document.createElement('div');
     menuElement.setAttribute('class', 'menu');
@@ -145,7 +146,7 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Title Screen - Project Opacity
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
-    var contentColumnElements = document.getElementsByClassName("project_container");
+    const contentColumnElements = document.getElementsByClassName("project_container");
     if (contentColumnElements != null && contentColumnElements.length > 0)
     {   
         var pPageYOffset_cc = 0;
@@ -157,11 +158,15 @@
                 for(var i=0; i<contentColumnElements.length;i++)
                 {
                     var bb = contentColumnElements[i].getBoundingClientRect();
-                    if (Math.abs(bb.top - bb.height/2) < window.innerHeight/2 )
+                    let v = Math.min(2*(Math.abs(bb.top - bb.height/2) - window.innerHeight/2)/window.innerHeight,1);
+                    if (i ==0 ) { console.log(v)}
+                    if (v < 0)
                     {
                         contentColumnElements[i].style.opacity = '1';
+                        //contentColumnElements[i].style.transform = 'rotateY('+(90-v*90)+'deg)';
                     } else {
                         contentColumnElements[i].style.opacity = '0.2';
+                        //contentColumnElements[i].style.transform = 'rotateY(90deg)';
                     }
                 }
                 
@@ -172,95 +177,3 @@
 
 
 }
-
-/*
-if (menuProjectsElement != null) {
-    const text = `
-    <div class = 'menu_dropdown_child' onclick='buttonClick("circuit_simulator")'>
-        Circuit Simulator
-    </div>
-    <div class = 'menu_dropdown_child' onclick='buttonClick("charged_particle_simulator")'>
-        Charged Particle Simulator
-    </div>
-    <div class = 'menu_dropdown_child' onclick='buttonClick("planet_generator")'>
-        Planet Generator
-    </div>
-    <div class = 'menu_dropdown_child' onclick='buttonClick("web_experiments")'>
-        Web Dev Experiments <br> (in dev)
-    </div>
-    <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
-        Ray Tracing Project <br> (in dev)
-    </div>
-    <div class = 'menu_dropdown_child' onclick='buttonClick("cad")'>
-        CAD <br>(in dev)
-    </div>
-    `;
-
-    menuProjectsElement.innerHTML = text;
-
-    var o = `
-    <div style = "position:fixed; top:0px; z-index: 500; width: 100%;">
-        <div id="Header" class = "header">
-            <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('index.html')">Home</div>
-            <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('resume.html')" >Resume</div>
-            <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
-            <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
-            <div id="cadButton" class = "HeaderButton" onclick= "ChangePage('CAD/cad.html')">CAD</div>
-        </div>
-    </div>
-    `;
-}
-*/
-
-/*
-var data = [];
-for (var x=0; x<4; x+=0.01)
-{
-    var sum = 1.5
-    for (var n=1; n<100; n+=1)
-    {
-        sum += (-3.1415/2)*(2*n-1)*Math.sin( ( (2*n-1)*3.14159265*x  )/2 );
-    }
-    data.push(sum);
-}
-
-var num = 50;
-for (var i=0; i<data.length-num; i++)
-{
-    for (var j=0; j<num; j++)
-    {
-        data[i] += data[j];
-    }
-    data[i] = data[i]/num;
-    //data[i] = (data[i] + data[i+1] + data[i+2] + data[i+3] + data[i+4] )/5;
-}
-
-console.log(data);
-width = 500;
-
-var canvas = document.createElement('canvas');
-canvas.style.width = width;
-canvas.style.height = width;
-canvas.width = width;
-canvas.height = width;
-document.body.appendChild(canvas);
-document.body.append(canvas);
-
-var ctx = canvas.getContext('2d');
-
-ctx.fillStyle='#FFFFFF';
-ctx.fillRect(0,0,width,width);
-ctx.beginPath();
-ctx.moveTo(0,width/2);
-for (var i=0; i<data.length; i++)
-{
-    ctx.lineTo(i, width/2 + data[i]);
-}
-ctx.stroke();
-
-ctx.strokeStyle='#FF0000';
-ctx.beginPath();
-ctx.moveTo(0,width/2);
-ctx.lineTo(width,width/2);
-ctx.stroke();
-*/

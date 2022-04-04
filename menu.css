@@ -17,13 +17,13 @@
     --button_highlight_color: rgba(40,40,40,1);
     --dropdown_child_color: rgba(30,30,30,1);
 
-    --scroll_indicator_color: rgb(255, 189, 118);
-
-    --theme_color: rgb(255, 189, 118);
+    --theme_color: rgb(253, 178, 97);
     --theme_color_low_opacity: rgba(255, 189, 118,0.5);
     --theme_color_light2: rgb(253, 234, 214);
     --theme_color_light: rgb(248, 203, 156);
     --theme_color_dark: rgb(106, 78, 48);
+
+    --scroll_indicator_color: var(--theme_color);
 }
 
 @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
@@ -142,15 +142,17 @@ logo{
     background-image:url('Lake3IMG.jpg');
     background-size:cover; */
 
-    
+    /*
     background-image:url('LogoBackgroundImage.jpg');
     background-size:cover; 
     color: rgba(0,0,0,0);
     -moz-background-clip: text;
     -webkit-background-clip: text;
-    background-clip: text;
+    background-clip: text; */
 
-    background-color:var(--scroll_indicator_color);
+    /*background-color:var(--theme_color);*/
+    background-color: rgba(0,0,0,0);
+    color: var(--theme_color);
 
     /*background-color: var(--theme_color);
     color: var(--theme_color_dark);*/
@@ -175,7 +177,8 @@ logo{
 logo:hover {
     /*background-color: var(--button_highlight_color);*/
     color: rgba(0,0,0,1);
-    background-clip: border-box;
+    /*background-clip: border-box;*/
+    background-color: var(--theme_color);
 }
 
 

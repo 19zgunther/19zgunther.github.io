@@ -1,0 +1,81 @@
+
+*{
+    --section_background_color: rgba(40,40,40,1);
+    --number_input_background_color: rgba(60,60,60,0.5);
+    --number_input_border_color: rgba(20,20,20,1);
+    --number_input_border_color_focus: white;
+}
+
+
+title{
+    display:block;
+    margin: 2vmin;
+    font-size:xx-large;
+}
+
+
+header{
+    font-size:large;
+    margin-top: 1vmin;
+    margin-bottom: 1vmin;
+}
+
+section {
+    display: block;
+    padding: 2vmin;
+    margin: 2vmin;
+    background-color: var(--section_background_color);
+}
+
+matrix {
+    display: block;
+    border-style:solid;
+    border-width: 1px;
+    border-top-color: rgba(0,0,0,0);
+    border-bottom-color: rgba(0,0,0,0);
+    border-left-color: white;
+    border-right-color: white;
+    margin-left: 0.5vmin;
+    margin-right: 0.5vmin;
+    padding-left: 0.5vmin;
+    padding-right: 0.5vmin;
+    width:fit-content;
+}
+flexMatrix {
+    display: block;
+    border-style:solid;
+    border-width: 1px;
+    border-top-color: rgba(0,0,0,0);
+    border-bottom-color: rgba(0,0,0,0);
+    border-left-color: white;
+    border-right-color: white;
+    margin-left: 0.5vmin;
+    margin-right: 0.5vmin;
+    padding-left: 0.5vmin;
+    padding-right: 0.5vmin;
+    width:fit-content;
+}
+
+
+
+flex {
+    display:flex;
+}
+
+
+input[type="number"] {
+    border-style: solid;
+    border-width: 1px;
+    border-color:var(--number_input_border_color);
+    text-align: center;
+    background-color: var(--number_input_background_color);
+
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+input[type='number']:focus {
+    outline: none;
+    border-color: var(--number_input_border_color_focus);
+}
