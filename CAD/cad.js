@@ -181,7 +181,6 @@ function mouseWheel(event)
 }
 
 
-
 function addObjectButtonPress(buttonElement) {
     console.log(buttonElement.id);
 
@@ -190,6 +189,7 @@ function addObjectButtonPress(buttonElement) {
         //case "cube": let o = new Cube(); objects.push(o); objectContainerElement.innerHTML += (o.getHTMLText()); break;
         case "cube":o = new Cube(); break;
         case "cylinder": o = new Cylinder(); break;
+        case "sphere": o = new Sphere(); break;
     }
     if (o != null) {
         addObject(o);
@@ -223,7 +223,7 @@ function objectParameterChanged(element) {
     }
 
     //Set the width of the text
-    element.style.width = element.value.length + 'ch';
+    element.style.width = Math.max(element.value.length,2) + 'ch';
  
     let pos = obj.getPosition();
     let rot = obj.getRotation();

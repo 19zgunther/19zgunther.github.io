@@ -41,20 +41,6 @@ matrix {
     padding-right: 0.5vmin;
     width:fit-content;
 }
-flexMatrix {
-    display: block;
-    border-style:solid;
-    border-width: 1px;
-    border-top-color: rgba(0,0,0,0);
-    border-bottom-color: rgba(0,0,0,0);
-    border-left-color: white;
-    border-right-color: white;
-    margin-left: 0.5vmin;
-    margin-right: 0.5vmin;
-    padding-left: 0.5vmin;
-    padding-right: 0.5vmin;
-    width:fit-content;
-}
 
 
 
@@ -69,7 +55,6 @@ input[type="number"] {
     border-color:var(--number_input_border_color);
     text-align: center;
     background-color: var(--number_input_background_color);
-
 }
 input[type='number']::-webkit-outer-spin-button,
 input[type='number']::-webkit-inner-spin-button {

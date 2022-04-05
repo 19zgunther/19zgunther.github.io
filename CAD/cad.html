@@ -66,75 +66,12 @@
         </div>
     </div>
 
-    
-
-    <!-- Overlays! -->
-    <!--
-    <div style="width: 1; height:1;">
-        <div id = 'sketchMenu' style = 'display:none;'>
-            <div class = 'sketchMenu_parent'>
-                <div class="sketchMenu_column" >
-                    <div class ='sketchMenu_cell' onclick = exit_sketch() >
-                        Exit Sketch
-                    </div>
-                </div>
-                <div class="sketchMenu_column" >
-                    <div id = 'line' class ='sketchMenu_cell' onclick =sketchMenu_cellClick(this)  >
-                        Line
-                    </div>
-                    <div id = 'circle' class ='sketchMenu_cell' onclick =sketchMenu_cellClick(this) >
-                        Circle
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="position: absolute; z-index: 0; width: fit-content; height: fit-content; left: 200px; top: 200px;">
-            <div id = 'createSketchMenu' style = 'z-index: 0.9; display:none; width:fit-content; min-width: 100; min-height: 100; height:fit-content; background-color: grey;'>
-                <div style="display: flex; flex-direction: row; flex-wrap: wrap; width:100%;">
-                    <div style="display: flex; flex-direction: column;">
-                        <div style = 'font-size: larger; font-weight: bolder;'>
-                            Create Sketch
-                        </div>
-                    </div>
-
-                    <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
-                        <div class='button' style='width:fit-content; min-width: 5px;' onclick = createSketchMenu_hide()>
-                            X
-                        </div>
-                    </div>
-                </div>
-                <div style="display: flex; flex-direction: row; flex-wrap: wrap;">
-                    <div style="display: flex; flex-direction: column;">
-                        <div class="button" id = 'xzPlane' onclick = createSketchMenu_planeButton_onclick(this)>
-                            XZ Plane
-                        </div>
-                        <div class="button" id = 'xyPlane' onclick = createSketchMenu_planeButton_onclick(this)>
-                            XY Plane
-                        </div>
-                        <div class="button" id = 'yzPlane' onclick = createSketchMenu_planeButton_onclick(this)>
-                            YZ Plane
-                        </div>
-                        <div class="button" id = 'customPlane' onclick = createSketchMenu_planeButton_onclick(this)>
-                            Custom Plane
-                        </div>
-                    </div>
-                    <div style="display: flex; flex-direction: column; justify-items: right; margin-left: auto;">
-                        <canvas id = 'createSketchCanvas' width= '100' height = '100' style="background-color: white; justify-self: right; margin: auto;"></canvas>
-                    </div>
-                </div>
-                <div class='button' onclick = createSketchMenu_createButton_onclick(this) style='width: 80%;'>
-                    Create Sketch
-                </div>
-            </div>
-        </div>
-    </div>
-    -->
     <div style='display: auto; position: relative; width: 100vw; height: 70vh;'>
         <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown="mouseDown(event)"  onmouseup="mouseUp(event)"></canvas>
         <div id='addObjectsContainer'>
             <div class = 'button' id='cube' onclick = addObjectButtonPress(this)>Add Cube</div>
             <div class = 'button' id='cylinder' onclick = addObjectButtonPress(this)>Add Cylinder</div>
+            <div class = 'button' id='sphere' onclick = addObjectButtonPress(this)>Add Sphere</div>
         </div>
         
         <div id='objectContainer' style='position: absolute; display:block; top: 0%; bottom: auto;'>
@@ -160,6 +97,7 @@
     <div style='display:flex;'>
         <div class = 'button'  onclick = load_file_button_press()>Load File</div>
     </div>
+
 
 </input>
 

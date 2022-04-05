@@ -501,10 +501,16 @@ class Cylinder extends Body {
 
         this.type = 'Cylinder';
 
+        
+
+        this._generateMesh();
+
+        this.refresh();
+    }
+    _generateMesh() {
         let rad = 0.5;
         let height = 1;
         let divisions = 20;
-
 
         this.vertices = [0,height/2,0, 0,-height/2,0, ];
         this.indices = [];
@@ -532,7 +538,53 @@ class Cylinder extends Body {
         }
         this.indices.push( i-1, i-2, si,   si,si+1, i-1,  i-2,0,si,   1, i-1, si+1);
         this.lineIndices.push(i-1, si+1, i-2, si);
+    }
+}
+
+class Sphere extends Body {
+    constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
+        super(pos, rot, scale);
+
+        this.type = 'Sphere';
+        this._generateMesh();
         this.refresh();
+    }
+    _generateMesh() {
+        let rad = 1.0;
+        let numDivisions = 10;
+
+        this.vertices = [0,1,0]; 
+        this.indices =[];
+        this.colors = [];
+        this.normals = [];
+
+        let numInPreviousRow = 1;
+        let indiceStartPrevRow = 1;
+        for (var i=0; i<numDivisions; i++)
+        {
+            let y = Math.cos(Math.PI * i/numDivisions);
+            let r = Math.sin(Math.PI * i/numDivisions);
+            //let circ = 2*Math.PI*r;
+            //console.log("y: "+ y + " r: " + r);
+            
+            for (var a=0; a<numDivisions; a++)
+            {
+                let x = r*Math.cos(2*Math.PI * a/numDivisions);
+                let z = r*Math.sin(2*Math.PI * a/numDivisions);
+
+                this.vertices.push(x,y,z);
+                this.colors.push(0.5,0.5,0.5,1);
+                let n = new vec4(x,y,z);
+                n.scaleToUnit();
+                this.normals.push(n.x, n.y, n.z);
+                if (i != 0 && a != 0)
+                {
+                    this.indices.push((i-1)*numDivisions + a, (i)*numDivisions + a-1, (i-1)*numDivisions + a-1,  );
+                }
+            }
+            indiceStartPrevRow += numDivisions;
+            //for (var a=0; a<)
+        }
     }
 }
 
