@@ -123,6 +123,23 @@ function initDefaultShaderProgram(gl) {
         return 100000.0;
     }
     `;
+
+    const distToCubeFunction = `
+    float distToCube(vec3 rayD, vec3 rayP, vec3 bC, float bR)
+    {
+        float d = distToPlane(rayD, rayP, bC + vec3(0,0,bR), vec3(0,0,1));
+        if (d > 0.0 && d < 1000.0)
+        {
+            vec3 newRayP = rayP + rayD * d;
+            if (newRayP.x < bC.x + bR   &&  newRayP.x > bC.x - bR 
+                && newRayP.y < bC.y + bR   &&  newRayP.y > bC.y - bR)
+            {
+                return d;
+            }
+        }
+        return 10000.0;
+    }
+    `;
     
     const distToPlaneFunction = `
     float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
@@ -145,7 +162,7 @@ function initDefaultShaderProgram(gl) {
     `;
 
     const fsSource  = 
-    fsSourceHeader + toUnitFunction + reflectRayFunction + distToPlaneFunction + distToPointFunction + distToSphereFunction +
+    fsSourceHeader + toUnitFunction + reflectRayFunction + distToPlaneFunction + distToCubeFunction + distToPointFunction + distToSphereFunction +
     `
 
     vec3 newRayP(vec3 rayD, vec3 rayP, float t)
@@ -182,6 +199,7 @@ function initDefaultShaderProgram(gl) {
         for (int i=0; i<10; i++) {
 
             if (!leavingSphere) { sD = distToSphere(rayD, rayP, sC, sR); } else { sD = 10000.0; }
+            //if (!leavingSphere) { sD = distToCube(rayD, rayP, sC, sR); } else { sD = 10000.0; }
             if (!leavingSphere2) { sD2 = distToSphere(rayD, rayP, sC2, sR2); } else { sD2 = 10000.0; }
             pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
             pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
@@ -197,29 +215,28 @@ function initDefaultShaderProgram(gl) {
             {
                 rayP = rayP + rayD*m;
                 rayD = reflectRay(unit(rayD), unit(sC-rayP));
+                //rayD = reflectRay(rayD, vec3(0,0,1));
                 
-                
-                /*float d2 = distToSphere(rayD, rayP, sC, sR);
+                float d2 = distToSphere(rayD, rayP, sC, sR);
                 float d = distToPoint(rayP, lC);
-                if (d2 < d)
+                if (d2 > d)
                 {
                     //color += (1.0-percentDone)*0.0*vec4(1,1,1,0);
                     //percentDone += (1.0-percentDone)*0.0;
-                }*/
+                }
                 leavingSphere = true;
             } else if (m == sD2)
             {
                 rayP = rayP + rayD*m;
-                rayD = reflectRay(rayD, unit(sC2-rayP));
+                rayD = reflectRay(rayD, unit(sC2-rayP) );
 
-                float d2 = distToSphere(rayD, rayP, sC2, sR2);
+                /*float d2 = distToSphere(rayD, rayP, sC2, sR2);
                 float d = distToPoint(rayP, lC);
-
-                if (d2 < d)
+                if (d2 > d)
                 {
-                    //color += (1.0-percentDone)*0.5*vec4(1,1,1,0);
-                    //percentDone += (1.0-percentDone)*0.5;
-                }
+                    color += (1.0-percentDone)*0.5*vec4(0.4,0.6,0.4,1);
+                    percentDone += (1.0-percentDone)*0.5;
+                }*/
                 leavingSphere2 = true;
             } else {
 
@@ -228,11 +245,9 @@ function initDefaultShaderProgram(gl) {
 
                 vec3 newRayP = rayP + rayD*m;
                 vec3 newRayD = unit( lC - newRayP);
-
                 float d = distToPoint(newRayP, lC);
                 float d2 = distToSphere(newRayD, newRayP, sC, sR);
                 float d3 = distToSphere(newRayD, newRayP, sC2, sR2);
-
                 if ((d2 < d && d2 > 0.0) || (d3 < d && d3 > 0.0)){
                     d = d*2.0;
                 }
@@ -373,23 +388,7 @@ function keyReleased(event)
 }
 
 
-function update() {
-    gl.clearColor(0.01, 0.01, 0.01, 1);    // Clear to black, fully opaque
-    gl.clearDepth(1);                   // Clear everything
-    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
-
-    //gl.enable(gl.CULL_FACE);
-    // Clear the canvas before we start drawing on it.
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-
-
-    var vertices = [-1,1,0, 1,1,0, 1,-1,0, -1,-1,0];
-    var indices = [0,1,2, 0,2,3];
-    var buffers = initBuffers(vertices, null, null, indices);
-
-
+function updateCamera() {
     let tempTrans = new vec4();
     let tempRot = new vec4();
     let transSpeed = 0.1;
@@ -446,7 +445,27 @@ function update() {
     camRotMat =   new mat4().makeRotation(0,camRot.y, (-camRot.x + Math.PI/2)%Math.PI);
 
     //camRotMat.makeRotation(camRot.x, camRot.y, camRot.z);
+}
 
+
+function update() {
+    gl.clearColor(0.01, 0.01, 0.01, 1);    // Clear to black, fully opaque
+    gl.clearDepth(1);                   // Clear everything
+    gl.enable(gl.DEPTH_TEST);           // Enable depth testing
+    gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
+
+    //gl.enable(gl.CULL_FACE);
+    // Clear the canvas before we start drawing on it.
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+
+
+    var vertices = [-1,1,0, 1,1,0, 1,-1,0, -1,-1,0];
+    var indices = [0,1,2, 0,2,3];
+    var buffers = initBuffers(vertices, null, null, indices);
+
+
+    updateCamera();
 
 
     var programInfo = defaultProgramInfo;
@@ -465,28 +484,6 @@ function update() {
         gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, numComponents, type, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
     }
-    /*{
-        const numComponents = 3  // pull out 3 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normals);
-        gl.vertexAttribPointer(programInfo.attribLocations.normalLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.normalLocation);
-    }*/
-    /*{
-        const numComponents = 4;  // pull out 4 values per iteration
-        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
-        const normalize = false;  // don't normalize
-        const stride = 0;         // how many bytes to get from one set of values to the next
-        const offset = 0;         // how many bytes inside the buffer to start from
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colors);
-        gl.vertexAttribPointer(programInfo.attribLocations.colorLocation, numComponents, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.colorLocation);
-    }*/
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
@@ -495,6 +492,7 @@ function update() {
     //gl.uniformMatrix4fv(programInfo.uniformLocations.viewMatrix, false, viewMatrix.getFloat32Array());
     //gl.uniformMatrix4fv(programInfo.uniformLocations.objectPositionMatrix, false, objectPositionMatrix.getFloat32Array());
     //gl.uniformMatrix4fv(programInfo.uniformLocations.objectRotationMatrix, false, objectRotationMatrix.getFloat32Array());
+
     gl.uniform4fv(programInfo.uniformLocations.viewPosition, camPos.getFloat32Array());
 
     gl.uniform4fv(programInfo.uniformLocations.viewRotation, camRot.getFloat32Array());
