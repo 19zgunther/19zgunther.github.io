@@ -37,6 +37,9 @@
                 <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
                     Ray Tracing Project <br> (in dev)
                 </div>
+                <div class = 'menu_dropdown_child' onclick='buttonClick("webgl_raytracing")'>
+                    Webgl Ray Tracing Project <br> (in dev)
+                </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("cad")'>
                     CAD <br>(in dev)
                 </div>
@@ -77,6 +80,7 @@
             case 'raytracing': pageString = 'raytracing/raytracing.html'; break;
             case 'planet_generator': pageString = 'planetGenerator/planetGenerator.html'; break;
             case 'web_experiments': pageString = 'webExperiments/webExperiments.html'; break;
+            case 'webgl_raytracing': pageString = 'webglRaytracing/webglRaytracing.html'; break;
         }
         if (String(document.location).includes('index.html') || String(document.location).includes('resume.html'))
         {

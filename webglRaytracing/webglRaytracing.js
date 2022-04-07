@@ -56,8 +56,6 @@ function initDefaultShaderProgram(gl) {
         //viewPosition = uViewPosition;
     }
     `;
-
-
     const fsSourceHeader = `
     precision highp float;
     varying vec4 vScreenPos;
@@ -325,10 +323,11 @@ const lightDistanceDivisorElement = document.getElementById('lightDistanceDiviso
 const planeReflectanceElement = document.getElementById('planeReflectance');
 const maxReflectionsElement = document.getElementById('maxReflections');
 var gl;
-var camPos = new vec4();
+var camPos = new vec4(0,0,-5);
 var camRot = new vec4(Math.PI/2,0,0);
 var camRotMat = new mat4();
 var pressedKeys = {};
+var tick = 0;
 
 setup();
 
@@ -438,15 +437,18 @@ function updateCamera() {
 
 
 function update() {
+    tick += 1;
+
+    updateCamera();
+
+    camPos.addi(0,Math.sin(tick/10)/500)
+
     gl.clearColor(0.01, 0.01, 0.01, 1);    // Clear to black, fully opaque
     gl.clearDepth(1);                   // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-
-    updateCamera();
 
 
     var programInfo = defaultProgramInfo;
