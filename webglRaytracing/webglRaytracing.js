@@ -56,229 +56,6 @@ function initDefaultShaderProgram(gl) {
         //viewPosition = uViewPosition;
     }
     `;
-    const fsSourceHeader = `
-    precision highp float;
-    varying vec4 vScreenPos;
-
-    uniform vec4 uViewPosition;
-    uniform mat4 uRotationMatrix;
-    uniform float uLightDistanceDivisor;
-
-    `;
-    const toUnitFunction = `
-    vec3 unit(vec3 r)
-    {
-        float d = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
-        if (d < 0.0) { d = -d;}
-        r.x = r.x / d;
-        r.y = r.y / d;
-        r.z = r.z / d;
-        return r;
-    }
-    `;
-    const reflectRayFunction = `
-    vec3 reflectRay(vec3 rayD, vec3 N)
-    {
-        //float d = (rayD.x*N.x + rayD.y*N.y + rayD.z*N.z)*2.0;
-        float d = dot(rayD, N)*2.0;
-        return unit( rayD - N*d );
-    }
-    `;
-    const distToSphereFunction = `
-    float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
-    {
-        float a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
-        float b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
-        float c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
-        float top = b*b - 4.0*a*c;
-
-        if (top >= 0.001)
-        {
-            top = sqrt(top);
-            float t1 = (-b-top)/(2.0*a);
-            float t2 = (-b+top)/(2.0*a);
-            if (t1 > 0.01 && (t1 < t2 || t2 < 0.01))
-            {
-                return t1;
-            } else if (t2 > 0.01 && (t2 < t1 || t1 < 0.01))
-            {
-                return t2;
-            }
-        }
-        return 100000.0;
-    }
-    `;
-    const distToCubeFunction = `
-    float distToCube(vec3 rayD, vec3 rayP, vec3 bC, float bR)
-    {
-        float d = distToPlane(rayD, rayP, bC + vec3(0,0,bR), vec3(0,0,1));
-        if (d > 0.0 && d < 1000.0)
-        {
-            vec3 newRayP = rayP + rayD * d;
-            if (newRayP.x < bC.x + bR   &&  newRayP.x > bC.x - bR 
-                && newRayP.y < bC.y + bR   &&  newRayP.y > bC.y - bR)
-            {
-                return d;
-            }
-        }
-        return 10000.0;
-    }
-    `;
-    const distToPlaneFunction = `
-    float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
-    {
-        float t = dot(pP-rayP, pN) / dot(rayD, pN);
-        if (t > 0.001)
-        {
-            return t;
-        }
-        return 10000.0;
-    }
-    `;
-    const distToPointFunction = `
-    float distToPoint(vec3 rayP, vec3 P)
-    {
-        vec3 x = P-rayP;
-        return sqrt( dot(x,x) );
-    }
-    `;
-    const mainFunction = `
-    void main() {
-        vec3 rayD = unit(vec3(vScreenPos.x*3.0, vScreenPos.y*3.0, 5.0));
-        rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
-
-        vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
-    
-        gl_FragColor = fireRay(rayD, rayP);
-    }
-    `;
-    const fireRayFunction = `
-
-    vec4 fireRay(vec3 rayD, vec3 rayP)
-    {
-        vec4 color = vec4(0,0,0,1);
-        float percentDone = 0.0;
-
-        vec3 sC = vec3(0,0,4);
-        float sR = 1.0;
-
-        vec3 sC2 = vec3(1,2,5);
-        float sR2 = 0.6;
-
-        vec3 lC = vec3(4,0,8);
-
-        bool leavingSphere = false;
-        bool leavingSphere2 = false;
-
-        float sD = 10000.0;
-        float sD2 = 10000.0;
-        float pD1 = 10000.0;
-        float pD2 = 10000.0;
-        float pD3 = 10000.0;
-        float pD4 = 10000.0;
-        float pD5 = 10000.0;
-
-
-        for (int i=0; i<10; i++) {
-
-            if (!leavingSphere) { sD = distToSphere(rayD, rayP, sC, sR); } else { sD = 10000.0; }
-            //if (!leavingSphere) { sD = distToCube(rayD, rayP, sC, sR); } else { sD = 10000.0; }
-            if (!leavingSphere2) { sD2 = distToSphere(rayD, rayP, sC2, sR2); } else { sD2 = 10000.0; }
-            pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
-            pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
-            pD3 = distToPlane(rayD, rayP, vec3(-5, 0,  0), vec3(1,0,0));
-            //pD4 = distToPlane(rayD, rayP, vec3(0,  5,  0), vec3(0,1,0));
-            pD5 = distToPlane(rayD, rayP, vec3(0,  -5, 0), vec3(0,1,0));
-
-            float m = min(min(min(sD, pD1), min(pD2, pD3)), min(pD4, pD5));
-            m = min(m, sD2);
-
-
-            if (m == sD)
-            {
-                rayP = rayP + rayD*m;
-                rayD = reflectRay(unit(rayD), unit(sC-rayP));
-                //rayD = reflectRay(rayD, vec3(0,0,1));
-                
-                float d2 = distToSphere(rayD, rayP, sC, sR);
-                float d = distToPoint(rayP, lC);
-                if (d2 > d)
-                {
-                    //color += (1.0-percentDone)*0.0*vec4(1,1,1,0);
-                    //percentDone += (1.0-percentDone)*0.0;
-                }
-                leavingSphere = true;
-            } else if (m == sD2)
-            {
-                rayP = rayP + rayD*m;
-                rayD = reflectRay(rayD, unit(sC2-rayP) );
-
-                /*float d2 = distToSphere(rayD, rayP, sC2, sR2);
-                float d = distToPoint(rayP, lC);
-                if (d2 > d)
-                {
-                    color += (1.0-percentDone)*0.5*vec4(0.4,0.6,0.4,1);
-                    percentDone += (1.0-percentDone)*0.5;
-                }*/
-                leavingSphere2 = true;
-            } else {
-                leavingSphere = false;
-                leavingSphere2 = false;
-
-                vec3 newRayP = rayP + rayD*m;
-                vec3 newRayD = unit( lC - newRayP);
-                float d = distToPoint(newRayP, lC);
-                float d2 = distToSphere(newRayD, newRayP, sC, sR);
-                float d3 = distToSphere(newRayD, newRayP, sC2, sR2);
-                if ((d2 < d && d2 > 0.0) || (d3 < d && d3 > 0.0)){
-                    d = d*2.0;
-                }
-
-                d = d/uLightDistanceDivisor;
-
-                if (m == pD1)
-                {
-                    return vec4(1.0/d,0,0,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD2)
-                {
-                    return vec4(0,1.0/d,0,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD3)
-                {
-                    rayP = rayP + m*rayD;
-                    rayD = reflectRay(rayD, vec3(1,0,0));
-                    color += (1.0-percentDone)*0.9*vec4(0,1.0/d,1.0/d,0);
-                    percentDone += (1.0-percentDone)*0.9;
-                    //return vec4(0,0.5/d,0.5/d,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD4)
-                {
-                    return vec4(0.5/d,0.5/d,0,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD5)
-                {
-                    rayP = rayP + m*rayD;
-                    rayD = reflectRay(rayD, vec3(0,1,0));
-                    color += (1.0-percentDone)*0.99*vec4(1.0/d,1.0/d,1.0/d,0);
-                    percentDone += (1.0-percentDone)*0.99;
-                    //return vec4(1.0/d,1.0/d,1.0/d,1)*(1.0-percentDone) + percentDone*color;
-                }
-            }
-
-
-            if (percentDone > 0.95)
-            {
-                return color;
-            }
-            
-        }
-
-        //Return white if there's an issue and nothing is hit.
-        return vec4(1,1,1,1);
-    }
-    `;
-
-    //let fireRayFunction2 = generateShader();
-
-    const fsSource  =  fsSourceHeader + toUnitFunction + reflectRayFunction + distToPlaneFunction + distToCubeFunction + distToPointFunction + distToSphereFunction +
-    fireRayFunction + mainFunction;
 
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
@@ -328,6 +105,8 @@ var camRot = new vec4(Math.PI/2,0,0);
 var camRotMat = new mat4();
 var pressedKeys = {};
 var tick = 0;
+var mousePos = new vec4();
+var mouseIsDown = false;
 
 setup();
 
@@ -339,18 +118,25 @@ const buffers = initBuffers(vertices, null, null, indices);
 const updateInterval = setInterval(update, 30);
 document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
+glCanvasElement.addEventListener('mousedown', mouseDown);
+glCanvasElement.addEventListener('mousemove', mouseMove);
+document.addEventListener('mouseup', mouseUp);
+
 
 
 function setup() {
-    var min = Math.min(window.visualViewport.width, window.visualViewport.height);
+    //var min = Math.min(window.visualViewport.width, window.visualViewport.height);
     /*glCanvasElement.width = window.visualViewport.width;
     glCanvasElement.height = window.visualViewport.height;
     glCanvasElement.style.width = glCanvasElement.width + "px";
     glCanvasElement.style.height = glCanvasElement.height + 'px';*/
-    glCanvasElement.width = min;
-    glCanvasElement.height = min;
-    glCanvasElement.style.width = min + "px";
-    glCanvasElement.style.height = min + 'px';
+    //glCanvasElement.width = min;
+    //glCanvasElement.height = min;
+    //glCanvasElement.style.width = min + "px";
+    //glCanvasElement.style.height = min + 'px';
+    let bb = glCanvasElement.getBoundingClientRect();
+    glCanvasElement.width = bb.width;
+    glCanvasElement.height = bb.height;
 
     gl = glCanvasElement.getContext("webgl");
     if (gl === null) {
@@ -375,6 +161,33 @@ function keyReleased(event)
     var keyCode = event.key;
     pressedKeys[keyCode] = false;
 }
+function mouseDown(event)
+{
+    console.log(event);
+    mouseIsDown = true;
+    mousePos.x = event.clientX;
+    mousePos.y = event.clientY;
+}
+function mouseMove(event)
+{
+    if (mouseIsDown)
+    {
+        let x = event.clientX;
+        let y = event.clientY;
+        let dx = mousePos.x - x;
+        let dy = mousePos.y - y;
+        camRot.y += dx/500;
+        camRot.x += -dy/500;
+        mousePos.x = x;
+        mousePos.y = y;
+    }
+}
+function mouseUp(event)
+{
+    mouseIsDown = false;
+}
+
+
 
 function updateCamera() {
     let tempTrans = new vec4();
@@ -643,6 +456,8 @@ float distToPoint(vec3 rayP, vec3 P)
         str += "leavingS"+i+" = true;\n";
         str += "continue; \n}\n";
     }
+
+
     //Plane if statements
     str += "\n\n//Plane If Statements:\n"
     str += "vec3 newRayP = rayP + rayD*m;\n";
@@ -650,7 +465,7 @@ float distToPoint(vec3 rayP, vec3 P)
     str += "float d = distToPoint(newRayP, lightSource);\n";
     for (var i in spheres)
     {
-        str += "SD"+i+"=distToSphere(rayD, rayP, SC"+i+", SR"+i+");\n";
+        str += "SD"+i+"=distToSphere(newRayD, newRayP, SC"+i+", SR"+i+");\n";
     }
     str += "if (";
     for (var i in spheres)
@@ -658,7 +473,7 @@ float distToPoint(vec3 rayP, vec3 P)
         str += "(SD"+i+"<d && SD"+i+">0.01)";
         if (i != spheres.length-1) { str += " || ";}
     }
-    str += "){ d = d*2.0; }\n";
+    str += "){ d = d*1.5; }\n";
     str += "d = d/uLightDistanceDivisor;";
 
     for (var i in planes)
@@ -677,3 +492,226 @@ float distToPoint(vec3 rayP, vec3 P)
     console.log(defaultCode + str + mainFunction);
     return defaultCode + str + mainFunction;
 }
+
+
+
+
+
+/* OLD CODE:
+    const fsSourceHeader = `
+    precision highp float;
+    varying vec4 vScreenPos;
+
+    uniform vec4 uViewPosition;
+    uniform mat4 uRotationMatrix;
+    uniform float uLightDistanceDivisor;
+
+    `;
+    const toUnitFunction = `
+    vec3 unit(vec3 r)
+    {
+        float d = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
+        if (d < 0.0) { d = -d;}
+        r.x = r.x / d;
+        r.y = r.y / d;
+        r.z = r.z / d;
+        return r;
+    }
+    `;
+    const reflectRayFunction = `
+    vec3 reflectRay(vec3 rayD, vec3 N)
+    {
+        //float d = (rayD.x*N.x + rayD.y*N.y + rayD.z*N.z)*2.0;
+        float d = dot(rayD, N)*2.0;
+        return unit( rayD - N*d );
+    }
+    `;
+    const distToSphereFunction = `
+    float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
+    {
+        float a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
+        float b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
+        float c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
+        float top = b*b - 4.0*a*c;
+
+        if (top >= 0.001)
+        {
+            top = sqrt(top);
+            float t1 = (-b-top)/(2.0*a);
+            float t2 = (-b+top)/(2.0*a);
+            if (t1 > 0.01 && (t1 < t2 || t2 < 0.01))
+            {
+                return t1;
+            } else if (t2 > 0.01 && (t2 < t1 || t1 < 0.01))
+            {
+                return t2;
+            }
+        }
+        return 100000.0;
+    }
+    `;
+    const distToCubeFunction = `
+    float distToCube(vec3 rayD, vec3 rayP, vec3 bC, float bR)
+    {
+        float d = distToPlane(rayD, rayP, bC + vec3(0,0,bR), vec3(0,0,1));
+        if (d > 0.0 && d < 1000.0)
+        {
+            vec3 newRayP = rayP + rayD * d;
+            if (newRayP.x < bC.x + bR   &&  newRayP.x > bC.x - bR 
+                && newRayP.y < bC.y + bR   &&  newRayP.y > bC.y - bR)
+            {
+                return d;
+            }
+        }
+        return 10000.0;
+    }
+    `;
+    const distToPlaneFunction = `
+    float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
+    {
+        float t = dot(pP-rayP, pN) / dot(rayD, pN);
+        if (t > 0.001)
+        {
+            return t;
+        }
+        return 10000.0;
+    }
+    `;
+    const distToPointFunction = `
+    float distToPoint(vec3 rayP, vec3 P)
+    {
+        vec3 x = P-rayP;
+        return sqrt( dot(x,x) );
+    }
+    `;
+    const mainFunction = `
+    void main() {
+        vec3 rayD = unit(vec3(vScreenPos.x*3.0, vScreenPos.y*3.0, 5.0));
+        rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
+
+        vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
+    
+        gl_FragColor = fireRay(rayD, rayP);
+    }
+    `;
+    const fireRayFunction = `
+
+    vec4 fireRay(vec3 rayD, vec3 rayP)
+    {
+        vec4 color = vec4(0,0,0,1);
+        float percentDone = 0.0;
+
+        vec3 sC = vec3(0,0,4);
+        float sR = 1.0;
+
+        vec3 sC2 = vec3(1,2,5);
+        float sR2 = 0.6;
+
+        vec3 lC = vec3(4,0,8);
+
+        bool leavingSphere = false;
+        bool leavingSphere2 = false;
+
+        float sD = 10000.0;
+        float sD2 = 10000.0;
+        float pD1 = 10000.0;
+        float pD2 = 10000.0;
+        float pD3 = 10000.0;
+        float pD4 = 10000.0;
+        float pD5 = 10000.0;
+
+
+        for (int i=0; i<10; i++) {
+
+            if (!leavingSphere) { sD = distToSphere(rayD, rayP, sC, sR); } else { sD = 10000.0; }
+            //if (!leavingSphere) { sD = distToCube(rayD, rayP, sC, sR); } else { sD = 10000.0; }
+            if (!leavingSphere2) { sD2 = distToSphere(rayD, rayP, sC2, sR2); } else { sD2 = 10000.0; }
+            pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
+            pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
+            pD3 = distToPlane(rayD, rayP, vec3(-5, 0,  0), vec3(1,0,0));
+            //pD4 = distToPlane(rayD, rayP, vec3(0,  5,  0), vec3(0,1,0));
+            pD5 = distToPlane(rayD, rayP, vec3(0,  -5, 0), vec3(0,1,0));
+
+            float m = min(min(min(sD, pD1), min(pD2, pD3)), min(pD4, pD5));
+            m = min(m, sD2);
+
+
+            if (m == sD)
+            {
+                rayP = rayP + rayD*m;
+                rayD = reflectRay(unit(rayD), unit(sC-rayP));
+                //rayD = reflectRay(rayD, vec3(0,0,1));
+                
+                float d2 = distToSphere(rayD, rayP, sC, sR);
+                float d = distToPoint(rayP, lC);
+                if (d2 > d)
+                {
+                    //color += (1.0-percentDone)*0.0*vec4(1,1,1,0);
+                    //percentDone += (1.0-percentDone)*0.0;
+                }
+                leavingSphere = true;
+            } else if (m == sD2)
+            {
+                rayP = rayP + rayD*m;
+                rayD = reflectRay(rayD, unit(sC2-rayP) );
+
+                leavingSphere2 = true;
+            } else {
+                leavingSphere = false;
+                leavingSphere2 = false;
+
+                vec3 newRayP = rayP + rayD*m;
+                vec3 newRayD = unit( lC - newRayP);
+                float d = distToPoint(newRayP, lC);
+                float d2 = distToSphere(newRayD, newRayP, sC, sR);
+                float d3 = distToSphere(newRayD, newRayP, sC2, sR2);
+                if ((d2 < d && d2 > 0.0) || (d3 < d && d3 > 0.0)){
+                    d = d*2.0;
+                }
+
+                d = d/uLightDistanceDivisor;
+
+                if (m == pD1)
+                {
+                    return vec4(1.0/d,0,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD2)
+                {
+                    return vec4(0,1.0/d,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD3)
+                {
+                    rayP = rayP + m*rayD;
+                    rayD = reflectRay(rayD, vec3(1,0,0));
+                    color += (1.0-percentDone)*0.9*vec4(0,1.0/d,1.0/d,0);
+                    percentDone += (1.0-percentDone)*0.9;
+                    //return vec4(0,0.5/d,0.5/d,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD4)
+                {
+                    return vec4(0.5/d,0.5/d,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD5)
+                {
+                    rayP = rayP + m*rayD;
+                    rayD = reflectRay(rayD, vec3(0,1,0));
+                    color += (1.0-percentDone)*0.99*vec4(1.0/d,1.0/d,1.0/d,0);
+                    percentDone += (1.0-percentDone)*0.99;
+                    //return vec4(1.0/d,1.0/d,1.0/d,1)*(1.0-percentDone) + percentDone*color;
+                }
+            }
+
+
+            if (percentDone > 0.95)
+            {
+                return color;
+            }
+            
+        }
+
+        //Return white if there's an issue and nothing is hit.
+        return vec4(1,1,1,1);
+    }
+    `;
+
+    //let fireRayFunction2 = generateShader();
+
+    const fsSource  =  fsSourceHeader + toUnitFunction + reflectRayFunction + distToPlaneFunction + distToCubeFunction + distToPointFunction + distToSphereFunction +
+    fireRayFunction + mainFunction;
+*/

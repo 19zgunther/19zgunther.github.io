@@ -16,31 +16,24 @@
     
     <!-- Menu Goes Here -->
 
-
-    <canvas id='glcanvas' style = 'width:100%; height:100%; position:fixed; top: 0; left: 0; z-index: -100'></canvas>
-
-
-    <div style='opacity: 0.8; background-color: rgba(100,100,100,0.5); padding: 1%; font-size: smaller;'>
-        <!--<br>
-        fov:
-        <input id = 'fovSlider' type='range' min=0 max=180 step=0.1 value='10' onchange = updateCameraSettings()>
-        <br>
-        zfar:
-        <input id = 'zFarSlider' type='range' min=0 max=100 step=0.1 onchange = updateCameraSettings()>
-        <br>
-        zNear:
-        <input id = 'zNearSlider' type='range' min=0 max=10 step=0.1 value = '4' onchange = updateCameraSettings()>
-        <br>
-        -->
-        <input id='lightDistanceDivisor' type='range' min=0 max=10 value=2 step=0.1>Light Distance Divisor</input>
-        <br>
-        <input id='planeReflectance' type='range' min=0.1 max=0.99 value=0.6 step=0.01>Plane Reflectance</input>
-        <br>
-        <div style = 'font-style: italic;'>
-            Use WASD to move camera origin <br>
-            Left & Right arrows change rotation
+    
+    <div style="display: block;position: relative; width: 100%; height: 100%; margin-top: 2vh; margin-bottom: 2vh;">
+        <div style='position: relative; display: block; width:90vmin; height:auto; aspect-ratio: 1/1; justify-self: center; margin:auto;'>
+            <div style='top: 0; opacity: 0.8; background-color: rgba(100,100,100,0.5); padding: 1%; font-size: smaller; width:fit-content; position:absolute; z-index: 200;'>
+                <input id='lightDistanceDivisor' type='range' min=0 max=10 value=2 step=0.1>Light Distance Divisor</input>
+                <br>
+                <input id='planeReflectance' type='range' min=0.1 max=0.99 value=0.6 step=0.01>Plane Reflectance</input>
+                <br>
+                <div style = 'font-style: italic;'>
+                    Use WASD to move camera origin <br>
+                    Left & Right arrows change rotation
+                </div>
+            </div>
+            <canvas id='glcanvas' style = 'position:relative; display: block; width:100%; height:100%; z-index: 100; '></canvas>
         </div>
     </div>
+
+    
 
 
 
