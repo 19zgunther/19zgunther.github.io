@@ -271,13 +271,11 @@ function objectParameterChanged(element) {
 }
 function save_file_button_press() {
     let output = "";
-
     for (var i in objects)
     {
         output += objects[i].getSaveText();
     }
     console.log(output);
-
 
 
     let content = output;
@@ -291,17 +289,62 @@ function save_file_button_press() {
     a.click();
 	URL.revokeObjectURL(a.href);
 }
-function load_file_button_press() {
-    console.error("Zack has not finished implementing this... he is very busy with RPI these days");
-    return;
-    var fr=new FileReader();
-    fr.onload=function(){
-        document.getElementById('output')
-                .textContent=fr.result;
+function loadFile(text) {
+    console.log(text);
+    let array = text.split('@');
+    for (var i=0; i<array.length; i++)
+    {
+        array[i] = array[i].split('_');
+        array[i].shift();
     }
+    array.shift();
+    console.log(array);
+
+
+    for (var i=0; i<array.length; i++){
+        let obj;
+
+        //get type
+        let temp = array[i][0].split(':')[1];
+        switch(temp)
+        {
+            case 'Cube': obj = new Cube();
+            //todo - fill in the rest of the objects
+        }
         
-    fr.readAsText(this.files[0]);
+        //get id
+        temp = array[i][1].split(':')[1];
+        obj.id = Number(temp);
+
+        //get position
+        temp = array[i][2].split(':')[1].split(',');
+        obj.setPosition(new vec4( Number(temp[0]),  Number(temp[1]), Number(temp[2])  ));
+
+        //get rotation
+        temp = array[i][3].split(':')[1].split(',');
+        obj.setRotation(new vec4( Number(temp[0]),  Number(temp[1]), Number(temp[2])  ));
+
+        //get scale
+        temp = array[i][4].split(':')[1].split(',');
+        obj.setScale(new vec4( Number(temp[0]),  Number(temp[1]), Number(temp[2])  ));
+
+        addObject(obj, 'true');
+    }
+    updateHistoryContainer();
+    updateObjectsContainer();
 }
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+if(e.target.files) {
+    let f = e.target.files[0]; //here we get the image file
+    console.log(f);
+    var reader = new FileReader();
+    reader.readAsText(f);
+    reader.onloadend = function (e) {
+        loadFile(e.target.result);
+    }
+}
+});
 
 
 function saveEditHistory(object_, eventType_, position_, rotation_, scale_, eventDetail_)

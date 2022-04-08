@@ -104,31 +104,47 @@ body.loaded .subtitleA{
 
 
 .image_me{
+    display: block;
+    position:absolute;
+    top: 0;
+    left: 0;
+
     color: white;
     opacity: 0;
     border-radius:50%; 
-    
-    width:60%; 
-    margin-top: 10%;
-    margin-bottom:10%; 
-    margin-left:10%; 
-    margin-right: 10%; 
+
+    width:98%;
     justify-self:center;
 
     transition: border-radius 2s, width 1s, opacity 2s 2s, border-color 2s;
 
-    border-width: .3vmax;
+    border-width: 1%;
     border-style:solid;
     border-color: transparent;
 
     animation-name: wiggle_border_radius;
     animation-duration: 10s;
     animation-iteration-count: 100;
-    
 }
 .image_me:hover {
     border-color: var(--theme_color);
     border-radius: 45%;
+}
+.canvas_me{
+    display: block;
+    position: absolute;
+
+    top: 0;
+    z-index: 100000;
+    width: 100%;
+    height: 100%;
+
+    border-radius:50%; 
+    opacity: 0;
+    transition: opacity 0.5s 1s;
+}
+.canvas_me:hover {
+    opacity: 1;
 }
 
 body.loaded .image_me{
@@ -143,6 +159,7 @@ body.loaded .image_me{
 
 
 .dualSection{
+    position:relative;
     width: 80%;
     display:flex;
     flex-direction: row;
@@ -151,10 +168,12 @@ body.loaded .image_me{
 }
 
 .dualSectionA{
+    position:relative;
     width: 70%; 
 }
 
 .dualSectionB{
+    position:relative;
     width: 50%;
 }
 

@@ -179,6 +179,10 @@ itemDropdown:hover {
     border-color: rgba(0,0,0,0);
     text-align: center;
     transition: background-color 0.5s;
+    line-height: inherit;
+    height: fit-content;
+    padding: 0;
+    margin: 0;
 }
 .vectorInput::-webkit-outer-spin-button,
 .vectorInput::-webkit-inner-spin-button {
@@ -190,6 +194,25 @@ itemDropdown:hover {
 }
 .vectorInput:hover {
     background-color: rgba(1,1,1,0.1);
+}
+
+
+.objectDetailsContainer {
+    display: block;
+    position: relative;
+
+    max-height: 0;
+    overflow: hidden;
+    height: fit-content;
+    width: fit-content;
+}
+
+.objectDetailsContainer:hover {
+    max-height:100vh;
+}
+
+item:hover .objectDetailsContainer {
+    max-height: 100vh;
 }
 
 

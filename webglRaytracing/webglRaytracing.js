@@ -58,7 +58,7 @@ function initDefaultShaderProgram(gl) {
     `;
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, generateShader());
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, generateShader3());
 
     // Create the shader program
     const shaderProgram = gl.createProgram();
@@ -785,101 +785,218 @@ function generateShader3() {
 
 
     vec4 fireRay(vec3 rayD, vec3 rayP) {
-        vec4 color = vec4(0,0,0,1);
+        vec4 fragColor = vec4(0,0,0,1);
         float percentDone = 0.0;
 
-        vec3 sC1 = vec3(0,0,4);
-        vec3 sC2 = vec3(1,2,5);
-        s
-        vec3 lC = vec3(4,0,8);
+        vec3 lightSource = vec3(4,4,4);
+
+
+        const int numSpheres = 9;
+        vec3 sphereC[numSpheres];
+        sphereC[0] = vec3(0,-3,0);
+        sphereC[1] = vec3(0,-2,1);
+        sphereC[2] = vec3(0,-1,2);
+        sphereC[3] = vec3(1,0,0);
+        sphereC[4] = vec3(1,1,1);
+        sphereC[5] = vec3(1,2,2);
+        sphereC[6] = vec3(2,3,0);
+        sphereC[7] = vec3(2,4,1);
+        sphereC[8] = vec3(2,5,2);
+
+        /*sphereC[0] = vec3(0,0,0);
+        sphereC[1] = vec3(0,0,1);
+        sphereC[2] = vec3(0,0,2);
+        sphereC[3] = vec3(1,0,0);
+        sphereC[4] = vec3(1,0,1);
+        sphereC[5] = vec3(1,0,2);
+        sphereC[6] = vec3(2,0,0);
+        sphereC[7] = vec3(2,0,1);
+        sphereC[8] = vec3(2,0,2);
+        sphereC[9] = vec3(0,3,0);
+        sphereC[10] = vec3(0,3,1);
+        sphereC[11] = vec3(0,3,2);
+        sphereC[12] = vec3(1,3,0);
+        sphereC[13] = vec3(1,3,1);
+        sphereC[14] = vec3(1,3,2);
+        sphereC[15] = vec3(2,3,0);
+        sphereC[16] = vec3(2,3,1);
+        sphereC[17] = vec3(2,3,2);
+
+        sphereC[18] = vec3(0,2,0);
+        sphereC[19] = vec3(0,2,1);
+        sphereC[20] = vec3(0,2,2);
+        sphereC[21] = vec3(1,2,0);
+        sphereC[22] = vec3(1,2,1);
+        sphereC[23] = vec3(1,2,2);
+        sphereC[24] = vec3(2,2,0);
+        sphereC[25] = vec3(2,2,1);
+        sphereC[26] = vec3(2,2,2);
+        sphereC[27] = vec3(0,4,0);
+        sphereC[28] = vec3(0,4,1);
+        sphereC[29] = vec3(0,4,2);
+        sphereC[30] = vec3(1,4,0);
+        sphereC[31] = vec3(1,4,1);
+        sphereC[32] = vec3(1,4,2);
+        sphereC[33] = vec3(2,4,0);
+        sphereC[34] = vec3(2,4,1);
+        sphereC[35] = vec3(2,4,2);*/
+       
+
+        float sphereR[numSpheres];
+        sphereR[0] = 2.;
+        sphereR[1] = .5;
+        sphereR[2] = .5;
+        sphereR[3] = .5;
+        sphereR[4] = .5;
+        sphereR[5] = .5;
+        sphereR[6] = .5;
+        sphereR[7] = .5;
+        sphereR[8] = .5;
+        /*sphereR[9] = .5;
+        sphereR[10] = .5;
+        sphereR[11] = .5;
+        sphereR[12] = .5;
+        sphereR[13] = .5;
+        sphereR[14] = .5;
+        sphereR[15] = .5;
+        sphereR[16] = .5;
+        sphereR[17] = .5;
+
+        sphereR[18] = .5;
+        sphereR[19] = .5;
+        sphereR[20] = .5;
+        sphereR[21] = .5;
+        sphereR[22] = .5;
+        sphereR[23] = .5;
+        sphereR[24] = .5;
+        sphereR[25] = .5;
+        sphereR[26] = .5;
+        sphereR[27] = .5;
+        sphereR[28] = .5;
+        sphereR[29] = .5;
+        sphereR[30] = .5;
+        sphereR[31] = .5;
+        sphereR[32] = .5;
+        sphereR[33] = .5;
+        sphereR[34] = .5;
+        sphereR[35] = .5;*/
+
+
+        const int numPlanes = 5;
+        vec3 planeC[numPlanes];
+        planeC[0] = vec3(0,0,10);
+        planeC[1] = vec3(0,5,0);
+        planeC[2] = vec3(0,-5,0);
+        planeC[3] = vec3(-5,0,0);
+        planeC[4] = vec3(5,0,0);
+
+        vec3 planeN[numPlanes];
+        planeN[0] = vec3(0,0,1);
+        planeN[1] = vec3(0,1,0);
+        planeN[2] = vec3(0,1,0);
+        planeN[3] = vec3(1,0,0);
+        planeN[4] = vec3(1,0,0);
+
+        vec3 planeColor[numPlanes];
+        planeColor[0] = vec3(1,0,0);
+        planeColor[1] = vec3(0,1,0);
+        planeColor[2] = vec3(0,0,1);
+        planeColor[3] = vec3(0.6,0,0.6);
+        planeColor[4] = vec3(0.5,0.5,0.5);
 
         
-        float pD1 = 10000.0;
-        float pD2 = 10000.0;
-        float pD3 = 10000.0;
-        float pD4 = 10000.0;
-        float pD5 = 10000.0;
+        float temp = 1000.0;
+        float bestD = 1000000.0;
+        bool bestIsSphere = false;
+        int leavingSphere = -1;
+        int sphereHit = -1;
+
+        vec3 C;
+        vec3 N;
+        vec3 color;
+        float R;
 
 
-        float tempD = 10000.0;
-        float sD = 10000.0;
-        int sN = 0;
+        for (int tick=0; tick<10; tick++) {
+            bestD = 100000.0;
 
-
-        for (int i=0; i<10; i++) {
-            temp = 10000;
-
-            pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
-            pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
-            pD3 = distToPlane(rayD, rayP, vec3(-5, 0,  0), vec3(1,0,0));
-            pD4 = distToPlane(rayD, rayP, vec3(0,  5,  0), vec3(0,1,0));
-            pD5 = distToPlane(rayD, rayP, vec3(0,  -5, 0), vec3(0,1,0));
-
-            float m = min(min(min(sD, pD1), min(pD2, pD3)), min(pD4, pD5));
-            m = min(m, sD2);
-
-
-            if (m == sD)
+            //initial distances
+            for (int i=0; i<numSpheres; i++)
             {
-                rayP = rayP + rayD*m;
-                rayD = reflectRay(rayD, unit(sC-rayP));
-                leavingSphere = true;
-            } else if (m == sD2)
-            {
-                rayP = rayP + rayD*m;
-                rayD = reflectRay(rayD, unit(rayP-sC2) );
-                leavingSphere2 = true;
-            } else {
-                leavingSphere = false;
-                leavingSphere2 = false;
-
-                vec3 newRayP = rayP + rayD*m;
-                vec3 newRayD = unit( lC - newRayP);
-                float d = distToPoint(newRayP, lC);
-                float d2 = distToSphere(newRayD, newRayP, sC, sR);
-                float d3 = distToSphere(newRayD, newRayP, sC2, sR2);
-                if ((d2 < d && d2 > 0.0) || (d3 < d && d3 > 0.0)){
-                    d = d*2.0;
+                if (leavingSphere == i) { continue; }
+                temp = distToSphere(rayD, rayP, sphereC[i], sphereR[i]);
+                if (temp < bestD && temp > 0.0)
+                {
+                    bestD = temp;
+                    C = sphereC[i];
+                    R = sphereR[i];
+                    bestIsSphere = true;
+                    sphereHit = i;
                 }
-
-                d = d/uLightDistanceDivisor;
-
-                if (m == pD1)
+            }
+            for (int i=0; i<numPlanes; i++)
+            {
+                temp = distToPlane(rayD, rayP, planeC[i], planeN[i]);
+                if (temp < bestD && temp > 0.0)
                 {
-                    return vec4(1.0/d,0,0,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD2)
-                {
-                    return vec4(0,1.0/d,0,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD3)
-                {
-                    rayP = rayP + m*rayD;
-                    rayD = reflectRay(rayD, vec3(1,0,0));
-                    color += (1.0-percentDone)*0.9*vec4(0,1.0/d,1.0/d,0);
-                    percentDone += (1.0-percentDone)*0.9;
-                    //return vec4(0,0.5/d,0.5/d,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD4)
-                {
-                    return vec4(0.5/d,0.5/d,0,1)*(1.0-percentDone) + percentDone*color;
-                }else if (m == pD5)
-                {
-                    rayP = rayP + m*rayD;
-                    rayD = reflectRay(rayD, vec3(0,1,0));
-                    color += (1.0-percentDone)*0.99*vec4(1.0/d,1.0/d,1.0/d,0);
-                    percentDone += (1.0-percentDone)*0.99;
-                    //return vec4(1.0/d,1.0/d,1.0/d,1)*(1.0-percentDone) + percentDone*color;
+                    bestD = temp;
+                    C = planeC[i];
+                    N = planeN[i];
+                    color = planeColor[i];
+                    bestIsSphere = false;
                 }
             }
 
 
-            if (percentDone > 0.95)
+            if (bestD < 10000.0 && bestIsSphere == true)
             {
-                return color;
+                leavingSphere = sphereHit;
+
+                rayP = rayP + rayD*bestD;
+                rayD = reflectRay(rayD, unit( C - rayP));
+
+                //temp = (1.0-percentDone)*0.3;
+                //fragColor += temp*vec4(1,1,1,0);
+                //percentDone += temp;
+
+            } else if (bestD < 10000.0)
+            {
+                leavingSphere = -1;
+
+                rayP = rayP + bestD*rayD;
+                rayD = reflectRay(rayD, N);
+                vec3 newRayD = unit(lightSource - rayP);
+
+                float d = distToPoint(rayP, lightSource);
+                
+                for (int i=0; i<numSpheres; i++)
+                {
+                    temp = distToSphere(newRayD, rayP, sphereC[i], sphereR[i]);
+                    if (temp < d && temp > 0.0)
+                    {
+                        d = d*2.0;
+                        break;
+                    }
+                }
+                
+                d = d/uLightDistanceDivisor;
+                temp = (1.0-percentDone)*uPlaneReflectance;
+                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                percentDone += temp;
+            } else {
+                return fragColor;
+            }
+
+
+            if (percentDone > 0.9)
+            {
+                return fragColor;
             }
             
         }
 
         //Return white if there's an issue and nothing is hit.
-        return vec4(1,1,1,1);
+        return fragColor;
     }
 
     void main() {
@@ -887,6 +1004,7 @@ function generateShader3() {
         rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
         vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
         gl_FragColor = fireRay(rayD, rayP);
+        gl_FragColor.a = 1.0;
     }
     `;
 
@@ -999,9 +1117,9 @@ function generateShader2() {
             if (!leavingSphere) { sD = distToSphere(rayD, rayP, sC, sR); } else { sD = 10000.0; }
             //if (!leavingSphere) { sD = distToCube(rayD, rayP, sC, sR); } else { sD = 10000.0; }
             if (!leavingSphere2) { sD2 = distToSphere(rayD, rayP, sC2, sR2); } else { sD2 = 10000.0; }
-            pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
-            pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
-            pD3 = distToPlane(rayD, rayP, vec3(-5, 0,  0), vec3(1,0,0));
+            //pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
+            //pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
+            //pD3 = distToPlane(rayD, rayP, vec3(-5, 0,  0), vec3(1,0,0));
             pD4 = distToPlane(rayD, rayP, vec3(0,  5,  0), vec3(0,1,0));
             pD5 = distToPlane(rayD, rayP, vec3(0,  -5, 0), vec3(0,1,0));
 
@@ -1012,7 +1130,7 @@ function generateShader2() {
             if (m == sD)
             {
                 rayP = rayP + rayD*m;
-                rayD = reflectRay(rayD, unit(sC-rayP));
+                rayD = reflectRay(rayD, unit(sC-rayP + vec3(sin(rayP.x*50.0), sin(rayP.y*50.0),sin(rayP.z*50.0))*0.1 ));
                 leavingSphere = true;
             } else if (m == sD2)
             {
@@ -1039,13 +1157,16 @@ function generateShader2() {
                     return vec4(1.0/d,0,0,1)*(1.0-percentDone) + percentDone*color;
                 }else if (m == pD2)
                 {
-                    return vec4(0,1.0/d,0,1)*(1.0-percentDone) + percentDone*color;
+                    rayP = rayP + m*rayD;
+                    rayD = reflectRay(rayD, vec3(1,0,0));
+                    color += (1.0-percentDone)*uPlaneReflectance*vec4(0,0,1.0/d,0);
+                    percentDone += (1.0-percentDone)*uPlaneReflectance;
                 }else if (m == pD3)
                 {
                     rayP = rayP + m*rayD;
                     rayD = reflectRay(rayD, vec3(1,0,0));
-                    color += (1.0-percentDone)*0.9*vec4(0,1.0/d,1.0/d,0);
-                    percentDone += (1.0-percentDone)*0.9;
+                    color += (1.0-percentDone)*uPlaneReflectance*vec4(0,1.0/d,1.0/d,0);
+                    percentDone += (1.0-percentDone)*uPlaneReflectance;
                     //return vec4(0,0.5/d,0.5/d,1)*(1.0-percentDone) + percentDone*color;
                 }else if (m == pD4)
                 {
@@ -1054,8 +1175,8 @@ function generateShader2() {
                 {
                     rayP = rayP + m*rayD;
                     rayD = reflectRay(rayD, vec3(0,1,0));
-                    color += (1.0-percentDone)*0.99*vec4(1.0/d,1.0/d,1.0/d,0);
-                    percentDone += (1.0-percentDone)*0.99;
+                    color += (1.0-percentDone)*uPlaneReflectance*vec4(1.0/d,1.0/d,1.0/d,0);
+                    percentDone += (1.0-percentDone)*uPlaneReflectance;
                     //return vec4(1.0/d,1.0/d,1.0/d,1)*(1.0-percentDone) + percentDone*color;
                 }
             }
@@ -1069,7 +1190,7 @@ function generateShader2() {
         }
 
         //Return white if there's an issue and nothing is hit.
-        return vec4(1,1,1,1);
+        return color;
     }
 
     void main() {

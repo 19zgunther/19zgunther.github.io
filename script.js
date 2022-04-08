@@ -105,6 +105,7 @@
     var welcomeSectionElement = document.getElementById('welcome_section');
     if (welcomeSectionElement != null)
     {   
+        /*
         var ws_mx = 0; //welcome section mouse x
         var ws_my = 0;
         var ws_mm = 0; //welcome section mouse moved
@@ -122,7 +123,7 @@
                 let x = Math.min(Math.max( (ws_mx - bb.left-bb.width/2)/50, -10), 10);
                 welcomeSectionElement.style.transform = 'rotateX(' + y + "deg) rotateY("+x+"deg)";
             }
-        }, 500)
+        }, 500)*/
     }
 
 
@@ -147,7 +148,6 @@
     } else {
         console.log("Failed to initialize scrollIndicator interval");
     }
-
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -182,5 +182,58 @@
     }
 
 
+
+
+
+
+    const imageCanvasElement = document.getElementById('canvas_me');
+    var imageCanvasUpdateNumber = 0;
+    if (imageCanvasElement != null)
+    {
+        setInterval(function() {
+            return;
+            
+            let p = new Painter(imageCanvasElement);
+            imageCanvasUpdateNumber += 1;
+            p.Clear('#00000000');
+            let bb = imageCanvasElement.getBoundingClientRect();
+            imageCanvasElement.height = bb.height;
+            imageCanvasElement.width = bb.width;
+            let cr = bb.height/100;
+
+            switch(imageCanvasUpdateNumber%3)
+            {
+                case 0:
+                    p.SetStrokeWidth(3);
+                    p.SetStrokeColor('purple');
+                    p.SetFillColor('#11001133');
+                    p.DrawCircle(46*cr,45*cr,11*cr);
+                    p.DrawCircle(57*cr,45*cr,11*cr);
+                    p.DrawArc(51.5*cr, 45*cr, 5, Math.PI*7/6, Math.PI*11/6);
+                    p.DrawLine(61*cr, 44*cr, 66*cr, 41*cr); 
+                    break;
+                case 1:
+                    p.SetStrokeWidth(1);
+                    p.SetStrokeColor('black');
+                    p.SetFillColor('#0000FF11');
+                    p.DrawRectFilled(43*cr,42*cr,18,12);
+                    p.DrawRectFilled(54*cr,42*cr,18,12);
+                    p.DrawRect(43*cr,42*cr,18,12);
+                    p.DrawRect(54*cr,42*cr,18,12);
+                    p.DrawLine(50*cr,44*cr, 54*cr, 44*cr);
+                    p.DrawLine(61*cr, 44*cr, 66*cr, 41*cr); 
+                    break;
+                case 2:
+                    p.SetStrokeWidth(2);
+                    p.SetStrokeColor('green');
+                    p.SetFillColor('#00110033');
+                    p.DrawCircleFilled(46*cr,45*cr,10);
+                    p.DrawCircleFilled(57*cr,45*cr,10);
+                    p.DrawArc(51.5*cr, 45*cr, 5, Math.PI*7/6, Math.PI*11/6);
+                    p.DrawLine(61*cr, 44*cr, 66*cr, 41*cr);
+                    break;
+            }
+        }, 500);
+    }
 
 }

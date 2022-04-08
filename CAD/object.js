@@ -400,11 +400,11 @@ class Body extends Object {
     getHTMLText()
     {
         return ""
-            + "<item id = \'"+this.id+"\' onclick = \"objectClicked(this);\" >" 
+            + "<item id = \'"+this.id+"\' checked=false onclick = \"objectClicked(this); this.setAttribute('checked', 'checked'); console.log(this.checked);\" >" 
                 + "<div style='font-size: larger'>"    
                     + this.type + ":" + this.id
                 + "</div>"
-                + "<div style = 'display: inline-block; transition:max-height 0.5s; overflow:hidden;' >"
+                + "<div class = 'objectDetailsContainer'>"
                     + "<div style='display:flex;'>"
                         + "position"
                         + "\<<input class = 'vectorInput' name='posX' id = \'"+this.id+"\' type='number' value = "+this.position.x+" oninput=objectParameterChanged(this)></input> "
@@ -428,15 +428,15 @@ class Body extends Object {
     }
     getSaveText(){
         let out = "@"
-        +"_type\""+this.type+"\""
-        +"_id\""+this.id+"\""
-        +"_position<"+this.position.x+","+this.position.y+","+this.position.z+","+this.position.a+">"
-        +"_rotation<"+this.rotation.x+","+this.rotation.y+","+this.rotation.z+","+this.rotation.a+">"
-        +"_scale<"+this.scale.x+","+this.scale.y+","+this.scale.z+","+this.scale.a+">"
-        +"_vertices["+this.vertices+"]"
-        +"_indices["+this.indices+"]"
-        +"_normals["+this.normals+"]"
-        +"_colors["+this.colors+"]"
+        +"_type:"+this.type
+        +"_id:"+this.id
+        +"_position:"+this.position.x+","+this.position.y+","+this.position.z+","+this.position.a
+        +"_rotation:"+this.rotation.x+","+this.rotation.y+","+this.rotation.z+","+this.rotation.a
+        +"_scale:"+this.scale.x+","+this.scale.y+","+this.scale.z+","+this.scale.a
+        +"_vertices:"+this.vertices
+        +"_indices:"+this.indices
+        +"_normals:"+this.normals
+        +"_colors:"+this.colors
         return out + "\n\n";
     }
 }
