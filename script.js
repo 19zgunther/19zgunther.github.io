@@ -166,7 +166,7 @@
                 {
                     var bb = contentColumnElements[i].getBoundingClientRect();
                     let v = Math.min(2*(Math.abs(bb.top - bb.height/2) - window.innerHeight/2)/window.innerHeight,1);
-                    if (i ==0 ) { console.log(v)}
+                    //if (i ==0 ) { console.log(v)}
                     if (v < 0)
                     {
                         contentColumnElements[i].style.opacity = '1';

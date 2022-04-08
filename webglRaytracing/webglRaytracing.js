@@ -58,7 +58,7 @@ function initDefaultShaderProgram(gl) {
     `;
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, generateShader3());
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, generateShader());
 
     // Create the shader program
     const shaderProgram = gl.createProgram();

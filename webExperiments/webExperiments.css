@@ -204,3 +204,16 @@ load_bouncer_ball {
         transform: translate3d(-100%, -100%, 0);
     }
 }
+
+
+
+
+
+
+wiggletext {
+    display: block;
+    position: relative;
+    color: white;
+}
+
+wiggleText:nth-child(2n) { color: red; }

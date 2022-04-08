@@ -363,7 +363,7 @@ body.loaded #glcanvas {
         font-size:5em;
     }
     .subtitleA{
-        font-size: 1.5em;
+        font-size: 1.2em;
     }
     .dualSection{ 
         width: 100%;
@@ -376,11 +376,28 @@ body.loaded #glcanvas {
         width:90%;  
         margin-left:5%; 
     }
+    .project_container{
+        height:fit-content;
+    }
     .right_trapezoid {
         background-attachment:local;
+
+        -webkit-clip-path: none;
+        clip-path: none;
+        -webkit-shape-outside: none;
+        shape-outside: none;
+        width: 100%;
+        height:auto;
     }
     .left_trapezoid {
         background-attachment:local;
+
+        -webkit-clip-path: none;
+        clip-path: none;
+        -webkit-shape-outside: none;
+        shape-outside: none;
+        width: 100%;
+        height:auto;
     }
     #controls_box {
         font-size:medium;

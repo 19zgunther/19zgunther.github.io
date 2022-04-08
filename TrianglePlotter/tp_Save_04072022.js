@@ -25,6 +25,7 @@ document.addEventListener('keyup', keyReleased);
 
 function Setup()
 {
+    
     canvas.width = 600;
     canvas.height = 600;
     canvas.style.width = 600;
@@ -147,7 +148,7 @@ function Update()
     //p.SetTextSize(370);
     //p.DrawText(canvas.width/2-5,canvas.height/2,"B",'blue')
 
-    //vertical lines
+    
     for (var i=Math.floor(canvas.width/2); i<canvas.width; i+= gridSize)
     {
         p.DrawLine(i, 0, i, canvas.height,gridColor);
@@ -160,11 +161,11 @@ function Update()
         p.DrawLine(0, canvas.height-i, canvas.width, canvas.height-i,gridColor);
     }
 
-    //p.DrawRect(canvas.width/2, canvas.height/2, 4*gridSize, -8*gridSize, 'yellow');
-    //p.DrawRect(canvas.width/2, canvas.height/2, 4*gridSize, -5*gridSize, 'yellow');
-    //p.DrawRect(canvas.width/2, canvas.height/2, 4*gridSize, 2*gridSize, 'yellow');
+    p.DrawRect(canvas.width/2, canvas.height/2, 4*gridSize, -8*gridSize, 'yellow');
+    p.DrawRect(canvas.width/2, canvas.height/2, 4*gridSize, -5*gridSize, 'yellow');
+    p.DrawRect(canvas.width/2, canvas.height/2, 4*gridSize, 2*gridSize, 'yellow');
 
-    
+
 
     if (currentComp == null)
     {
@@ -184,7 +185,7 @@ function Update()
 
 
 
-    for (var i=0; i<triangles.length; i++)
+    for     (var i=0; i<triangles.length; i++)
     {
         triangles[i].draw();
     }
@@ -200,8 +201,8 @@ function roundToGrid(pos)
         gs = gs/2;
     }
 
-    x = Math.round(x/gs);
-    y = Math.round(y/gs);
+    x = Math.round(x/gs)*gs;
+    y = Math.round(y/gs)*gs;
 
     return new Point(x,y);
 }
@@ -231,25 +232,16 @@ class Triangle
     draw()
     {
         //console.log(this.p1 + " " + this.p2 + " " + this.p3);
-        let cx = canvas.width/2;
-        let cy = canvas.height/2;
-        let gs = gridSize;
         if (this == currentComp)
         {
-            p.DrawTriangleFilled(this.p1.x*gs+cx, this.p1.y*gs+cy, this.p2.x*gs+cx, this.p2.y*gs+cy, this.p3.x*gs+cx, this.p3.y*gs+cy, selectedTriangleColor);
-            //p.DrawTriangleFilled(this.p1.x*gridSize+canvas.width/2,this.p1.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, selectedTriangleColor);
+            p.DrawTriangleFilled(this.p1.x+canvas.width/2,this.p1.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, selectedTriangleColor);
         } else {
-            p.DrawTriangleFilled(this.p1.x*gs+cx, this.p1.y*gs+cy, this.p2.x*gs+cx, this.p2.y*gs+cy, this.p3.x*gs+cx, this.p3.y*gs+cy, triangleColor);
-            //p.DrawTriangleFilled(this.p1.x*gridSize+canvas.width/2,this.p1.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, triangleColor);
+            p.DrawTriangleFilled(this.p1.x+canvas.width/2,this.p1.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, triangleColor);
         }
         
-        p.DrawLine(this.p1.x*gs+cx, this.p1.y*gs+cy, this.p2.x*gs+cx, this.p2.y*gs+cy, triangleEdgeColor);
-        p.DrawLine(this.p1.x*gs+cx, this.p1.y*gs+cy, this.p3.x*gs+cx, this.p3.y*gs+cy, triangleEdgeColor);
-        p.DrawLine(this.p3.x*gs+cx, this.p3.y*gs+cy, this.p2.x*gs+cx, this.p2.y*gs+cy, triangleEdgeColor);
-
-        //p.DrawLine(this.p1.x+canvas.width/2,this.p1.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, triangleEdgeColor);
-        //p.DrawLine(this.p1.x+canvas.width/2,this.p1.y+canvas.height/2, this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, triangleEdgeColor);
-        //p.DrawLine(this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, triangleEdgeColor);
+        p.DrawLine(this.p1.x+canvas.width/2,this.p1.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, triangleEdgeColor);
+        p.DrawLine(this.p1.x+canvas.width/2,this.p1.y+canvas.height/2, this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, triangleEdgeColor);
+        p.DrawLine(this.p3.x+canvas.width/2,this.p3.y+canvas.height/2, this.p2.x+canvas.width/2,this.p2.y+canvas.height/2, triangleEdgeColor);
     }
 }
 
@@ -371,8 +363,7 @@ function print_numbers()
 }
 
 
-
-function print_OLD()
+function print()
 {
     var points = [];
     var vertices = [];
@@ -412,24 +403,4 @@ function print_OLD()
 
 
     console.log("vertices: \n" + vertices + "\n\nindices: \n" + indices + "\n");
-}
-
-function print()
-{
-    let vertices = [];
-    let indices = [];
-
-
-
-    for (var i=0; i<triangles.length; i++)
-    {
-        let t= triangles[i];
-        vertices.push(t.p1.x, -t.p1.y, 0,   t.p2.x, -t.p2.y, 0,   t.p3.x, -t.p3.y, 0);
-        indices.push(i*3, i*3+1, i*3+2);
-    }
-
-    console.log("Vertices:");
-    console.log(vertices);
-    console.log("indices:");
-    console.log(indices);
 }

@@ -168,13 +168,13 @@
     <div id = 'controls_box'>
         <br>
         fov:
-        <input id = 'fovSlider' type='range' min=0 max=180 step=0.1 value='10' onchange = updateCameraSettings()>
+        <input id = 'fovSlider' type='range' min=0 max=180 step=0.1 value='10' oninput = updateCameraSettings()>
         <br>
         zfar:
-        <input id = 'zFarSlider' type='range' min=0 max=100 step=0.1 onchange = updateCameraSettings()>
+        <input id = 'zFarSlider' type='range' min=0 max=100 step=0.1 oninput = updateCameraSettings()>
         <br>
         zNear:
-        <input id = 'zNearSlider' type='range' min=0 max=10 step=0.1 value = '4' onchange = updateCameraSettings()>
+        <input id = 'zNearSlider' type='range' min=0 max=10 step=0.1 value = '4' oninput = updateCameraSettings()>
         <br>
         <div style = 'font-style: italic;'>
             Use WASD to move camera origin <br>

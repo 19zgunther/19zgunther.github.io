@@ -63,7 +63,6 @@
     margin-left:1vmax;
     margin-right:1vmax;
     padding: 1vmax 3vmax 1vmax 3vmax;
-    vertical-align: middle;
     height: fit-content;
 }
 .menu_item:hover {
@@ -130,7 +129,6 @@
     max-height:100px;
     opacity: 1;
 }
-
 
 
 logo{
