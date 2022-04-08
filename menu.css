@@ -53,6 +53,7 @@
     color: rgba(200,200,200);
     /*font-weight: bold;*/
     text-align: center;
+    display: block;
     float: left;
     min-width: 5vmax;
     position: relative;
@@ -156,7 +157,8 @@ logo{
 
     /*background-color: var(--theme_color);
     color: var(--theme_color_dark);*/
-
+    display: block;
+    position: relative;
 
     height: fit-content;
     width: fit-content;
@@ -164,8 +166,7 @@ logo{
     margin: auto;
     padding: 0px;
     
-
-    letter-spacing: 0px;
+    /*letter-spacing: 0px;*/
 
     -webkit-transition: background-color 0.5s, color 0.5s 0.1s;
     -moz-transition: background-color 0.5s, color 0.5s 0.1s;
@@ -180,8 +181,6 @@ logo:hover {
     /*background-clip: border-box;*/
     background-color: var(--theme_color);
 }
-
-
 
 
 .scrollIndicator {
@@ -218,10 +217,9 @@ logo:hover {
 }
 
 
-
-
 @media (max-aspect-ratio: 3/3) {
     *{ 
         font-size: 1.2vmax;
+
     }
 }

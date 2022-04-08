@@ -58,7 +58,7 @@ function initDefaultShaderProgram(gl) {
     `;
 
     const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, generateShader());
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, generateShader3());
 
     // Create the shader program
     const shaderProgram = gl.createProgram();
@@ -377,7 +377,7 @@ float distToPoint(vec3 rayP, vec3 P)
     ];
     /*
     var spheres = [];
-    let max = 5;
+    let max = 4;
     for (var x=0; x<max; x++)
     {
         for (var z=0;z<max;z++)
@@ -502,6 +502,400 @@ float distToPoint(vec3 rayP, vec3 P)
     str += "} return color;}";
     console.log(defaultCode + str + mainFunction);
     return defaultCode + str + mainFunction;
+}
+
+
+
+function generateShader4() {
+    const defaultCode = `
+    precision highp float;
+varying vec4 vScreenPos;
+
+uniform vec4 uViewPosition;
+uniform mat4 uRotationMatrix;
+uniform float uLightDistanceDivisor;
+uniform float uPlaneReflectance;
+
+vec3 unit(vec3 r)
+{
+	float d = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
+	if (d < 0.0) { d = -d;}
+	r.x = r.x / d;
+	r.y = r.y / d;
+	r.z = r.z / d;
+	return r;
+}
+
+vec3 reflectRay(vec3 rayD, vec3 N)
+{
+	float d = dot(rayD, N)*2.0;
+	return unit( rayD - N*d );
+}
+float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
+{
+	float a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
+	float b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
+	float c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
+	float top = b*b - 4.0*a*c;
+
+	if (top >= 0.001)
+	{
+	    top = sqrt(top);
+	    float t1 = (-b-top)/(2.0*a);
+	    float t2 = (-b+top)/(2.0*a);
+	    if (t1 > 0.01 && (t1 < t2 || t2 < 0.01))
+	    {
+		return t1;
+	    } else if (t2 > 0.01 && (t2 < t1 || t1 < 0.01))
+	    {
+		return t2;
+	    }
+	}
+	return 100000.0;
+}
+
+float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
+{
+	float t = dot(pP-rayP, pN) / dot(rayD, pN);
+	if (t > 0.001)
+	{
+	    return t;
+	}
+	return 10000.0;
+}
+float distToPoint(vec3 rayP, vec3 P)
+{
+	vec3 x = P-rayP;
+	return sqrt( dot(x,x) );
+}
+    `;
+    const mainFunction = `void main() {
+        vec3 rayD = unit(vec3(vScreenPos.x*3.0, vScreenPos.y*3.0, 5.0));
+        rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
+        vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
+        gl_FragColor = fireRay(rayD, rayP);
+    }`;
+    var planes = [
+        //Position              Normal         Color
+        [new vec4(0,0,10), new vec4(0,0,1), new vec4(1,0,0)], //back
+        [new vec4(0,5,0), new vec4(0,-1,0), new vec4(0,1,0)], //top
+        [new vec4(0,-5,0), new vec4(0,1,0), new vec4(0,0,1)], //bottom
+        [new vec4(5,0,0), new vec4(-1,0,0), new vec4(0.5,0.5,0)], //right
+        [new vec4(-5,0,0), new vec4(1,0,0), new vec4(0,0.5,0.5)], //left
+    ];
+    var spheres = [
+        [new vec4(0,0,5), 1],
+        [new vec4(1,2,6), 1],
+        [new vec4(-3,-2,6), 1],
+        [new vec4(0,-2,6), 2],
+    ];
+    /*
+    var spheres = [];
+    let max = 4;
+    for (var x=0; x<max; x++)
+    {
+        for (var z=0;z<max;z++)
+        {
+            for (var y=0; y<max; y++)
+            {
+                spheres.push( [ new vec4(x*2,y*2,z*2), 1])
+            }
+        }
+    }*/
+
+    var planeReflectance = 0.99; //any value 0.1 to 0.99;
+
+
+
+    
+    var str = "vec4 fireRay(vec3 rayD, vec3 rayP) { \nvec4 color = vec4(0,0,0,1); \nfloat percentDone = 0.0;\n";
+    str += "vec3 lightSource = vec3(3,3,6);\n"; //adding lightsource
+
+    //Adding sphere & plane distance and leaving variables
+    str +="\n\n//Spheres:\n";
+    for (var i in spheres)
+    {
+        str += "float SD"+i+"=10000.0; bool leavingS"+i+"=false;\n";
+        str += "vec3 SC"+i+"=vec3("+spheres[i][0].x+", "+spheres[i][0].y+", "+spheres[i][0].z+"); float SR"+i+"="+spheres[i][1]+".0;\n";
+    }
+
+    str +="\n\n//Planes:\n";
+    for (var i in planes)
+    {
+        str += "float PD"+i+"=10000.0; bool leavingP"+i+"=false;\n";
+        str += "vec3 PC"+i+"=vec3("+planes[i][0].x+", "+planes[i][0].y+", "+planes[i][0].z+"); vec3 PN"+i+"=vec3("+planes[i][1].x+", "+planes[i][1].y+", "+planes[i][1].z+");\n";
+    }
+
+    //beginning of for loop
+    str += "\n\n//Loop:\nfor (int i=0; i<10; i++) {\n";
+
+    //Get initial distances
+    str += "\n\n//Get Distances:\n";
+    for (var i in spheres)
+    {
+        str += "if (!leavingS"+i+") {SD"+i+"=distToSphere(rayD, rayP, SC"+i+", SR"+i+");} else {SD"+i+"=10000.0;} \n";
+    }
+    for (var i in planes)
+    {
+        str += "if (!leavingP"+i+") {PD"+i+"=distToPlane(rayD, rayP, PC"+i+", PN"+i+");} else {PD"+i+"=10000.0;} \n";
+    }
+
+
+    //Reset all 'leaving...' booleans
+    str += "\n\n//Reseting leaving...\n";
+    for (var i in spheres)
+    {
+        str += "leavingS"+i+" = false;\n";
+    }
+    for (var i in planes)
+    {
+        str += "leavingP"+i+" = false;\n";
+    }
+
+
+    //Min Function - Needs Optimization.
+    str += "\n\n//MinFunction:\n";
+    str += "float m = ";
+    var ds = [];
+    for (var i in spheres) {ds.push("SD"+i);}
+    for (var i in planes) {ds.push("PD"+i);}
+    for (var i=0; i<ds.length-1; i++)
+    {
+        str +='min(';
+    }
+    str += ds[0] +", ";
+    for (var i=1; i<ds.length-1; i++)
+    {
+        str += ds[i] +"), ";
+    }
+    str += ds[ds.length-1] +");";
+    
+
+    //Sphere if statements
+    str += "\n\n//Spheres If Statements:\n"
+    for (var i in spheres)
+    {
+        str += "if (m == SD"+i+"){\n";
+        str += "rayP += rayD*m;\n";
+        str += "rayD = reflectRay(rayD, unit(SC"+i+"-rayP));\n";
+        str += "leavingS"+i+" = true;\n";
+        str += "continue; \n}\n";
+    }
+
+
+    //Plane if statements
+    str += "\n\n//Plane If Statements:\n"
+    str += "vec3 newRayP = rayP + rayD*m;\n";
+    str += "vec3 newRayD = unit(lightSource - newRayP);\n";
+    str += "float d = distToPoint(newRayP, lightSource);\n";
+    for (var i in spheres)
+    {
+        str += "SD"+i+"=distToSphere(newRayD, newRayP, SC"+i+", SR"+i+");\n";
+    }
+    str += "if (";
+    for (var i in spheres)
+    {
+        str += "(SD"+i+"<d && SD"+i+">0.01)";
+        if (i != spheres.length-1) { str += " || ";}
+    }
+    str += "){ d = d*1.5; }\n";
+    str += "d = d/uLightDistanceDivisor;";
+
+    for (var i in planes)
+    {
+        str += "if (m == PD"+i+"){\n";
+        str += "rayP += rayD*m;\n";
+        str += "rayD = reflectRay(rayD, PN"+i+");\n";
+        str += "color += (1.0-percentDone)*"+planeReflectance+"*vec4("+planes[i][2].x.toPrecision(2)+"/d, "+planes[i][2].y.toPrecision(2)+"/d, "+planes[i][2].z.toPrecision(2)+"/d, 0);\n";
+        str += "percentDone += (1.0-percentDone)*uPlaneReflectance;\n";
+        str += "leavingP"+i+" = true;\n";
+        str += "continue; \n}\n";
+    }
+
+    str += "\n\nif (percentDone > 0.95) { return color; }\n";
+    str += "} return color;}";
+    console.log(defaultCode + str + mainFunction);
+    return defaultCode + str + mainFunction;
+}
+
+
+
+function generateShader3() {
+    const defaultCode = `
+    precision highp float;
+    varying vec4 vScreenPos;
+
+    uniform vec4 uViewPosition;
+    uniform mat4 uRotationMatrix;
+    uniform float uLightDistanceDivisor;
+    uniform float uPlaneReflectance;
+
+    vec3 unit(vec3 r)
+    {
+        float d = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
+        if (d < 0.0) { d = -d;}
+        r.x = r.x / d;
+        r.y = r.y / d;
+        r.z = r.z / d;
+        return r;
+    }
+
+    vec3 reflectRay(vec3 rayD, vec3 N)
+    {
+        float d = dot(rayD, N)*2.0;
+        return unit( rayD - N*d );
+    }
+    float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
+    {
+        float a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
+        float b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
+        float c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
+        float top = b*b - 4.0*a*c;
+
+        if (top >= 0.001)
+        {
+            top = sqrt(top);
+            float t1 = (-b-top)/(2.0*a);
+            float t2 = (-b+top)/(2.0*a);
+            if (t1 > 0.01 && (t1 < t2 || t2 < 0.01))
+            {
+            return t1;
+            } else if (t2 > 0.01 && (t2 < t1 || t1 < 0.01))
+            {
+            return t2;
+            }
+        }
+        return 100000.0;
+    }
+
+    float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
+    {
+        float t = dot(pP-rayP, pN) / dot(rayD, pN);
+        if (t > 0.001)
+        {
+            return t;
+        }
+        return 10000.0;
+    }
+    float distToPoint(vec3 rayP, vec3 P)
+    {
+        vec3 x = P-rayP;
+        return sqrt( dot(x,x) );
+    }
+
+
+    vec4 fireRay(vec3 rayD, vec3 rayP) {
+        vec4 color = vec4(0,0,0,1);
+        float percentDone = 0.0;
+
+        vec3 sC1 = vec3(0,0,4);
+        vec3 sC2 = vec3(1,2,5);
+        s
+        vec3 lC = vec3(4,0,8);
+
+        
+        float pD1 = 10000.0;
+        float pD2 = 10000.0;
+        float pD3 = 10000.0;
+        float pD4 = 10000.0;
+        float pD5 = 10000.0;
+
+
+        float tempD = 10000.0;
+        float sD = 10000.0;
+        int sN = 0;
+
+
+        for (int i=0; i<10; i++) {
+            temp = 10000;
+
+            pD1 = distToPlane(rayD, rayP, vec3(0,  0,  10), vec3(0,0,1));
+            pD2 = distToPlane(rayD, rayP, vec3(5,  0,  0), vec3(1,0,0));
+            pD3 = distToPlane(rayD, rayP, vec3(-5, 0,  0), vec3(1,0,0));
+            pD4 = distToPlane(rayD, rayP, vec3(0,  5,  0), vec3(0,1,0));
+            pD5 = distToPlane(rayD, rayP, vec3(0,  -5, 0), vec3(0,1,0));
+
+            float m = min(min(min(sD, pD1), min(pD2, pD3)), min(pD4, pD5));
+            m = min(m, sD2);
+
+
+            if (m == sD)
+            {
+                rayP = rayP + rayD*m;
+                rayD = reflectRay(rayD, unit(sC-rayP));
+                leavingSphere = true;
+            } else if (m == sD2)
+            {
+                rayP = rayP + rayD*m;
+                rayD = reflectRay(rayD, unit(rayP-sC2) );
+                leavingSphere2 = true;
+            } else {
+                leavingSphere = false;
+                leavingSphere2 = false;
+
+                vec3 newRayP = rayP + rayD*m;
+                vec3 newRayD = unit( lC - newRayP);
+                float d = distToPoint(newRayP, lC);
+                float d2 = distToSphere(newRayD, newRayP, sC, sR);
+                float d3 = distToSphere(newRayD, newRayP, sC2, sR2);
+                if ((d2 < d && d2 > 0.0) || (d3 < d && d3 > 0.0)){
+                    d = d*2.0;
+                }
+
+                d = d/uLightDistanceDivisor;
+
+                if (m == pD1)
+                {
+                    return vec4(1.0/d,0,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD2)
+                {
+                    return vec4(0,1.0/d,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD3)
+                {
+                    rayP = rayP + m*rayD;
+                    rayD = reflectRay(rayD, vec3(1,0,0));
+                    color += (1.0-percentDone)*0.9*vec4(0,1.0/d,1.0/d,0);
+                    percentDone += (1.0-percentDone)*0.9;
+                    //return vec4(0,0.5/d,0.5/d,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD4)
+                {
+                    return vec4(0.5/d,0.5/d,0,1)*(1.0-percentDone) + percentDone*color;
+                }else if (m == pD5)
+                {
+                    rayP = rayP + m*rayD;
+                    rayD = reflectRay(rayD, vec3(0,1,0));
+                    color += (1.0-percentDone)*0.99*vec4(1.0/d,1.0/d,1.0/d,0);
+                    percentDone += (1.0-percentDone)*0.99;
+                    //return vec4(1.0/d,1.0/d,1.0/d,1)*(1.0-percentDone) + percentDone*color;
+                }
+            }
+
+
+            if (percentDone > 0.95)
+            {
+                return color;
+            }
+            
+        }
+
+        //Return white if there's an issue and nothing is hit.
+        return vec4(1,1,1,1);
+    }
+
+    void main() {
+        vec3 rayD = unit(vec3(vScreenPos.x*3.0, vScreenPos.y*3.0, 5.0));
+        rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
+        vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
+        gl_FragColor = fireRay(rayD, rayP);
+    }
+    `;
+
+
+
+
+
+
+    return defaultCode;
 }
 
 
