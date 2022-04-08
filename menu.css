@@ -182,7 +182,6 @@ logo:hover {
     background-color: var(--theme_color);
 }
 
-
 .scrollIndicator {
     width: 0%;
     height:0.25vh;
@@ -215,7 +214,6 @@ logo:hover {
     width: 100%;
     background-color: transparent;
 }
-
 
 @media (max-aspect-ratio: 3/3) {
     *{ 

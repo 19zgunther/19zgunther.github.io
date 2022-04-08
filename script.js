@@ -10,10 +10,13 @@
     var menuElement = document.createElement('div');
     menuElement.setAttribute('class', 'menu');
     menuElement.innerHTML = `<div class='menu'>
-    <div style='position: absolute; left:0; justify-self:left;'>
+    <div style='left:0; justify-self:left;'>
         <logo onclick='buttonClick("home")'>
             ZG
         </logo>
+    </div>
+    <div style="display:block; position: relative; flex-grow:1;">
+
     </div>
     <div class='menu_item' onclick='buttonClick("resume")'> 
         Resume
