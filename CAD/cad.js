@@ -21,6 +21,9 @@ const objectContainerElement = document.getElementById('objectContainer');
 const historyContainerElement = document.getElementById('historyContainer');
 
 
+var pixels = new Uint8Array(4);
+
+
 
 //web gl stuff
 var gl;
@@ -63,6 +66,7 @@ var confirmBoxOpen = false; //used to keep track of it  aconfirm box is open. If
 setup();
 document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
+window.addEventListener('resize', resizeScreen);
 //document.addEventListener('mousemove', mouseMoved);
 var interval = setInterval(main, 1000/40);
 //var updateObjectsContainerInterval = setInterval(updateObjectsContainer, 1000);
@@ -165,8 +169,11 @@ function mouseDown(event)
     if (objects.length > 0)
     {
         let p = screenToWorldVector( glPos, projectionMatrix, camera.getRotationMatrix() ).mul(10).addi(camera.getPosition());
-        objects[0].setPosition( p );
+        //objects[0].setPosition( p );
     }
+
+    let o = getObjectFromMousePos();
+    selectedObject = o;
 }
 function mouseUp(event)
 {
@@ -199,10 +206,17 @@ function mouseWheel(event)
         updateCameraSettings();
     }
 }
+function resizeScreen()
+{
+    console.log('resizing');
+    let bb = glCanvasElement.getBoundingClientRect();
+    glCanvasElement.width = bb.width;//window.visualViewport.width;
+    glCanvasElement.height = bb.height;
+    updateCameraSettings();
+}
 
 
 function addObjectButtonPress(buttonElement) {
-
     let o = createObject(buttonElement.id);
     console.log(buttonElement.id);
     if (o != null) {
@@ -316,13 +330,13 @@ function loadFile(text) {
 
 
     for (var i=0; i<array.length; i++){
-        let obj;
+        let obj = new Object();
 
         //get type
         let temp = array[i][0].split(':')[1];
         switch(temp)
         {
-            case 'Cube': obj = new Cube();
+            //case 'Cube': obj = new Cube();
             //todo - fill in the rest of the objects
         }
         
@@ -515,10 +529,8 @@ function removeObject(obj, saveEdit = true)
 
 
 function setup() {
-    glCanvasElement.width = window.visualViewport.width;
-    glCanvasElement.height =  window.visualViewport.height * 0.8;
-    glCanvasElement.style.width = glCanvasElement.width
-    glCanvasElement.style.height = glCanvasElement.height
+    //resize glCanvas and such
+    resizeScreen();
 
     // Initialize the GL context
     // Only continue if WebGL is available and working
@@ -533,25 +545,10 @@ function setup() {
         }
     }
 
-    updateCameraSettings();
-
     InitShader(gl);
     run = true;
-
     compass = new Compass();
-
-
-    grids.push(   new Grid(new vec4(50,50,0), new vec4(0,0,00))  );
-    grids.push(   new Grid(new vec4(0,50,50), new vec4(0,Math.PI/2,0))  );
-    grids.push(   new Grid(new vec4(50,0,50), new vec4(0,0,Math.PI/2))  );
-    
-    //objects.push(   new Body()      );
-    //objects.push(   new Text(new vec4(5,5,5),     new vec4(), '5, 5, 5',      new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(-5,-5,-5),  new vec4(), '-5, -5, -5',   new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(5,5,-5),    new vec4(), '5, 5, -5',     new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(5,-5,-5),   new vec4(), '5, -5, -5',    new vec4(),   true)  );
-    //objects.push(   new Text(new vec4(-5,5,5), new vec4(0,Math.PI/2,0), '-5, 5, 5 rot90', new vec4(), true)  );
-
+    grids.push( createObject('grid') );
     updateObjectsContainer();
 }
 function main() {
@@ -561,38 +558,9 @@ function main() {
     }
     tick += 1;
 
-
-    //Update either the camera or the current sketch, and get the correct projectionMatrix and viewMatrix
-    //let pm = projectionMatrix;
-    //let vm; //viewMatrix;
-
     camera.update(pressedKeys);
-    //vm = camera.getViewMatrix();
-
-    /*if (currentSketch != null && camera.sliding == false)
-    {
-        currentSketch.update();
-        pm = currentSketch.getProjectionMatrix();
-        vm = currentSketch.getViewMatrix();
-    } else {*/
-
-    //Get projection Matrix
-    /*if (projectionType == 'orthogonal')
-    {
-        pm = orthogonalProjectionMatrix;
-    } else if (projectionType == 'perspective')
-    {
-        pm = perspectiveProjectionMatrix;
-    } else {
-        console.error("Unknown projectionType. Needs to be orthogonal or perspective.");
-        pm = perspectiveProjectionMatrix;
-    }*/
-    //}
-
-
 
     render();
-
 
 }
 
@@ -601,6 +569,7 @@ function render()
 {
     let pm = projectionMatrix;
     let vm = camera.getViewMatrix();
+    let wm = pm.mul(vm);
 
     //Clear Screen
     gl.clearColor(1, 1, 1, 1);    // Clear to white, fully opaque
@@ -621,18 +590,21 @@ function render()
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    gl.viewport(0, 0, glCanvasElement.width, glCanvasElement.height);
 
+    
     //Draw each grid
     for (var i=0; i<grids.length; i++)
     {
-        grids[i].draw(gl, pm, vm);
+        grids[i].render(gl, wm, new vec4(1,1,1,1));
     }
 
 
+    //Draw Selected Object
     if (selectedObject != null)
     {
         gl.depthMask(false); // turn off depth write
-        selectedObject.draw(gl, pm, vm, new vec4(1,0.3,0.3,0.5));
+        selectedObject.render(gl, wm, new vec4(1,0.3,0.3,0.5));
     } else {
         gl.depthMask(true); 
     }
@@ -644,9 +616,9 @@ function render()
         {
             if (selectedObject != null)
             {
-                objects[i].draw(gl, pm, vm, new vec4(1,1,1,0.2));
+                objects[i].render(gl, wm, new vec4(1,1,1,0.2));
             } else {
-                objects[i].draw(gl, pm, vm);
+                objects[i].render(gl, wm);
             }
         }
     }
@@ -657,8 +629,94 @@ function render()
     //gl.depthMask(false);
     //Draw Compass
     compass.draw(gl,pm,vm);
+
+    //console.log(pixels);
 }
 
+
+function getObjectFromMousePos()
+{
+
+
+    // create to render to
+    const targetTextureWidth = Math.round(glCanvasElement.width/4);
+    const targetTextureHeight = Math.round(glCanvasElement.height/4);
+    const targetTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, targetTextureWidth, targetTextureHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    // set the filtering so we don't need mips
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // Create and bind the framebuffer
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    // attach the texture as the first color attachment
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+    // Tell WebGL how to convert from clip space to pixels
+    gl.viewport(0, 0, targetTextureWidth, targetTextureHeight);
+
+    gl.clearColor(1, 1, 1, 1);    // Clear to white, fully opaque
+    gl.clearDepth(1);                   // Clear everything
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LESS);
+    gl.enable(gl.CULL_FACE);
+
+    //Draw Each object, all but selected object (selectde object has transparency, so render last)
+    let wm = projectionMatrix.mul(camera.getViewMatrix());
+    let color = new vec4(0,0,0,1);
+    for (var i=0; i<objects.length; i++)
+    {
+        color.x = i/255;
+        objects[i].renderPicker(gl, wm, color);
+    }
+
+    pixels = new Uint8Array(4);
+
+    //Scale x and y to the correct texture width & height
+    let bb = glCanvasElement.getBoundingClientRect();
+    let x = mouseCanvasPos.x / bb.width;
+    let y = (bb.height - mouseCanvasPos.y) / bb.height;
+    x = Math.round(x * targetTextureWidth);
+    y = Math.round(y * targetTextureHeight);
+
+    gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    console.log("texture: " + targetTextureWidth + " " + targetTextureHeight);
+    console.log("  gl: " + glCanvasElement.width + " " + glCanvasElement.height);
+
+
+    /*
+    let c = document.createElement('canvas');
+    c.width = glCanvasElement.width;
+    c.height = glCanvasElement.height;
+    c.setAttribute('style', "height: "+c.height+"px; width: "+c.width+"px;");
+    document.body.appendChild(c);
+    var ctx=c.getContext("2d");
+
+    var imgData=ctx.getImageData(0,0,c.width,c.height);
+    var data=imgData.data;
+
+    // manipulate some pixel elements
+    for(var i=0;i<data.length;i+=4){
+        data[i]=pixels[i];
+    }
+
+    // put the modified pixels back on the canvas
+    ctx.putImageData(imgData,0,0);*/
+
+
+    console.log(pixels);
+    if (pixels[0] >= 0 && pixels[0] < 100)
+    {
+        return objects[pixels[0]];
+    }
+
+}
 
 
 

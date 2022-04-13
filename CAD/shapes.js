@@ -1,17 +1,64 @@
 /***********************************************************************************************
 *  Code Written by Zack Gunther
-*  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
+*  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission!
 ************************************************************************************************/
 
-function generateCylinder(radius = 0.5, height = 1, divisions = 20) {
-    let vertices = [0,height/2,0, 0,-height/2,0, ];
+function generateGrid(numLines = 50)
+{
+    let vertices = [];
     let indices = [];
-    let normals = [0,1,0,  0,-1,0];
-    let colors = [0.5, 0.5, 0.5, 1,   0.5, 0.5, 0.5, 1];
+    let normals = [];
+    let colors = [];
+    let lineIndices = [];
+    let lineColors = [];
+
+    let minorLineColor = new vec4(0.5, 0.5, 0.5, 1);
+    let majorLineColor = new vec4(0, 0, 0, 1);
+
+    let indOn = 0;
+    for (var i=-numLines; i<=numLines; i++)
+    {
+        vertices.push(i, 0, -numLines,   i, 0, numLines);
+        vertices.push( -numLines, 0, i,   numLines, 0, i);
+        lineIndices.push( indOn, indOn + 1, indOn + 2, indOn + 3);
+        if (i%10 == 0)
+        {
+            lineColors.push(majorLineColor.x, majorLineColor.y, majorLineColor.z, majorLineColor.a,
+                majorLineColor.x, majorLineColor.y, majorLineColor.z, majorLineColor.a,
+                majorLineColor.x, majorLineColor.y, majorLineColor.z, majorLineColor.a,
+                majorLineColor.x, majorLineColor.y, majorLineColor.z, majorLineColor.a, );
+        } else {
+            lineColors.push(minorLineColor.x, minorLineColor.y, minorLineColor.z, minorLineColor.a,
+                minorLineColor.x, minorLineColor.y, minorLineColor.z, minorLineColor.a,
+                minorLineColor.x, minorLineColor.y, minorLineColor.z, minorLineColor.a,
+                minorLineColor.x, minorLineColor.y, minorLineColor.z, minorLineColor.a, );
+        }
+        indOn += 4;
+    }
+
+    return {
+        type: 'cube',
+        vertices: vertices,
+        indices: indices, 
+        normals: normals,
+        colors: colors,
+        lineIndices: lineIndices,
+        lineColors: lineColors,
+    };
+}
+
+function generateCylinder(radius = 0.5, height = 1, divisions = 40) {
+    //let vertices = [0,height/2,0, 0,-height/2,0, ];
+    let vertices = [];
+    let indices = [];
+    //let normals = [0,1,0,  0,-1,0];
+    //let colors = [0.5, 0.5, 0.5, 1,   0.5, 0.5, 0.5, 1];
+    let normals = [];
+    let colors = [];
     let lineIndices = [];
 
-    let i = 2;
-    let si = 2;
+    let i = 0;
+    let si = 0;
     //Add Sides
     for (var a=0; a<2*Math.PI; a += 2*Math.PI/divisions)
     {   
@@ -24,25 +71,64 @@ function generateCylinder(radius = 0.5, height = 1, divisions = 20) {
         if (a > 0)
         {
             //                 side triangle 1   side triangle 2  top triangle  bottom triangle
-            indices.push( i-1, i-3, i-2,   i-3, i-4, i-2,  0, i-2, i-4,  1,i-3,i-1);
+            indices.push( i-1, i-3, i-2,   i-3, i-4, i-2,);//  0, i-2, i-4,  1,i-3,i-1);
             lineIndices.push(i-1, i-3, i-2, i-4);
         }
     }
-    indices.push( i-1, i-2, si,   si,si+1, i-1,  i-2,0,si,   1, i-1, si+1);
+    indices.push( i-1, i-2, si,   si,si+1, i-1,  );//i-2,0,si,   1, i-1, si+1);
     lineIndices.push(i-1, si+1, i-2, si);
 
+    
+    
+    //top
+    vertices.push(0, height/2, 0);
+    si = Math.round(vertices.length/3);
+    i = si;
+    for (var a=0; a<2*Math.PI; a += 2*Math.PI/divisions)
+    {   
+        vertices.push( Math.cos(a)*radius, height/2, Math.sin(a)*radius ); //adding top vertice
+        colors.push( 0.5, 0.5, 0.5, 1,  0.5, 0.5, 0.5, 1, );
+        normals.push( 0,1,0, );
+        i += 1;
+        if (a > 0)
+        {
+            indices.push( si, i, i-1);
+        }
+    }
+
+    //bottom
+    vertices.push(0, -height/2, 0);
+    si = Math.round(vertices.length/3);
+    i = si;
+    for (var a=0; a<2*Math.PI; a += 2*Math.PI/divisions)
+    {   
+        vertices.push( Math.cos(a)*radius, -height/2, Math.sin(a)*radius ); //adding top vertice
+        colors.push( 0.5, 0.5, 0.5, 1,  0.5, 0.5, 0.5, 1, );
+        normals.push( 0,1,0, );
+        i += 1;
+        if (a > 0)
+        {
+            indices.push( si, i-1, i);
+        }
+    }
+
+    //indices.push( i-1, i-2, si,   si,si+1, i-1,  i-2,0,si,   1, i-1, si+1);
+    //lineIndices.push(i-1, si+1, i-2, si);
+
     return {
+        type: 'cylinder',
         vertices: vertices,
         indices: indices,
         normals: normals,
         colors: colors,
         lineIndices: lineIndices,
-    }
+    };
 }
 
 function generateCube()
 {
     return {
+        type: 'cube',
         vertices: cubeVertices,
         indices: cubeIndices, 
         normals: cubeNormals,

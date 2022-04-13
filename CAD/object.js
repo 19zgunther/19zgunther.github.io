@@ -449,7 +449,6 @@ class Body extends Object2 {
         return out + "\n\n";
     }
 }
-
 class Cube extends Body {
     constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
         super(pos, rot, scale);
@@ -504,7 +503,6 @@ class Cube extends Body {
         this.refresh();
     }
 }
-
 class Cylinder extends Body {
     constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
         super(pos, rot, scale);
@@ -546,7 +544,6 @@ class Cylinder extends Body {
         this.lineIndices.push(i-1, si+1, i-2, si);
     }
 }
-
 class Sphere extends Body {
     constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
         super(pos, rot, scale);
@@ -613,6 +610,8 @@ class Object {
         this.colors = cubeColors;
         this.indices = cubeIndices;
         this.lineIndices = cubeLineIndices;
+        this.lineColors = [];
+        this.lineColor = new vec4(.1,.1,.1,1);
 
         //Variables defined in this.refresh()
         this.buffers = null;
@@ -713,6 +712,19 @@ class Object {
             refreshBuffers = true;
             this.lineIndices = data.lineIndices;
         }
+        if ('lineColors' in data && data.lineColors instanceof Array)
+        {
+            refreshBuffers = true;
+            this.lineColors = data.lineColors;
+            if (this.lineColors.length > 1)
+            {
+                this.lineColor.a = 0;
+            }
+        }
+        if ('lineColor' in data && data.lineColor instanceof vec4)
+        {
+            this.lineColor = data.lineColor;
+        }
         this._refresh(refreshMatrices, refreshBuffers);
         return this;
     }
@@ -797,17 +809,20 @@ class Object {
         if (refreshBuffers)
         {
             this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
-            this.lineBuffers = initBuffers(this.vertices, [], [], this.lineIndices);
+            this.lineBuffers = initBuffers(this.vertices, [], this.lineColors, this.lineIndices);
         }
     }
-    draw(gl, projectionMatrix, viewMatrix, colorModVector)
+    render(gl, viewMatrix, colorModVector)
     {
         if (!this.enableDraw) {return;}
-        //DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
-        DrawLine(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.lineIndices, this.lineBuffers);
-        //DrawBody(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.indices, this.buffers, highlightVector);
-        DrawBody(gl, projectionMatrix.mul( viewMatrix ), this.objectMatrix, this.rotationMatrix, this.indices, this.buffers, colorModVector);
+        DrawLine(gl, viewMatrix, this.objectMatrix, this.lineIndices, this.lineBuffers, this.lineColor, colorModVector);
+        DrawBody(gl, viewMatrix, this.objectMatrix, this.rotationMatrix, this.indices, this.buffers, colorModVector);
     }
+    renderPicker(gl, viewMatrix, color)
+    {
+        DrawPicker(gl, viewMatrix, this.objectMatrix, this.indices, this.buffers, color);
+    }
+
 }
 
 /*
@@ -829,7 +844,9 @@ function createObject(type = 'cube')
 {
     switch(type)
     {
-        case 'cube': return new Object(); 
+        case 'grid': return new Object().setData( generateGrid() );
+
+        case 'cube': return new Object().setData( generateCube() ); 
         case 'cylinder': return new Object().setData( generateCylinder() );
     }
 }

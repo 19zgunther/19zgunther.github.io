@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <div style='display: auto; position: relative; width: 100vw; height: 70vh;'>
+    <div style='display: auto; position: relative; width: 99vw; height: 70vh;'>
         <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown=mouseDown(event)  onmouseup=mouseUp(event)></canvas>
         <div id='addObjectsContainer'>
             <div class = 'button' id='cube' onclick = addObjectButtonPress(this)>Add Cube</div>
@@ -79,10 +79,10 @@
             <div class = 'button' id='sphere' onclick = addObjectButtonPress(this)>Add Sphere</div>
         </div>
         
-        <div id='objectContainer' style='position: absolute; display:block; top: 0%; bottom: auto;'>
+        <div id='objectContainer' style='position: absolute; display:block; top: 0%; bottom: auto; overflow:scroll; max-height: 70%;'>
         </div>
 
-        <div id='historyContainer' class = 'backgroundPanel' style='position: absolute; display:block; top: auto; bottom:1%; max-height: 30%; overflow: scroll;'>
+        <div id='historyContainer' class = 'backgroundPanel' style='position: absolute; display:block; top: auto; bottom:1%; max-height: 20%; overflow: scroll;'>
         </div>
     </div>
         
