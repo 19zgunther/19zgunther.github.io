@@ -1,4 +1,7 @@
-
+/***********************************************************************************************
+*  Code Written by Zack Gunther
+*  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
+************************************************************************************************/
 
 
 var defaultShaderProgram;
@@ -281,7 +284,7 @@ function initBodyShaderProgram(gl) {
         {
             color = color * uColorModVector;
         }
-        
+
     }
     `;
     const fsSource = `

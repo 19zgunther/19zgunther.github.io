@@ -1,3 +1,8 @@
+/***********************************************************************************************
+*  Code Written by Zack Gunther
+*  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
+************************************************************************************************/
+
 class Object2 {
     constructor(pos = new vec4(), rot = new vec4()) {
         this.position = pos;

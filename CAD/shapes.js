@@ -1,4 +1,7 @@
-
+/***********************************************************************************************
+*  Code Written by Zack Gunther
+*  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
+************************************************************************************************/
 
 function generateCylinder(radius = 0.5, height = 1, divisions = 20) {
     let vertices = [0,height/2,0, 0,-height/2,0, ];
