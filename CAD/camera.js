@@ -241,54 +241,6 @@ class Camera
             
         }
 
-        //If we're editing a sketch, we want our position and rotation to be fixed relative to the plane we're editing
-        /*if (typeof editingSketch != 'undefined') //Make sure the file with the sketch vairables has been defined
-        {
-            if (editingSketch && this.sliding == false && currentSketch != null)
-            {
-                movement = new vec4();
-                rot = new vec4();
-
-                if (pressedKeys['w'])
-                {
-                    movement.y -= 0.1;
-                }
-                if (pressedKeys['s'])
-                {
-                    movement.y += 0.1;
-                }
-                if (pressedKeys['d'])
-                {
-                    movement.x -= 0.1;
-                }
-                if (pressedKeys['a'])
-                {
-                    movement.x += 0.1;
-                }
-
-                movement = currentSketch.grid.getRotationMatrix().mul(movement);
-
-            }  
-        }*/
-        
-        /*
-        //Update Matrices
-        this.rot = this.rot.add(rot);
-        var rotMat1 = new mat4().makeRotation(0, this.rot.y, 0);
-        var rotMat2 = new mat4().makeRotation(0, 0, this.rot.z);
-        var rotMat3 = rotMat1.mul(rotMat2);
-
-
-        //movement = rotMat3.mul(movement);
-        this.pos.x -= movement.x;
-        this.pos.y -= movement.y;
-        this.pos.z -= movement.z;
-
-        this.translationMat = (new mat4()).makeTranslation(new vec4(-this.pos.x, -this.pos.y, -this.pos.z));
-        this.rotationMatrix = rotMat2.mul(rotMat1);
-        this.viewMatrix = this.rotationMatrix.mul(this.translationMat);
-        */
-
 
 
         this.rot = this.rot.add(rotation);
@@ -302,10 +254,6 @@ class Camera
 
         this.translationMatrix.makeTranslation(-this.position.x, -this.position.y, -this.position.z);
         this.viewMatrix = this.rotationMatrix.mul(this.translationMatrix);
-
-
-        //var detailsElement = document.getElementById('cameraPositionDetailsElement');
-        //detailsElement.innerHTML = "Position: " + this.position.toString() +  "<br>Rotation: " + this.rot.toString() + "<br>Normal: "+this.getScreenNormalVector().toString();
     }
     setPosition(pos = new vec4())
     {
@@ -348,6 +296,7 @@ class Camera
         var rotMat1 = new mat4().makeRotation(0, -this.rot.y, 0);
         var rotMat2 = new mat4().makeRotation(0, 0, -this.rot.z);
         return rotMat1.mul(rotMat2);*/
+        //return new mat4().makeRotation(0, 0, -this.rot.x - this.rot.z).mul(  new mat4().makeRotation(0,-this.rot.y,0) );
     }
     getScreenNormalVector()
     {
@@ -359,11 +308,14 @@ class Camera
         //var vec = ( this.getRotationMatrix() ).mul( new vec4(0,0,1) );
 
 
-        var vec = ( ( new mat4() ).makeRotation(0,this.rot.y,this.rot.x + this.rot.z) ).mul( new vec4(0,0,1,1));
+        //var vec = ( ( new mat4() ).makeRotation(0,this.rot.y,this.rot.x + this.rot.z) ).mul( new vec4(0,0,1,1));
         //vec = ( ( new mat4() ).makeRotation(0,this.rot.y,0) ).mul( vec );
 
+
+        let vec = new mat4().makeRotation(0, -this.rot.y, -this.rot.x - this.rot.z).mul(new vec4(0,0,-1));
+
         //vec.x = -vec.x;
-        vec.z = -vec.z;
+        //vec.z = -vec.z;
         //vec.y = -vec.y;
         return vec;
     }

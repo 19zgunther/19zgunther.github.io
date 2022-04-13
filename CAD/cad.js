@@ -25,6 +25,7 @@ var zFar = perspective_zFarSliderElement.value;
 var zoom = orthogonal_zoomSliderElement.value;
 var perspectiveProjectionMatrix = new mat4();
 var orthogonalProjectionMatrix = new mat4();
+var projectionMatrix;
 var pGlCanvasWidth = -1;
 
 
@@ -57,7 +58,7 @@ setup();
 document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
 //document.addEventListener('mousemove', mouseMoved);
-var interval = setInterval(main, 1000/30);
+var interval = setInterval(main, 1000/40);
 //var updateObjectsContainerInterval = setInterval(updateObjectsContainer, 1000);
 
 
@@ -75,7 +76,7 @@ function keyPressed(event)
 
     var keyCode = event.key;
     pressedKeys[keyCode] = true;
-    console.log(keyCode);
+    //console.log(keyCode);
 
     if (createSketchMenuIsOpen && createSketchMenu_keyPressed(event))
     {
@@ -134,7 +135,7 @@ function mouseMoved(event)
         currentSketch.mouseMoved(event);
         return;
     }
-    var rect = glCanvasElement.getBoundingClientRect();
+    let rect = glCanvasElement.getBoundingClientRect();
     mouseCanvasPos.x = event.clientX - rect.left;
     mouseCanvasPos.y = event.clientY - rect.top;
     //console.log(mouseCanvasPos.toString());
@@ -142,10 +143,23 @@ function mouseMoved(event)
 }
 function mouseDown(event)
 {
+
+    let bb = glCanvasElement.getBoundingClientRect();
+    mouseCanvasPos.x = event.clientX - bb.left;
+    mouseCanvasPos.y = event.clientY - bb.top;
+
     if (currentSketch != null)
     {
         currentSketch.mouseDown(event);
         return;
+    }
+
+    //Cam position, scale by 2*width, shift -1,-1,  y axis needs to be inverted
+    let glPos = mouseCanvasPos.mul(new vec4(2/bb.width, -2/bb.height,0,0)).addi(new vec4(-1,1,0,0));
+    if (objects.length > 0)
+    {
+        let p = screenToWorldVector( glPos, projectionMatrix, camera.getRotationMatrix() ).mul(10).addi(camera.getPosition());
+        objects[0].setPosition( p );
     }
 }
 function mouseUp(event)
@@ -182,15 +196,9 @@ function mouseWheel(event)
 
 
 function addObjectButtonPress(buttonElement) {
-    console.log(buttonElement.id);
 
-    let o = null;
-    switch (buttonElement.id) {
-        //case "cube": let o = new Cube(); objects.push(o); objectContainerElement.innerHTML += (o.getHTMLText()); break;
-        case "cube":o = new Cube(); break;
-        case "cylinder": o = new Cylinder(); break;
-        case "sphere": o = new Sphere(); break;
-    }
+    let o = createObject(buttonElement.id);
+    console.log(buttonElement.id);
     if (o != null) {
         addObject(o);
     }
@@ -426,23 +434,33 @@ function updateCameraSettings(element = null)
     zFar = perspective_zFarSliderElement.value;
     zoom = orthogonal_zoomSliderElement.value;
 
+    orthogonalProjectionMatrix.makeOrthogonal(zoom, aspect, zNear, zFar);
+    perspectiveProjectionMatrix.makePerspective(FOV,aspect,zNear,zFar);
 
     if (element instanceof HTMLElement)
     {
         switch(element.id)
         {
-            case 'orthogonalViewCheckbox': perspective_checkboxElement.checked = false; 
+            case 'orthogonalViewCheckbox': 
+                perspective_checkboxElement.checked = false; 
                 orthogonal_checkboxElement.checked = true; 
-                projectionType = 'orthogonal'; break;
-            case 'perspectiveViewCheckbox': orthogonal_checkboxElement.checked = false; 
+                projectionType = 'orthogonal';
+                projectionMatrix = orthogonalProjectionMatrix;
+                break;
+            case 'perspectiveViewCheckbox': 
+                orthogonal_checkboxElement.checked = false; 
                 perspective_checkboxElement.checked = true;
-                projectionType = 'perspective'; break;
-            case 'orthogonalZoomSlider': console.log(zoom);
+                projectionType = 'perspective'; 
+                projectionMatrix = perspectiveProjectionMatrix;
+                break;
+            case 'orthogonalZoomSlider': 
+                console.log(zoom); 
+                break;
         }
+    } else if (element == null) {
+        projectionMatrix = perspectiveProjectionMatrix;
     }
 
-    orthogonalProjectionMatrix.makeOrthogonal(zoom, aspect, zNear, zFar);
-    perspectiveProjectionMatrix.makePerspective(FOV,aspect,zNear,zFar);
 
     if (currentSketch != null)
     {
@@ -457,7 +475,6 @@ function updateObjectsContainer() {
         objectContainerElement.innerHTML += objects[i].getHTMLText() + "<br>";
     }
     let ins = document.getElementsByClassName('vectorInput');
-
     for (var i in ins)
     {
         try {
@@ -509,6 +526,7 @@ function setup() {
             console.log("GL defined ")
         }
     }
+
     updateCameraSettings();
 
     InitShader(gl);
@@ -522,7 +540,6 @@ function setup() {
     grids.push(   new Grid(new vec4(50,0,50), new vec4(0,0,Math.PI/2))  );
     
     //objects.push(   new Body()      );
-
     //objects.push(   new Text(new vec4(5,5,5),     new vec4(), '5, 5, 5',      new vec4(),   true)  );
     //objects.push(   new Text(new vec4(-5,-5,-5),  new vec4(), '-5, -5, -5',   new vec4(),   true)  );
     //objects.push(   new Text(new vec4(5,5,-5),    new vec4(), '5, 5, -5',     new vec4(),   true)  );
@@ -540,19 +557,21 @@ function main() {
 
 
     //Update either the camera or the current sketch, and get the correct projectionMatrix and viewMatrix
-    var pm; //projectionMatrix;
-    var vm; //viewMatrix;
+    //let pm = projectionMatrix;
+    //let vm; //viewMatrix;
+
+    camera.update(pressedKeys);
+    //vm = camera.getViewMatrix();
+
     /*if (currentSketch != null && camera.sliding == false)
     {
         currentSketch.update();
         pm = currentSketch.getProjectionMatrix();
         vm = currentSketch.getViewMatrix();
     } else {*/
-    camera.update(pressedKeys);
-    vm = camera.getViewMatrix();
 
     //Get projection Matrix
-    if (projectionType == 'orthogonal')
+    /*if (projectionType == 'orthogonal')
     {
         pm = orthogonalProjectionMatrix;
     } else if (projectionType == 'perspective')
@@ -561,33 +580,37 @@ function main() {
     } else {
         console.error("Unknown projectionType. Needs to be orthogonal or perspective.");
         pm = perspectiveProjectionMatrix;
-    }
+    }*/
     //}
 
 
 
+    render();
 
-    //RENDERING PART///////////////////////////////
+
+}
+
+
+function render()
+{
+    let pm = projectionMatrix;
+    let vm = camera.getViewMatrix();
+
     //Clear Screen
     gl.clearColor(1, 1, 1, 1);    // Clear to white, fully opaque
     gl.clearDepth(1);                   // Clear everything
     //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
-
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
-
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
     //gl.enable(gl.BLEND);
     //gl.blendEquation( gl.FUNC_ADD );
     //gl.blendFunc(gl.ONE, gl.ONE);
     //gl.depthMask(false); // turn off depth write
     //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
     //gl.blendFunc(gl.SRC_COLOR, gl.ONE);
-    
-
     gl.enable(gl.CULL_FACE);
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -600,97 +623,34 @@ function main() {
     }
 
 
-    gl.depthMask(false); // turn off depth write
     if (selectedObject != null)
     {
-        selectedObject.draw(gl, pm, vm, new vec4(0.9,0.3,0.3,0.5));
+        gl.depthMask(false); // turn off depth write
+        selectedObject.draw(gl, pm, vm, new vec4(1,0.3,0.3,0.5));
+    } else {
+        gl.depthMask(true); 
     }
-    gl.depthMask(true);
 
     //Draw Each object, all but selected object (selectde object has transparency, so render last)
     for (var i=0; i<objects.length; i++)
     {
         if (selectedObject != objects[i])
         {
-            if (selectedObject instanceof Body)
+            if (selectedObject != null)
             {
-                objects[i].draw(gl, pm, vm, new vec4(0,0,0,0.5));
+                objects[i].draw(gl, pm, vm, new vec4(1,1,1,0.2));
             } else {
                 objects[i].draw(gl, pm, vm);
             }
         }
     }
 
-     //Draw Compass
+    //let o = new Object();
+    //o.draw(gl, pm, vm);
+
+    //gl.depthMask(false);
+    //Draw Compass
     compass.draw(gl,pm,vm);
-
-    /*
-    //Draw All Sketches
-    for (var i=0; i<sketches.length; i++)
-    {
-        if (sketches[i] == currentSketch) { continue; }
-        sketches[i].draw(gl, pm, vm);
-    }
-
-
-    //Draw Current Sketch
-    if (currentSketch != null && camera.sliding == false)
-    {
-        currentSketch.draw(gl);
-    } else {
-        //Draw grids
-        //Draw each grid
-        for (var i=0; i<grids.length; i++)
-        {
-            grids[i].draw(gl, pm, vm);
-        }
-    }*/
-
-
-    //Messing around with projection matrices and switching between them linearly.
-    /*var a = (tick)/1000;
-    if (a > 1) {
-        a = 1;
-    }
-    var b = 1-a;
-    projectionMatrix =  ( orthogonalProjectionMatrix.mul(a) ).add(  (perspectiveProjectionMatrix.mul(b))  );*/
-    
-
-    //Render!
-    //drawLite(gl, projectionMatrix, viewMatrix);    
-}
-
-
-
-function speedTest() {
-
-    var g = new Grid();
-    var pm = new mat4().makePerspective(FOV, aspect, zNear, zFar);
-    var vm = new mat4().makeTranslation(1,1,1);
-
-    var t = Date.now();
-    for (var i=0; i<1000; i++)
-    {
-        g.draw(gl, pm, vm);
-    }
-    console.log(Date.now() - t);
-
-
-    
-    g.setData([50]*3000, null, [50]*4000, [1]*3000)
-
-    console.log(g.vertices);
-
-    t = Date.now();
-    for (var i=0; i<1000; i++)
-    {
-        g.draw(gl,pm,vm);
-    }
-    console.log(Date.now() - t);
-
-
-    
-
 }
 
 
@@ -698,6 +658,22 @@ function speedTest() {
 
 
 
+
+
+
+
+
+function screenToWorldVector(screenScaledPos, projectionMatrix, cameraRotationMatrix)
+{
+    screenScaledPos.z = 0;
+    screenScaledPos.a = 1;
+    let p = (projectionMatrix.mul(cameraRotationMatrix)).invert().mul(screenScaledPos);
+    p.a = 1/p.a;
+    p.x *= p.a;
+    p.y *= p.a;
+    p.z *= p.a;
+    return  p.scaleToUnit() ;
+}
 
 
 

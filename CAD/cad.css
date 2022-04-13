@@ -133,6 +133,8 @@
     position: absolute;
 }
 
+
+
 /* Object List & Container */
 .backgroundPanel, #objectContainer {
     background-color: var(--background_panel_color);
@@ -201,7 +203,7 @@ itemDropdown:hover {
     display: block;
     position: relative;
 
-    max-height: 0;
+    /*max-height: 0;*/
     overflow: hidden;
     height: fit-content;
     width: fit-content;

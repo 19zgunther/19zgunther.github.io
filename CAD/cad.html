@@ -52,7 +52,7 @@
                     <br>
                     zFar: 0 <input class = 'hoverDropDown_child_slider' id='zfarSlider' type = "range" min='1' max='100' value ='100' oninput = updateCameraSettings(this)>100
                     <br>
-                    zNear: 0 <input class = 'hoverDropDown_child_slider' id='znearSlider' type = "range" min='.1' max='5' value='1.5' step = '.1' oninput = updateCameraSettings(this)> 5
+                    zNear: 0 <input class = 'hoverDropDown_child_slider' id='znearSlider' type = "range" min='.1' max='5' value='1.1' step = '.1' oninput = updateCameraSettings(this)> 5
                     <br>
                 </div>
                 
@@ -67,7 +67,7 @@
     </div>
 
     <div style='display: auto; position: relative; width: 100vw; height: 70vh;'>
-        <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown="mouseDown(event)"  onmouseup="mouseUp(event)"></canvas>
+        <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown=mouseDown(event)  onmouseup=mouseUp(event)></canvas>
         <div id='addObjectsContainer'>
             <div class = 'button' id='cube' onclick = addObjectButtonPress(this)>Add Cube</div>
             <div class = 'button' id='cylinder' onclick = addObjectButtonPress(this)>Add Cylinder</div>
@@ -77,7 +77,7 @@
         <div id='objectContainer' style='position: absolute; display:block; top: 0%; bottom: auto;'>
         </div>
 
-        <div id='historyContainer' class = 'backgroundPanel' style='position: absolute; display:block; top: auto; bottom:20%; max-height: 30%; overflow: scroll;'>
+        <div id='historyContainer' class = 'backgroundPanel' style='position: absolute; display:block; top: auto; bottom:1%; max-height: 30%; overflow: scroll;'>
         </div>
     </div>
         
@@ -109,6 +109,7 @@
 <script src="../painter.js"></script>
 <script src="../point.js"></script>
 <script src="../utilities.js"></script>
+<script src="shapes.js"></script>
 <script src="object.js"></script>
 <script src="shader.js"></script>
 <script src="camera.js"></script>

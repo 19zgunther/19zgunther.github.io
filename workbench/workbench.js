@@ -39,6 +39,7 @@ function setup()
     } else {
         console.log("GL defined ")
     }
+    const ext = gl.getExtension('WEBGL_depth_texture');
 
     InitShader(gl);
 }
@@ -121,6 +122,62 @@ function update()
 
     updateCamera();
 
+    let s = 30;
+    let vertices = [-s,0,-s, -s,0,s, s,0,s,  s,0,-s];
+    let indices = [0,1,2, 0,2,3];
+    let normals = [0,1,0, 0,1,0, 0,1,0, 0,1,0];
+    let colors = [.6,.6,.6,1, .6,.6,.6,1, .6,.6,.6,1, .6,.6,.6,1,];
+
+    let ret = generateBench();
+    ret = addMeshes(vertices, ret.vertices, indices, ret.indices, normals, ret.normals, colors, ret.colors);
+    const buffers = initBuffers(ret.vertices, ret.normals, ret.colors, ret.indices);
+    indices = ret.indices;
+    let objectPositionMatrix = new mat4().makeTranslation();
+    let objectRotationMatrix = new mat4().makeRotation();
+
+
+    
+    const depthTexture = gl.createTexture();
+    const depthTextureSize = 512;
+    gl.bindTexture(gl.TEXTURE_2D, depthTexture);
+    //               target      mipLevel  format           width            height        border     format           type          data
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT, depthTextureSize, depthTextureSize, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, depthTextureSize, depthTextureSize, 0, gl.RGBA, gl.UNSIGNED_INT, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    
+    const depthFramebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,       // target
+        gl.DEPTH_ATTACHMENT,  // attachment point
+        gl.TEXTURE_2D,        // texture target
+        depthTexture,         // texture
+        0);                   // mip level
+
+    // create a color texture of the same size as the depth texture
+    const unusedTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, unusedTexture);
+    //               target      mipLevel  format           width            height        border     format           type          data
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, depthTextureSize, depthTextureSize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // attach it to the framebuffer
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,        // target
+        gl.COLOR_ATTACHMENT0,  // attachment point
+        gl.TEXTURE_2D,         // texture target
+        unusedTexture,         // texture
+        0);                    // mip level
+
+        
+
+
+
     //RENDERING PART///////////////////////////////
     //Clear Screen
     gl.clearColor(0.01, 0.01, 0.01, 1);    // Clear to black, fully opaque
@@ -133,32 +190,6 @@ function update()
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     //ground
-
-    let s = 30;
-    let vertices = [-s,0,-s, -s,0,s, s,0,s,  s,0,-s];
-    let indices = [0,1,2, 0,2,3];
-    let normals = [0,1,0, 0,1,0, 0,1,0, 0,1,0];
-    let colors = [.6,.6,.6,1, .6,.6,.6,1, .6,.6,.6,1, .6,.6,.6,1,];
-
-
-    let ret = generateBench();
-    //let ret2 = generateSphere(3,4);
-
-    ret = addMeshes(vertices, ret.vertices, indices, ret.indices, normals, ret.normals, colors, ret.colors);
-
-    //ret = addMeshes(ret.vertices, [10,20,10, 9,30,10, 9,30,11], ret.indices, [0,1,2], ret.normals, [0,1,0], ret.colors, [1,1,1,1, 1,1,1,1, 1,1,1,1] );
-    //ret = addMeshes(ret.vertices, ret2.vertices, ret.indices, ret2.indices, ret.normals, ret2.normals, ret.colors, ret2.colors );
-
-
-    const buffers = initBuffers(ret.vertices, ret.normals, ret.colors, ret.indices);
-    indices = ret.indices;
-
-
-    let objectPositionMatrix = new mat4().makeTranslation();
-    let objectRotationMatrix = new mat4().makeRotation();
-
-
-
     //DrawDefault(gl, projectionMatrix, viewMatrix, new mat4().makeTranslation(), new mat4().makeRotation(), ret.indices, buffers, true);
     //return;
 
@@ -195,6 +226,9 @@ function update()
     gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 
 }
+
+
+
 
 
 

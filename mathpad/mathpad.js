@@ -17,7 +17,6 @@
     var rrmat = [[0]];
 
 
-
     setup();
 
     function setup() {
@@ -109,6 +108,57 @@
             cpy.push(row);
         }
         return cpy;
+    }
+
+}
+
+
+//For determinant
+{
+    makeMatrix();
+    function makeMatrix()
+    {
+
+        numC = 3;  // Number(matrixNumColumnsElement.value);
+        numR = 3;  // Number(matrixNumRowsElement.value);
+        let html = ""
+        for (var r=0; r <numR; r++)
+        {   
+            html += "<div style='display: flex;'>";
+            for (var c=0; c<numC; c++)
+            {
+                html += "<input class='matrixInput' id=\'DET_c" + c + "r" + r + "\' type='number' value='0' style='width:3vmax' onchange=calcDeterminant()></input> "
+            }
+            html += "</div>";
+        }
+        document.getElementById('DET_input').innerHTML = html;
+    }
+
+    function calcDeterminant()
+    {
+        let mat = [];
+        for (var r=0; r<numR; r++)
+        {
+            let row = []
+            for (var c=0; c<numC; c++)
+            {
+                let val = Number(document.getElementById('DET_c' + c + 'r' + r).value);
+                row.push(val);
+            }
+            mat.push(row);
+        }   
+        console.log(mat);
+
+        let d1 = (mat[1][1]*mat[2][2] - mat[1][2]*mat[2][1]);
+        let d2 = (mat[1][0]*mat[2][2] - mat[1][2]*mat[2][0]);
+        let d3 = (mat[1][0]*mat[2][1] - mat[1][1]*mat[2][0]);
+
+        console.log(d1,d2,d3);
+        
+        let ans = mat[0][0]*d1 + (-mat[0][1]*d2) + mat[0][2]*d3;
+        //let ans = mat[0][0]*(mat[1][1]*mat[2][2] - mat[1][2]*mat[2][1])  -  mat[0][1]*(mat[1][0]*mat[2][2] - mat[1][2]*mat[2][0])  +  mat[0][2]*(mat[1][0]*mat[2][1] - mat[1][1]*mat[2][0]);
+        
+        document.getElementById('DET_output').innerHTML = ans;
     }
 
 }

@@ -324,7 +324,7 @@ class mat4 {
         console.error("mat4.mul() was passed Object it couldn't multiply. Valid types: mat4, vec4, number. ");
         return null;
     }
-    mulInto(mat) {
+    muli(mat) {
         //Multiply into mat4 object.
         if (mat instanceof mat4) {
             var f1 = this.getFloat32Array();
@@ -554,9 +554,21 @@ class mat4 {
                 }
                 //console.log("After Clearing R: " +r+"\n"+mat.toString()+"\n"+mat2.toString());
             }
-        }
+        }//-Math.atan(glPos.x*zNear)
 
         //console.log("REsult: \n"+mat.toString()+"\n"+mat2.toString());
+        return mat2;
+
+
+
+        mat2 = new mat4();
+
+        mat2.f32a[0] = 1/mat.f32a[0];
+        mat2.f32a[5] = 1/mat.f32a[5];
+        mat2.f32a[11] = 1/mat.f32a[14];
+        mat2.f32a[14] = 1/mat.f32a[11];
+        mat2.f32a[15] = -mat.f32a[10] / ( mat.f32a[14] * mat.f32a[11] );
+
         return mat2;
     }
 }
@@ -612,7 +624,7 @@ class vec4 {
             this.x += x.x;
             this.y += x.y;
             this.z += x.z;
-            this.z += x.z;
+            this.a += x.a;
         } else {
             if (isNaN(x)) { x = 0;}
             if (isNaN(y)) { y = 0;}
@@ -622,7 +634,7 @@ class vec4 {
             this.x += x;
             this.y += y;
             this.z += z;
-            this.z += z;
+            this.a += a;
         }
         return this;
     }
@@ -652,6 +664,9 @@ class vec4 {
         } else if ( !isNaN(Number(x)) && y == null && z == null && a == null) {
             //multiply by scalar
             return new vec4(this.x*x, this.y*x, this.z*x, this.a*x);
+        } else if (x instanceof mat4)
+        {
+            console.error("vec4.mul() cannot take a mat4 as an argument. Try mat4.mul(vec4).");
         } else {
             //multiple by all scalars
             if (isNaN(x)) { x = 0;}

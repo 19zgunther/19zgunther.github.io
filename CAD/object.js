@@ -1,4 +1,4 @@
-class Object {
+class Object2 {
     constructor(pos = new vec4(), rot = new vec4()) {
         this.position = pos;
         this.rotation = rot;
@@ -20,9 +20,9 @@ class Object {
     {
         if (position instanceof vec4)
         {
-            this.position = position;
+            this.position = position.copy();
             this.translationMatrix.makeTranslation(this.position);
-            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
+            //this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -33,7 +33,7 @@ class Object {
         {
             this.rotation = rotation;
             this.rotationMatrix.makeRotation(this.rotation);
-            this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
+            //this.objectMat = this.translationMatrix.mul(this.rotationMatrix);
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
@@ -49,6 +49,10 @@ class Object {
     getRotationMatrix()
     {
         return this.rotationMatrix;
+    }
+    getTranslationMatrix()
+    {
+        return this.translationMatrix;
     }
     setData(vertices, normals, colors, indices)
     {
@@ -80,11 +84,11 @@ class Object {
     draw(gl, projectionMatrix, viewMatrix)
     {
         if (!this.enableDraw) {return;}
+
         DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
     }
 }
-
-class Grid extends Object{
+class Grid extends Object2{
     constructor(position = new vec4(), rotation = new vec4(), gridScale = 1, colorMod = new vec4(1,1,1,1)) {
         super(position, rotation);
 
@@ -209,8 +213,7 @@ class Grid extends Object{
         DrawGrid(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers, this.scaleVector, this.colorMod);
     }
 }
-
-class Compass extends Object{
+class Compass extends Object2{
     constructor(position, rotation){
         super(position, rotation);
 
@@ -231,7 +234,6 @@ class Compass extends Object{
         DrawDefault(gl, new mat4().makeOrthogonal(1,aspect,0,100), this.translationMatrix, this.rotationMatrix, this.indices, this.buffers, false);
     }
 }
-
 class Text {
     constructor(pos = new vec4(), rot = new vec4(), text = "default_text", textColor = new vec4(0,0,0,255), shouldBake = false)
     {
@@ -367,7 +369,9 @@ class Text {
     }
 }
 
-class Body extends Object {
+
+
+class Body extends Object2 {
     constructor(pos = new vec4(), rot = new vec4(), scale = new vec4(1,1,1,1)) {
         super(pos, rot);
         this.scale = scale;
@@ -487,10 +491,11 @@ class Cube extends Body {
             0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
             0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
         ];
-
-        this.lineIndices = [0,1, 1,2, 2,3, 3,0, 
+        this.lineIndices = [
+            0,1, 1,2, 2,3, 3,0, 
             4,5,5,6,6,7,7,4, 
-            0,4, 7,1, 2,6, 5,3];
+            0,4, 7,1, 2,6, 5,3
+        ];
         this.refresh();
     }
 }
@@ -507,11 +512,7 @@ class Cylinder extends Body {
 
         this.refresh();
     }
-    _generateMesh() {
-        let rad = 0.5;
-        let height = 1;
-        let divisions = 20;
-
+    _generateMesh(radius = 0.5, height = 1, divisions = 20) {
         this.vertices = [0,height/2,0, 0,-height/2,0, ];
         this.indices = [];
         this.normals = [0,1,0,  0,-1,0];
@@ -520,11 +521,11 @@ class Cylinder extends Body {
 
         let i = 2;
         let si = 2;
-
+        //Add Sides
         for (var a=0; a<2*Math.PI; a += 2*Math.PI/divisions)
         {   
-            this.vertices.push( Math.cos(a)*rad, height/2, Math.sin(a)*rad ); //adding top vertice
-            this.vertices.push( Math.cos(a)*rad, -height/2, Math.sin(a)*rad ); //adding bottom vertice
+            this.vertices.push( Math.cos(a)*radius, height/2, Math.sin(a)*radius ); //adding top vertice
+            this.vertices.push( Math.cos(a)*radius, -height/2, Math.sin(a)*radius ); //adding bottom vertice
 
             this.colors.push( 0.5, 0.5, 0.5, 1,  0.5, 0.5, 0.5, 1, );
             this.normals.push( Math.cos(a), 0, Math.sin(a),    Math.cos(a), 0, Math.sin(a),  );
@@ -590,210 +591,289 @@ class Sphere extends Body {
 
 
 
-//This is all used for Text. It contains all of the triangles necessary for creating each ascii shape
-const asciiVertices = [
-    0,-0.2,0,0,-0.1,0,0,0,0,0,0.1,0,0,0.2,0,0,0.3,0,0,0.4,0,0,0.5,0,0,0.6,0,0,0.7,0,0,0.8,0,0.1,
-    -0.2,0,0.1,-0.1,0,0.1,0,0,0.1,0.1,0,0.1,0.2,0,0.1,0.3,0,0.1,0.4,0,0.1,0.5,0,0.1,0.6,0,0.1,0.7,
-    0,0.1,0.8,0,0.2,-0.2,0,0.2,-0.1,0,0.2,0,0,0.2,0.1,0,0.2,0.2,0,0.2,0.3,0,0.2,0.4,0,0.2,0.5,0,
-    0.2,0.6,0,0.2,0.7,0,0.2,0.8,0,0.3,-0.2,0,0.3,-0.1,0,0.3,0,0,0.3,0.1,0,0.3,0.2,0,0.3,0.3,0,0.3,
-    0.4,0,0.3,0.5,0,0.3,0.6,0,0.3,0.7,0,0.3,0.8,0,0.4,-0.2,0,0.4,-0.1,0,0.4,0,0,0.4,0.1,0,0.4,0.2,
-    0,0.4,0.3,0,0.4,0.4,0,0.4,0.5,0,0.4,0.6,0,0.4,0.7,0,0.4,0.8,0
-];
-
-const asciiIndices = [
-    null,null,null,null,null,null,null,null,null,null,  //0-9
-    null,null,null,null,null,null,null,null,null,null,  //10 - 19
-    null,null,null,null,null,null,null,null,null,null,  //20 - 29
-    null,null,  //30 - 31
-
-    [], // (Space)
-    [3,2,13,13,14,3,4,15,21,21,10,4], // !    
-    [8,21,32,32,19,8,30,43,54,54,41,30], // "
-    [2,20,31,31,13,2,24,42,53,53,35,24,7,51,50,50,6,7,5,49,48,48,4,5], //#
-    null,
-    [8,7,18,18,19,8,37,36,47,47,48,37,42,2,13,13,53,42], //% 
-    null, // &
-    [21,8,19,19,32,21], // '
-    [7,4,13,13,20,7,20,32,31,31,19,20,13,23,24,24,14,13], // (
-    [13,26,29,29,20,13,20,10,9,9,19,20,1,13,2,2,14,13], // )
-    [7,21,19,19,29,21,19,9,20,19,31,20], //*
-    [6,39,38,38,5,6,18,15,26,26,29,18], // +
-    [14,2,1,14,25,24,1,24,14], // ,
-    [6,39,38,38,5,6], // -
-    [3,14,13,13,2,3], // .
-    [1,43,54,54,12,1], //  /
-
-    //Numbers: 48-57
-    [13,3,9,9,21,13,21,43,53,53,9,21,53,47,35,35,43,53,47,3,13,13,35,47], //0
-    [8,9,21,21,32,8,32,24,13,13,21,32,3,36,35,35,2,3], //1
-    [46,2,3,3,47,46,3,52,51,51,2,3,51,53,43,43,39,51,43,21,9,9,53,43,21,9,8,8,19,21], //2
-    [4,15,13,13,3,4,3,47,35,35,13,3,8,9,21,21,19,8,9,21,43,43,53,9,53,51,39,39,43,53,47,49,39,39,35,47,40,28,38], //3
-    [10,6,17,17,21,10,43,35,46,46,54,43,50,6,7,7,51,50], //4
-    [9,53,54,54,10,9,10,6,17,17,21,10,7,40,50,50,6,7,50,47,35,35,40,50,35,13,3,3,47,35,3,4,15,15,13,3],//5
-    [3,47,35,35,13,3,3,6,18,18,40,50,50,6,18,18,13,3,50,47,35,35,40,50,17,43,32,32,6,17], //6
-    [10,54,53,53,9,10,53,24,13,13,42,53],//7
-    [9,21,43,43,53,9,9,7,17,17,21,9,7,51,39,39,17,7,39,43,53,53,51,39,18,6,3,3,13,18,40,50,47,47,35,40,3,47,35,35,13,3],//8
-    [17,7,9,9,21,17,21,43,53,53,9,21,53,51,39,39,43,53,39,17,7,7,51,39,51,24,13,13,40,51], //9
-    
-
-    //Special characters 58-64
-    [7,6,17,17,18,7,15,4,3,3,15,14], // :
-    [3,15,12,12,1,3,7,6,17,17,18,7], // ;
-    [6,51,52,6,49,48,49,17,6,17,51,6], // <
-    [50,6,7,7,51,50,49,5,4,4,48,49], // = 
-    [8,50,7,50,5,4,7,39,50,39,5,50], // >
-    [18,7,9,9,21,18,21,43,53,53,9,21,53,51,39,39,43,53,40,37,26,26,28,40,25,24,35,36,25,35], // ?
-    [48,53,43,43,38,48,43,21,9,9,53,43,9,2,12,12,21,9,2,46,34,34,12,2,28,26,48,48,39,28], //@
-
-    //Uppercase Letters: 65-90
-    [2,21,32,32,13,2,43,46,35,35,32,43,21,43,31,17,39,38,38,16,17], // A
-    [10,2,13,13,21,10,10,43,53,53,9,10,53,51,39,39,43,53,39,49,47,47,35,39,35,2,3,3,47,35,7,40,39,39,6,7], //B
-    [9,21,43,43,53,9,53,52,41,41,43,53,21,13,3,3,9,21,3,47,35,35,13,3,47,48,37,37,35,47], // C
-    [10,2,13,13,21,10,52,47,35,35,2,3,3,47,35,41,52,35,10,32,42,42,9,10,42,52,41,41,31,42], //D
-    [54,10,9,9,53,54,10,2,13,13,21,10,3,47,46,46,2,3,6,39,38,38,5,6], //E
-    [2,10,21,21,13,2,10,54,53,53,9,10,6,39,38,38,5,6], //F
-    [52,41,42,52,53,42,53,43,21,9,21,53,9,3,13,13,20,9,3,47,35,35,13,3,27,49,48,48,26,27,37,35,46,46,48,37], //G
-    [10,21,13,13,2,10,6,50,49,49,5,6,43,35,46,46,54,43], //H
-    [21,13,24,24,32,21,10,43,42,42,9,10,3,36,35,35,2,3], //I
-    [10,54,53,53,9,10,43,36,24,24,32,43,24,13,3,3,36,24,3,4,15,15,13,3], //J
-    [10,2,13,13,21,10,38,35,46,38,48,46,48,8,7,7,47,48,43,41,53,53,54,43,53,5,6,6,54,53], // K
-    [10,2,13,13,21,10,3,47,46,46,2,3], //L
-    [2,10,21,21,13,2,35,43,54,54,46,35,21,29,18,29,43,40,18,27,40], //M
-    [13,21,10,10,2,13,54,46,35,35,43,54,21,46,35,35,10,21], //N
-    [3,13,35,35,47,3,3,9,21,21,13,3,21,43,53,53,9,21,53,47,35,35,43,53], //O
-    [10,2,13,13,21,10,10,43,53,53,9,10,53,51,39,39,43,53,39,6,7,7,51,39], //p
-    [24,48,37,37,13,24,3,36,24,24,13,3,3,9,21,21,13,3,21,43,53,53,9,21,53,48,37,37,43,53,27,47,46,46,26,27], //Q
-    [10,2,13,13,21,10,10,43,53,53,9,10,53,51,39,39,43,53,39,6,7,7,51,39,39,49,46,46,35,39,28,38,39], //R
-    [53,43,21,53,9,21,3,13,35,35,47,3,9,7,17,17,21,9,47,49,39,39,35,47,38,17,18,18,39,38,14,4,3,42,52,53], //S
-    [10,54,53,53,9,10,32,24,35,35,43,32], //T
-    [10,3,13,13,21,10,13,46,47,47,3,13,46,54,43,43,35,46], //U
-    [10,24,35,35,21,10,24,43,54,54,35,24], //V
-    [10,2,13,13,21,10,43,35,46,46,54,43,13,26,15,26,35,37,15,28,37], //W
-    [21,46,35,35,10,21,43,2,13,13,54,43], //X
-    [24,28,39,39,35,24,28,10,21,21,39,28,39,54,43,43,28,39], //Y
-    [10,54,53,53,9,10,53,14,3,3,42,53,3,2,46,46,47,3], //Z
 
 
-    //91-96
-    [31,32,10,10,9,31,10,1,12,12,21,10,2,24,23,23,1,2], // [
-    [10,21,34,34,23,10], // \
-    [10,32,31,31,9,10,32,23,12,12,21,32,2,24,23,23,1,2], // ]
-    [9,8,21,21,20,8,20,30,31,31,21,20], // ^
-    [2,46,45,45,1,2], // _
-    [10,19,30,30,21,10], // `
 
-    //Lowercase letters: 97-122
-    [46,50,40,40,35,46,35,13,3,3,47,35,40,18,6,6,50,40,3,4,16,16,13,3,16,49,48,48,4,16], //a
-    [10,2,13,21,10,13,7,40,50,50,6,7,50,47,35,35,40,50,35,2,3,3,47,35],     //b
-    [50,6,18,18,40,50,3,47,35,35,13,3,13,18,6,6,3,13],   //c
-    [46,54,43,43,35,46,46,13,3,3,47,46,3,6,18,18,13,3,18,51,50,50,6,18], //d
-    [47,3,13,13,35,47,13,3,6,6,18,13,18,40,50,50,6,18,50,49,37,37,40,50,37,4,5,5,49,37], //e
-    [13,20,32,32,24,13,32,43,53,53,20,32,53,52,42,7,40,39,39,6,7,42,41,52], //f
-    [18,13,3,3,6,18,18,40,50,50,6,18,3,47,46,46,13,3,50,45,33,33,40,50,33,11,1,1,45,33], //g
-    [2,10,21,13,2,21,7,40,50,50,6,7,50,46,35,35,40,50], //h
-    [13,17,28,13,24,28,19,18,29,29,30,19], //i
-    [2,1,11,11,13,2,1,34,22,22,11,1,34,39,28,28,22,34,30,29,40,40,41,30], //j
-    [2,10,21,21,13,2,46,35,5,5,16,46,30,5,16,16,41,30], //k
-    [10,3,13,13,21,10,14,24,13,14,25,24], //l
-    [2,7,18,18,13,2,40,35,46,46,51,40,40,28,39,18,28,17,17,27,39], //m
-    [2,6,18,18,13,2,40,35,46,46,51,40,18,51,50,50,6,18], //n
-    [3,6,18,18,13,3,18,40,50,50,6,18,3,47,35,35,13,3,47,50,40,40,35,47], //o
-    [0,6,18,18,11,0,18,40,50,50,6,18,3,47,35,35,3,2,47,50,40,40,35,47], //p
-    [3,6,18,18,13,3,18,40,50,50,6,18,3,47,35,35,13,3,44,50,40,40,33,44], //q
-    [13,18,7,7,2,13,6,29,28,28,5,6,29,40,39,39,28,29,40,50,49,49,38,40], //r
-    [47,48,38,38,35,47,38,5,15,15,48,38,4,24,13,13,3,4,3,47,35,35,13,3,5,6,18,18,15,5,18,40,50,50,6,18,50,49,29], //s
-    [24,14,21,21,32,24,14,36,35,35,24,14,7,40,39,39,6,7], //t
-    [7,18,13,13,3,7,3,47,46,46,13,3,35,40,51,51,46,35], //u
-    [18,35,24,24,7,18,35,51,40,40,24,35], //v
-    [7,2,13,13,18,7,40,35,46,46,51,40,14,27,36,13,25,14,25,35,36], //w
-    [46,18,7,7,35,46,13,51,40,40,2,13], //x
-    [7,3,13,13,18,7,51,45,33,33,40,51,3,47,46,46,13,3,33,11,1,1,45,33], //y
-    [7,51,50,50,6,7,3,47,46,46,2,3,3,39,50,50,14,3], //z         //122
+class Object {
+    constructor(position = new vec4(), rotation = new vec4(), scale = new vec4(1,1,1,1)) {
 
-    //Spectials 123-126
-    [25,36,35,35,24,25,24,14,16,16,27,24,32,43,42,42,31,32,32,20,18,18,29,32,16,6,18,27,17,16,17,29,18],    // {
-    [1,10,21,21,12,1],                                                                                      // |
-    [2,3,13,13,14,3,13,25,27,27,16,13,10,21,20,20,9,10,21,31,29,29,18,21,29,39,27,16,28,27,18,28,29],       // }
-    [17,5,6,6,18,28,28,40,39,17,27,39], //~
+        //Basic location and scale parameters
+        this.position = position;
+        this.rotation = rotation;
+        this.scale = scale;
 
-    null, null, null, //127-129
-    null, null, null, null, null, null, null, null, null, null, //130-139
-    null, null, null, null, null, null, null, null, null, null, //140-149
-    null, null, null, null, null, null, null, null, null, null, //150-159
-    null, null, null, null, null, null, null, null, null, null, //160-169
-    null, null, null, null, null, null, //170-175
-    [9,21,32,32,42,9,21,18,8,8,9,21,8,41,29,29,18,8,29,32,42,42,41,29],  //176 - Degree Symbol
-    null, null, null, //177-179 
-    null, null, null, null, null, null, null, null, null, null, //180-189
-    null, null, null, null, null, null, null, null, null, null, //190-199
-    null, null, null, null, null, null, null, null, null, null, //200-209
-    null, null, null, null, null, null, null, null, null, null, //210-219
-    null, null, null, null, null, null, null, null, null, null, //220-229
-    null, null, null, null, null, null, null, null, null, null, //230-239
-    null, null, null, null, null, null, null, null,  //240-247
-    [9,21,32,32,42,9,21,18,8,8,9,21,8,41,29,29,18,8,29,32,42,42,41,29], // Degree Symbol - 248
-    null, //249
-    null, null, null, null, null, null, null, null, null, null, //250-259
-    //
-];
+        //Shape data
+        this.vertices = cubeVertices;
+        this.normals = cubeNormals;
+        this.colors = cubeColors;
+        this.indices = cubeIndices;
+        this.lineIndices = cubeLineIndices;
 
-const asciiWidths = [
-    0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.1, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.2, 0.3, 0.2, 0.3, 0.1, 0.4, 0.4, 0.3, 0.4,
-    0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.1, 0.1, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.3, 0.2, 0.2, 0.4, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4,
-    0.4, 0.4, 0.4, 0.2, 0.3, 0.4, 0.2, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.3, 0.1, 0.3, 0.3, 0.4,
+        //Variables defined in this.refresh()
+        this.buffers = null;
+        this.lineBuffers = null; 
+        this.translationMatrix = new mat4();
+        this.rotationMatrix = new mat4();
+        this.scaleMatrix = new mat4();
+        this.objectMatrix = new mat4();
 
-    0.4,0.4,//128,129
-    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4, //130-169
-    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4, //170-209
-    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4, //210-247
-    0.3,
-    0.4,//249
-    0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,//250-259
+        //Misc
+        this.enableDraw = true;
+        this.type = 'default';
+        this.id = Math.round(Math.random()*1000000); //assign random id
 
-];
-
-function computeAsciiWidths_ONLY_NEEDED_ONCE() {
-    var widths = [];
-    for (var i=0; i<asciiIndices.length; i++)
-    {
-        var maxInd = 0;
-        var width = 0;
-
-        if (asciiIndices[i] == null || asciiIndices[i].length == 0)
-        {
-            width = 4;
-        } else {
-            for (var j=0; j<asciiIndices[i].length; j++)
-            {
-                if (asciiIndices[i][j] > maxInd)
-                {
-                    maxInd = asciiIndices[i][j];
-                }
-            }
-
-            if (maxInd < 11) {
-                width = 1;
-            } else if (maxInd < 22) {
-                width = 1;
-            } else if (maxInd < 33) {
-                width = 2;
-            } else if (maxInd < 44) {
-                width = 3;
-            } else {
-                width = 4;
-            }
-        }
-
-        if (widths.length > 50)
-        {
-            console.log(widths);
-            widths = [];
-        }
-        widths.push(width/10);
+        this._refresh();
     }
 
-    console.log(widths);
+    setPosition(position)
+    {
+        if (position instanceof vec4)
+        {
+            this.position = position.copy();
+            this._refresh(true, false);
+        } else {
+            console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
+        }
+    }
+    setRotation(rotation)
+    {
+        if (rotation instanceof vec4)
+        {
+            this.rotation = rotation;
+            this._refresh(true, false);
+        } else {
+            console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
+        }
+    }
+    setScale(scale)
+    {
+        if (scale instanceof vec4)
+        {
+            this.scale = scale;
+            this._refresh(true, false);
+        } else {
+            console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
+        }
+    }
+    setData(data)
+    {
+        let refreshBuffers = false;
+        let refreshMatrices = false;
+        if (data == null )
+        {
+            console.error('Object.setData() requires a dictionary as an arguement. Was not passed a dict.');
+            return;
+        }
+        if ('type' in data && data.type instanceof String)
+        {
+            this.type = data.type;
+        }
+        if ('position' in data && data.position instanceof vec4)
+        {
+            refreshMatrices = true;
+            this.position = data.position;
+        }
+        if ('rotation' in data && data.rotation instanceof vec4)
+        {
+            refreshMatrices = true;
+            this.rotation = data.rotation;
+        }
+        if ('scale' in data && data.scale instanceof vec4)
+        {
+            refreshMatrices = true;
+            this.scale = data.scale;
+        }
+        if ('vertices' in data && data.vertices instanceof Array)
+        {
+            refreshBuffers = true;
+            this.vertices = data.vertices;
+        }
+        if ('normals' in data && data.normals instanceof Array)
+        {
+            refreshBuffers = true;
+            this.normals = data.normals;
+        }
+        if ('colors' in data && data.colors instanceof Array)
+        {
+            refreshBuffers = true;
+            this.colors = data.colors;
+        }
+        if ('indices' in data && data.indices instanceof Array)
+        {
+            refreshBuffers = true;
+            this.indices = data.indices;
+        }
+        if ('lineIndices' in data && data.lineIndices instanceof Array)
+        {
+            refreshBuffers = true;
+            this.lineIndices = data.lineIndices;
+        }
+        this._refresh(refreshMatrices, refreshBuffers);
+        return this;
+    }
+
+    getPosition()
+    {
+        return this.position;
+    }
+    getRotation()
+    {
+        return this.rotation;
+    }
+    getScale()
+    {
+        return this.scale;
+    }
+    getRotationMatrix()
+    {
+        return this.rotationMatrix;
+    }
+    getTranslationMatrix()
+    {
+        return this.translationMatrix;
+    }
+    getScaleMatrix()
+    {
+        return this.scaleMatrix;
+    }
+    getHTMLText()
+    {
+        return ""
+            + "<item id = \'"+this.id+"\' checked=false onclick = \"objectClicked(this); this.setAttribute('checked', 'checked'); console.log(this.checked);\" >" 
+                + "<div style='font-size: larger'>"    
+                    + this.type + ":" + this.id
+                + "</div>"
+                + "<div class = 'objectDetailsContainer'>"
+                    + "<div style='display:flex;'>"
+                        + "position"
+                        + "\<<input class = 'vectorInput' name='posX' id = \'"+this.id+"\' type='number' value = "+this.position.x+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='posY' id = \'"+this.id+"\' type='number' value = "+this.position.y+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='posZ' id = \'"+this.id+"\' type='number' value = "+this.position.z+" oninput=objectParameterChanged(this)></input> \>"
+                    +"</div>"
+                    + "<div style='display:flex;'>"
+                        + "rotation"
+                        + "\<<input class = 'vectorInput' name='rotX' id = \'"+this.id+"\' type='number' value = "+this.rotation.x+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='rotY' id = \'"+this.id+"\' type='number' value = "+this.rotation.y+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='rotZ' id = \'"+this.id+"\' type='number' value = "+this.rotation.z+" oninput=objectParameterChanged(this)></input> \>"
+                    +"</div>"
+                    + "<div style='display:flex;'>"
+                        + "scale"
+                        + "\<<input class = 'vectorInput' name='scaX' id = \'"+this.id+"\' type='number' value = "+this.scale.x+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='scaY' id = \'"+this.id+"\' type='number' value = "+this.scale.y+" oninput=objectParameterChanged(this)></input> "
+                        + ",<input class = 'vectorInput' name='scaZ' id = \'"+this.id+"\' type='number' value = "+this.scale.z+" oninput=objectParameterChanged(this)></input> \>"
+                    +"</div>"
+                + "</div>"
+            + "</item>";
+    }
+    getSaveText(){
+        let out = "@"
+        +"_type:"+this.type
+        +"_id:"+this.id
+        +"_position:"+this.position.x+","+this.position.y+","+this.position.z+","+this.position.a
+        +"_rotation:"+this.rotation.x+","+this.rotation.y+","+this.rotation.z+","+this.rotation.a
+        +"_scale:"+this.scale.x+","+this.scale.y+","+this.scale.z+","+this.scale.a
+        +"_vertices:"+this.vertices
+        +"_indices:"+this.indices
+        +"_normals:"+this.normals
+        +"_colors:"+this.colors
+        return out + "\n\n";
+    }
+
+    _refresh(refreshMatrices = true, refreshBuffers = true)
+    {   
+        if (refreshMatrices)
+        {
+            this.scale.a = 1;
+            this.translationMatrix.makeTranslation(this.position);
+            this.rotationMatrix.makeRotation(this.rotation);
+            this.scaleMatrix.makeScale(this.scale);
+            this.objectMatrix = this.translationMatrix.mul(this.rotationMatrix).mul(this.scaleMatrix);
+        }
+        if (refreshBuffers)
+        {
+            this.buffers = initBuffers(this.vertices, this.normals, this.colors, this.indices);
+            this.lineBuffers = initBuffers(this.vertices, [], [], this.lineIndices);
+        }
+    }
+    draw(gl, projectionMatrix, viewMatrix, colorModVector)
+    {
+        if (!this.enableDraw) {return;}
+        //DrawDefault(gl, projectionMatrix, viewMatrix, this.objectMat, this.indices, this.buffers);
+        DrawLine(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.lineIndices, this.lineBuffers);
+        //DrawBody(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.indices, this.buffers, highlightVector);
+        DrawBody(gl, projectionMatrix.mul( viewMatrix ), this.objectMatrix, this.rotationMatrix, this.indices, this.buffers, colorModVector);
+    }
 }
+
+/*
+class Grid2 extends Object2{
+    constructor(position = new vec4(), rotation = new vec4(), scale = new vec4(1,1,1,1))
+    {
+        this.super(position, rotation, scale);
+
+        this.vertices = [];
+        this.indices = [];
+        this.colors = [];
+        this.normals = [];
+        this.lineIndices = [];
+    }
+}
+*/
+
+function createObject(type = 'cube')
+{
+    switch(type)
+    {
+        case 'cube': return new Object(); 
+        case 'cylinder': return new Object().setData( generateCylinder() );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

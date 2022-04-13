@@ -125,8 +125,7 @@ function initDefaultShaderProgram(gl) {
 
 
     void main() {
-
-        vec3 lightPos = vec3(20,20,20);
+        vec3 lightPos = vec3(10,12,15);
         vec3 lightDir = normalize(lightPos);
         vec3 normRay = (uObjectRotationMatrix * normal).xyz;
         normRay.z = -normRay.z;
@@ -135,7 +134,6 @@ function initDefaultShaderProgram(gl) {
         vec3 reflectDir = reflect(normalize(pos.xyz-lightPos), normRay.xyz);
         vec3 viewDir = normalize(uCameraPositionVector.xyz - pos.xyz);
         float specularLightMultiplier = pow(max(dot(reflectDir, viewDir),0.0), 64.0) * 0.5 + 0.5;
-
         gl_FragColor = color * normalLightMultiplier * specularLightMultiplier;
     }
     `;
