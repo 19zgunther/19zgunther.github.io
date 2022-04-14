@@ -648,6 +648,7 @@ function main() {
         let objRot = selectedObject.getRotation();
         let rayD_pos = null;
         let rayD_rot = null;
+        let rayS = null;
         console.log(selectedArrow.type);
         switch(selectedArrow.type)
         {
@@ -660,14 +661,17 @@ function main() {
             case '_arrow_posZ': 
                 rayD_pos = new vec4(0,0,1);
                 break;
-            case 'x_r_arrow': 
-                rayD_rot = new vec4(1,0,0);
+            case '_arrow_rotX': 
+                rayD_rot = new vec4(0,.7,-.7);
+                rayS = new vec4(0,.7,.7);
                 break;
-            case 'y_r_arrow': 
-                rayD_rot = new vec4(0,1,0);
+            case '_arrow_rotY': 
+                rayD_rot = new vec4(.7,1,-.7);
+                rayS = new vec4(.7,0,.7);
                 break;
-            case 'z_r_arrow': 
-                rayD_rot = new vec4(0,0,1);
+            case '_arrow_rotZ': 
+                rayD_rot = new vec4(-.7,.7,0);
+                rayS = new vec4(.7,.7,0);
                 break;
             
             default:
@@ -684,11 +688,28 @@ function main() {
         }
         if (rayD_rot != null)
         {
-            console.log("HERE");
-            let newPos = closestPointOnRayToRay(rayD_rot, objPos, mouseDirectionVector, camera.getPosition());
+            rayS.addi(objPos);
+            let newPos = closestPointOnRayToRay(rayD_rot, rayS, mouseDirectionVector, camera.getPosition());
+            
             if (newPos != null)
             {
-                selectedObject.setRotation(newPos);   
+                let d = newPos.sub(rayS).getMagnitude();
+        
+                console.log(d);
+                if (selectedArrow.type == '_arrow_rotX')
+                {
+                    objRot.z = d;
+                    selectedObject.setRotation(objRot);
+                } else if (selectedArrow.type == '_arrow_rotY')
+                {
+                    objRot.y = d;
+                    selectedObject.setRotation(objRot);
+                } else if (selectedArrow.type == '_arrow_rotZ')
+                {
+                    objRot.x = d;
+                    selectedObject.setRotation(objRot);
+                }
+
             }
         }
     }
