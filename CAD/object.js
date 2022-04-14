@@ -850,6 +850,7 @@ function createObject(type = 'cube')
     {
         case 'grid': return new Object().setData( generateGrid() );
         case 'arrow': return new Object().setData( generateArrow() );
+        case 'doubleArrow': return new Object().setData( generateDoubleArrow() );
 
         case 'cube': return new Object().setData( generateCube() ); 
         case 'cylinder': return new Object().setData( generateCylinder() );

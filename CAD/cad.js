@@ -101,6 +101,10 @@ function keyPressed(event)
     switch (keyCode)
     {
         case "Escape": 
+            if (selectedArrow != null) {
+                selectedArrow = null;
+                break;
+            }
             selectedObject = null;
             let ins_ = document.getElementsByTagName('input');
             for (var i in ins_) { 
@@ -168,6 +172,7 @@ function mouseDown(event)
         return;
     }
 
+    //Update mouseCanvasPos, mouseGlPos, and mouseDirectionVector
     let bb = glCanvasElement.getBoundingClientRect();
     mouseCanvasPos.x = event.clientX - bb.left;
     mouseCanvasPos.y = event.clientY - bb.top;
@@ -175,26 +180,20 @@ function mouseDown(event)
     mouseGlPos = mouseCanvasPos.mul(new vec4(2/bb.width, -2/bb.height,0,0)).addi(new vec4(-1,1,0,0));
     mouseDirectionVector = screenToWorldVector( mouseGlPos, projectionMatrix, camera.getRotationMatrix() );
 
-
+    //Check to see if we clicked an object.
+    //Following updates varibales: selectedArrow, selectedObject
     let obj = getObjectFromMousePos();
     selectedArrow = null;
     if (obj != null && selectedObject != null)
     {
-        switch(obj.type)
+        //Check to see if the object type is equal to _arrow_...,  if it is, we clicked an arrow.
+        if (obj.type.substring(0,7) == '_arrow_')
         {
-            case 'xarrow': 
-                selectedArrow = obj;
-                saveEditHistory(selectedObject, 'objectParameterChange', selectedObject.getPosition(), selectedObject.getRotation(), selectedObject.getScale());
-                break;
-            case 'yarrow': 
-                selectedArrow = obj; 
-                saveEditHistory(selectedObject, 'objectParameterChange', selectedObject.getPosition(), selectedObject.getRotation(), selectedObject.getScale());
-                break;
-            case 'zarrow': 
-                selectedArrow = obj; 
-                saveEditHistory(selectedObject, 'objectParameterChange', selectedObject.getPosition(), selectedObject.getRotation(), selectedObject.getScale());
-                break;
-            default: selectedObject = obj; break;
+            selectedArrow = obj;
+            saveEditHistory(selectedObject, 'objectParameterChange', selectedObject.getPosition(), selectedObject.getRotation(), selectedObject.getScale(), obj.type.substring(7,20));
+        } else {
+            //obj selected is not an arrow
+            selectedObject = obj;
         }
     } else if (obj != null) {
         selectedObject = obj;
@@ -207,9 +206,7 @@ function mouseUp(event)
 {
     mouseIsDown = false;
     
-    //Save move in edit history if moved
-
-    selectedArrow = null;
+    //selectedArrow = null;
 
     if (currentSketch != null)
     {
@@ -361,7 +358,6 @@ function loadFile(text) {
     }
     array.shift();
     //console.log(array);
-
 
     for (var i=0; i<array.length; i++){
         let obj = new Object();
@@ -584,15 +580,53 @@ function setup() {
     compass = new Compass();
     grids.push( createObject('grid') );
 
+
     arrows = [
-        new Object().setData( generateArrow(1, .15, 8, new vec4(1,.1,.1,1), .05, 0.7, false, 0.2) ).setRotation(new vec4(0,Math.PI/2,0)).setData({type:'xarrow'}),
-        new Object().setData( generateArrow(1, .15, 8, new vec4(.1,1,.1,1), .05, 0.7, false, 0.2) ).setRotation(new vec4(0,0,-Math.PI/2)).setData({type:'yarrow'}),
-        new Object().setData( generateArrow(1, .15, 8, new vec4(.1,.1,1,1), .05, 0.7, false, 0.2) ).setData({type:'zarrow'}),
+        new Object().setData(
+            rotateData( generateArrow(1, .15, 8, new vec4(1,.1,.1,1), .05, 0.7, false, 0.2),  new vec4(0,Math.PI/2,0) )
+            ).setData({type: '_arrow_posX'}
+        ),
+        new Object().setData(
+            rotateData( generateArrow(1, .15, 8, new vec4(.1,1,.1,1), .05, 0.7, false, 0.2),  new vec4(0,0,-Math.PI/2,0) )
+            ).setData({type: '_arrow_posY'}
+        ),
+        new Object().setData(
+            rotateData( generateArrow(1, .15, 8, new vec4(.1,.1,1,1), .05, 0.7, false, 0.2),  new vec4() )
+            ).setData({type: '_arrow_posZ'}
+        ),
+
+        new Object().setData(
+            translateData( rotateData( generateDoubleArrow(0.8, .1, 8, new vec4(1,.5,.5,0.2), .05, 0.75, false ),  new vec4(0,0,Math.PI/4) )
+            , new vec4(0,0.7,0.7))
+            ).setData({type: '_arrow_rotX'}
+        ),
+        new Object().setData(
+            translateData( rotateData( generateDoubleArrow(0.8, .1, 8, new vec4(.5,1,.5,0.2), .05, 0.75, false ),  new vec4(0,-Math.PI/4) )
+            , new vec4(0.7,0,0.7))
+            ).setData({type: '_arrow_rotY'}
+        ),
+        new Object().setData(
+            translateData( rotateData( generateDoubleArrow(0.8, .1, 8, new vec4(.5,.5,1,0.2), .05, 0.75, false ),  new vec4(-Math.PI/4,-Math.PI/2) )
+            , new vec4(0.7,0.7,0))
+            ).setData({type: '_arrow_rotZ'}
+        ),
     ];
 
+    let text = `@_type:default_id:29401_position:0,0,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:149610_position:1,0,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:813754_position:2,0,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:828032_position:0,1,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:156834_position:1,1,3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:850914_position:2,1,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:675529_position:0,2,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:598242_position:1,2,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:603387_position:2,2,0,0_rotation:0,0,0,0_scale:1,1,1,1_
+    `
+
+    loadFile(text);
+
+
     updateObjectsContainer();
-
-
 
 }
 function main() {
@@ -610,27 +644,51 @@ function main() {
     if (selectedArrow != null && mouseIsDown && selectedObject != null)
     {
         let objPos = selectedObject.getPosition();
-        let rayD = null;
+        let objRot = selectedObject.getRotation();
+        let rayD_pos = null;
+        let rayD_rot = null;
+        console.log(selectedArrow.type);
         switch(selectedArrow.type)
         {
-            case 'xarrow': 
-                rayD = new vec4(1,0,0);
+            case '_arrow_posX': 
+                rayD_pos = new vec4(1,0,0);
                 break;
-            case 'yarrow': 
-                rayD = new vec4(0,1,0);
+            case '_arrow_posY': 
+                rayD_pos = new vec4(0,1,0);
                 break;
-            case 'zarrow': 
-                rayD = new vec4(0,0,1);
+            case '_arrow_posZ': 
+                rayD_pos = new vec4(0,0,1);
                 break;
+            case 'x_r_arrow': 
+                rayD_rot = new vec4(1,0,0);
+                break;
+            case 'y_r_arrow': 
+                rayD_rot = new vec4(0,1,0);
+                break;
+            case 'z_r_arrow': 
+                rayD_rot = new vec4(0,0,1);
+                break;
+            
             default:
                 console.error("Error in mouseMoved(): global var 'selectedArrow' is not of type:'xarrow', 'yarrow', or 'zarrow'. Critical error! Where the fuck did you set 'selectedArrow'?");
                 break;
         }
-        
-        let newPos = closestPointOnRayToRay(rayD, objPos, mouseDirectionVector, camera.getPosition());
-        if (newPos != null)
+        if (rayD_pos != null)
         {
-            selectedObject.setPosition(newPos);   
+            let newPos = closestPointOnRayToRay(rayD_pos, objPos, mouseDirectionVector, camera.getPosition());
+            if (newPos != null)
+            {
+                selectedObject.setPosition(newPos);   
+            }
+        }
+        if (rayD_rot != null)
+        {
+            console.log("HERE");
+            let newPos = closestPointOnRayToRay(rayD_rot, objPos, mouseDirectionVector, camera.getPosition());
+            if (newPos != null)
+            {
+                selectedObject.setRotation(newPos);   
+            }
         }
     }
 
@@ -671,7 +729,7 @@ function render()
     if (selectedObject != null)
     {
         gl.depthMask(false); // turn off depth write
-        selectedObject.render(gl, wm, new vec4(1,0.3,0.3,0.5));
+        selectedObject.render(gl, wm, new vec4(1,0.3,0.3,0.7));
     } else {
         gl.depthMask(true); 
     }
@@ -683,7 +741,7 @@ function render()
         {
             if (selectedObject != null)
             {
-                objects[i].render(gl, wm, new vec4(1,1,1,0.2));
+                objects[i].render(gl, wm, new vec4(1,1,1,0.3));
             } else {
                 objects[i].render(gl, wm);
             }
@@ -692,17 +750,32 @@ function render()
 
     if (selectedObject != null)
     {
-        gl.clear( gl.DEPTH_BUFFER_BIT);
-        gl.depthMask(true); 
+        //gl.clearDepth(1);
+        //gl.clear( gl.DEPTH_BUFFER_BIT );
+        gl.depthMask(true);
         
-        let d = distanceBetweenPoints( selectedObject.getPosition(), camera.getPosition() )/6;
+        let d = distanceBetweenPoints( selectedObject.getPosition(), camera.getPosition() )/4;
+
 
         for (var i=0; i<arrows.length; i++)
         {
             arrows[i].setPosition(selectedObject.getPosition());
-
             arrows[i].setScale( new vec4(d, d, d, d) );
-            arrows[i].render(gl, wm);
+            if (arrows[i] == selectedArrow)
+            {
+                arrows[i].render(gl, wm);
+            } else {
+
+                arrows[i].render(gl, wm, new vec4(1,1,1,0.5));
+                
+            }/*
+             else if (arrows[i].id == selectedArrow.id)
+            {
+                arrows[i].render(gl, vm);//new vec4(1,1,1,1));
+            } else {
+                arrows[i].render(gl, vm, new vec4(1,1,1,0.5));
+            }*/
+            
         }
     }
 
@@ -768,11 +841,16 @@ function getObjectFromMousePos()
         color.x = i/255;
         objects[i].renderPicker(gl, wm, color);
     }
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-    for (var i=0; i<arrows.length; i++)
+
+    //We only want to render and search for the translation&rotation arrows if an object is already selected
+    if (selectedObject != null)
     {
-        color.x = (i+objects.length)/255;
-        arrows[i].renderPicker(gl, wm, color);
+        gl.clear(gl.DEPTH_BUFFER_BIT);
+        for (var i=0; i<arrows.length; i++)
+        {
+            color.x = (i+objects.length)/255;
+            arrows[i].renderPicker(gl, wm, color);
+        }
     }
 
 

@@ -22,7 +22,7 @@ body.loaded #welcome_section{
     /*font-family: 'Abril Fatface', cursive;*/
     text-align: left;
 
-    transition: width 2s 0.5s, color 1s, transform 3s;
+    transition: width 3s, color 1s, transform 3s;
 
     width: 0%;
 
@@ -86,18 +86,18 @@ body.loaded .subtitleA{
     transition: color 2s 3.5s;
 }
 .subtitle_delay3{
-    -webkit-transition: color 2s 6s;
-    -moz-transition: color 2s 6s;
-    -o-transition: color 2s 6s;
-    -ms-transition: color 2s 6s;
-    transition: color 2s 6s;
+    -webkit-transition: color 2s 5s;
+    -moz-transition: color 2s 5s;
+    -o-transition: color 2s 5s;
+    -ms-transition: color 2s 5s;
+    transition: color 2s 5s;
 }
 .subtitle_delay4{
-    -webkit-transition: color 2s 8.5s;
-    -moz-transition: color 2s 8.5s;
-    -o-transition: color 2s 8.5s;
-    -ms-transition: color 2s 8.5s;
-    transition: color 2s 8.5s;
+    -webkit-transition: color 2s 7s;
+    -moz-transition: color 2s 7s;
+    -o-transition: color 2s 7s;
+    -ms-transition: color 2s 7s;
+    transition: color 2s 7s;
 }
 
 
@@ -368,9 +368,9 @@ body.loaded .image_downarrow{
 
 
 #glcanvas {
-    opacity: 0;
+    opacity: 0.2;
 
-    transition: opacity 2s 0s;
+    transition: opacity 3s 6s;
 }
 body.loaded #glcanvas {
     opacity: 1;

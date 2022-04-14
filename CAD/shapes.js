@@ -227,6 +227,166 @@ function generateArrow(length = 1, radius = 0.2, numDivisions = 6,  color = new 
         lineIndices: lineIndices,
     }
 }
+function generateDoubleArrow(length = 1, radius = 0.2, numDivisions = 6,  color = new vec4(1, 0.4, 0.4, 1), shaftRadius = 0.07, shaftRatio = 0.7, enableLines = false)
+{
+    let col = color;
+
+    let vertices = [];
+    let indices = [];
+    let normals = [];
+    let colors = [];
+    let lineIndices = [];
+
+    let indOn = 0;
+
+    //Front slant part of arrow
+    for (var i=0; i<numDivisions; i++)
+    {
+        let a1 = i * 2 * Math.PI/numDivisions;
+        let aAvg = (i+0.5) * 2 * Math.PI/numDivisions;
+        let a2 = (i+1) * 2 * Math.PI/numDivisions;
+
+        //Slant part of arrow
+        vertices.push( Math.sin(a1)*radius, Math.cos(a1)*radius, shaftRatio*length - length/2);
+        vertices.push( Math.sin(a2)*radius, Math.cos(a2)*radius, shaftRatio*length - length/2);
+        vertices.push( 0, 0, length - length/2);
+        //Back of slant arrow part
+        vertices.push( Math.sin(a1)*radius, Math.cos(a1)*radius, shaftRatio*length - length/2);
+        vertices.push( Math.sin(a2)*radius, Math.cos(a2)*radius, shaftRatio*length - length/2);
+        vertices.push( 0, 0, length*shaftRatio - length/2);
+        //shaft
+        vertices.push( Math.sin(a1)*shaftRadius, Math.cos(a1)*shaftRadius, shaftRatio*length - length/2);
+        vertices.push( Math.sin(a2)*shaftRadius, Math.cos(a2)*shaftRadius, shaftRatio*length - length/2);
+        vertices.push( Math.sin(a1)*shaftRadius, Math.cos(a1)*shaftRadius, (1-shaftRatio)*length - length/2);
+        vertices.push( Math.sin(a2)*shaftRadius, Math.cos(a2)*shaftRadius, (1-shaftRatio)*length - length/2);
+        //back of shaft
+        //vertices.push( Math.sin(a1)*shaftRadius, Math.cos(a1)*shaftRadius, 0 );
+        //vertices.push( Math.sin(a2)*shaftRadius, Math.cos(a2)*shaftRadius, 0 );
+        //vertices.push( 0, 0, 0 );
+        //Slant part of arrow2
+        vertices.push( Math.sin(a1)*radius, Math.cos(a1)*radius, (1-shaftRatio)*length - length/2);
+        vertices.push( Math.sin(a2)*radius, Math.cos(a2)*radius, (1-shaftRatio)*length - length/2);
+        vertices.push( 0, 0, 0 - length/2);
+        //Back of slant arrow part2
+        vertices.push( Math.sin(a1)*radius, Math.cos(a1)*radius, (1-shaftRatio)*length - length/2);
+        vertices.push( Math.sin(a2)*radius, Math.cos(a2)*radius, (1-shaftRatio)*length - length/2);
+        vertices.push( 0, 0, length*(1-shaftRatio) - length/2);
+
+        colors.push(col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,  
+            col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a, 
+            col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,
+            //col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,
+            col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,     
+            col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a, 
+            );
+        
+        normals.push( Math.sin(a1), Math.cos(a1), 0 );
+        normals.push( Math.sin(a2), Math.cos(a2), 0 );
+        normals.push( Math.sin(aAvg), Math.cos(aAvg), 0 );
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+        normals.push( Math.sin(a1), Math.cos(a1), 0 );
+        normals.push( Math.sin(a2), Math.cos(a2), 0 );
+        normals.push( Math.sin(a1), Math.cos(a1), 0 );
+        normals.push( Math.sin(a2), Math.cos(a2), 0 );
+        //normals.push( 0, 0, -1);
+        //normals.push( 0, 0, -1);
+        //normals.push( 0, 0, -1);
+        normals.push( Math.sin(a1), Math.cos(a1), 0 );
+        normals.push( Math.sin(a2), Math.cos(a2), 0 );
+        normals.push( Math.sin(aAvg), Math.cos(aAvg), 0 );
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+
+
+        indices.push(indOn, indOn + 2, indOn + 1,  //slant part
+            indOn+3, indOn + 4, indOn + 5, //back part
+            indOn+6, indOn+7, indOn+8,  indOn+9, indOn+8, indOn+7, //shaft
+            //indOn+10, indOn+11, indOn+12, //back of shaft
+
+            indOn+10, indOn+11, indOn+12,  //slant part 2
+            indOn+13, indOn + 15, indOn + 14, //back part 2
+            ); 
+        if (enableLines)
+        {
+            lineIndices.push(indOn, indOn+1, indOn, indOn+2, //slant part
+                indOn+3, indOn+5, indOn+4, indOn+5, //back part
+                indOn+6, indOn+8, indOn+7, indOn+9, //shaft
+                //indOn+10, indOn+11, //end of shaft
+                );
+        } else {
+            lineIndices.push(indOn, indOn+1, 
+                indOn+6, indOn+7,
+                //indOn+10, indOn+11, //end of shaft
+                indOn+10, indOn+11,
+                );
+        }
+        
+
+        indOn += 16;
+    }
+    
+
+    return {
+        type: 'arrow',
+        vertices: vertices,
+        indices: indices,
+        normals: normals,
+        colors: colors,
+        lineIndices: lineIndices,
+    }
+}
+
+
+function rotateData(data = {}, rotation = new vec4())
+{
+    //Function used for rotating the vertices of a data dictionary
+    //Built specifically for the rotation arrows for rotating objects.
+    if (data != null && 'vertices' in data)
+    {
+
+    } else {
+        return data;
+    }
+    let mat = new mat4().makeRotation(rotation.x, rotation.y, rotation.z);
+    let temp = new vec4();
+    for (var i=0; i<data.vertices.length; i+=3)
+    {
+        temp.x = data.vertices[i  ];
+        temp.y = data.vertices[i+1];
+        temp.z = data.vertices[i+2];
+        temp.a = 0;
+
+        temp = mat.mul(temp);
+        
+        data.vertices[i  ] = temp.x;
+        data.vertices[i+1] = temp.y;
+        data.vertices[i+2] = temp.z;
+    }
+    return data;
+}
+
+function translateData(data = {}, translation = new vec4())
+{
+    //Function used for translating the vertices of a data dictionary
+    //Built specifically for the rotation arrows for rotating objects.
+    if (data != null && 'vertices' in data)
+    {
+
+    } else {
+        return data;
+    }
+
+    for (var i=0; i<data.vertices.length; i+=3)
+    {
+        data.vertices[i  ] += translation.x;
+        data.vertices[i+1] += translation.y;
+        data.vertices[i+2] += translation.z;
+    }
+    return data;
+}
 
 
 //Cubes

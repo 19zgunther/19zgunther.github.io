@@ -13,7 +13,7 @@ class Camera
         this.position = new vec4(4,4,4,0);
         
         this.translationMatrix = new mat4();
-        this.rot = new vec4();
+        this.rot = new vec4(0,-1,0.3);
         this.rotationMatrix = new mat4();
         this.viewMatrix = new mat4();
 
