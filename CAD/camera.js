@@ -10,7 +10,7 @@ class Camera
         this.walkSpeed = 0.2;
         this.runSpeed = 0.8;
         this.rotSpeed = 0.05;
-        this.position = new vec4(10,10,10,0);
+        this.position = new vec4(4,4,4,0);
         
         this.translationMatrix = new mat4();
         this.rot = new vec4();
@@ -167,8 +167,8 @@ class Camera
             return;
         }
 
-        var movement = new vec4();
-        var rotation = new vec4();
+        let movement = new vec4();
+        let rotation = new vec4();
         //For normal moving and such
         if (this.sliding == false) {
 
@@ -245,7 +245,15 @@ class Camera
             
         }
 
-
+        /*let currentTime = new Date().getTime();
+        if (this.lastUpdateTime != null)
+        {
+            let dt = currentTime - this.lastUpdateTime;
+            movement.muli(dt/100);
+            rotation.muli(dt/100);
+            console.log("dt: " + dt);
+        }
+        this.lastUpdateTime = currentTime;*/
 
         this.rot = this.rot.add(rotation);
         this.rotationMatrix = (  new mat4().makeRotation(0, 0, this.rot.x + this.rot.z)  ).mul(  new mat4().makeRotation(0,this.rot.y,0)  );

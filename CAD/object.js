@@ -638,6 +638,7 @@ class Object {
         } else {
             console.error("Body.setPosition() takes a vec4. Not whatever the hell you just passed it.");
         }
+        return this;
     }
     setRotation(rotation)
     {
@@ -648,6 +649,7 @@ class Object {
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
+        return this;
     }
     setScale(scale)
     {
@@ -658,9 +660,11 @@ class Object {
         } else {
             console.error("Body.setRotation() takes a vec4. Not whatever the hell you just passed it.");
         }
+        return this;
     }
     setData(data)
     {
+        //Function allows for a dictionary of data to be passed and implemented into the object.
         let refreshBuffers = false;
         let refreshMatrices = false;
         if (data == null )
@@ -668,7 +672,7 @@ class Object {
             console.error('Object.setData() requires a dictionary as an arguement. Was not passed a dict.');
             return;
         }
-        if ('type' in data && data.type instanceof String)
+        if ('type' in data)
         {
             this.type = data.type;
         }
@@ -845,6 +849,7 @@ function createObject(type = 'cube')
     switch(type)
     {
         case 'grid': return new Object().setData( generateGrid() );
+        case 'arrow': return new Object().setData( generateArrow() );
 
         case 'cube': return new Object().setData( generateCube() ); 
         case 'cylinder': return new Object().setData( generateCylinder() );

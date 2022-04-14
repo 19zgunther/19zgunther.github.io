@@ -138,6 +138,96 @@ function generateCube()
 }
 
 
+function generateArrow(length = 1, radius = 0.2, numDivisions = 6,  color = new vec4(1, 0.4, 0.4, 1), shaftRadius = 0.07, shaftRatio = 0.6, enableLines = false, zStartOffset=0)
+{
+    let col = color;
+
+    let vertices = [];
+    let indices = [];
+    let normals = [];
+    let colors = [];
+    let lineIndices = [];
+
+    let indOn = 0;
+
+    //Front slant part of arrow
+    for (var i=0; i<numDivisions; i++)
+    {
+        let a1 = i * 2 * Math.PI/numDivisions;
+        let aAvg = (i+0.5) * 2 * Math.PI/numDivisions;
+        let a2 = (i+1) * 2 * Math.PI/numDivisions;
+
+        //Slant part of arrow
+        vertices.push( Math.sin(a1)*radius, Math.cos(a1)*radius, shaftRatio*length );
+        vertices.push( Math.sin(a2)*radius, Math.cos(a2)*radius, shaftRatio*length );
+        vertices.push( 0, 0, length );
+        //Back of slant arrow part
+        vertices.push( Math.sin(a1)*radius, Math.cos(a1)*radius, shaftRatio*length );
+        vertices.push( Math.sin(a2)*radius, Math.cos(a2)*radius, shaftRatio*length );
+        vertices.push( 0, 0, length*shaftRatio );
+        //shaft
+        vertices.push( Math.sin(a1)*shaftRadius, Math.cos(a1)*shaftRadius, shaftRatio*length );
+        vertices.push( Math.sin(a2)*shaftRadius, Math.cos(a2)*shaftRadius, shaftRatio*length );
+        vertices.push( Math.sin(a1)*shaftRadius, Math.cos(a1)*shaftRadius, zStartOffset );
+        vertices.push( Math.sin(a2)*shaftRadius, Math.cos(a2)*shaftRadius, zStartOffset );
+        //back of shaft
+        vertices.push( Math.sin(a1)*shaftRadius, Math.cos(a1)*shaftRadius, zStartOffset );
+        vertices.push( Math.sin(a2)*shaftRadius, Math.cos(a2)*shaftRadius, zStartOffset );
+        vertices.push( 0, 0, zStartOffset );
+
+        colors.push(col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,  
+            col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a, 
+            col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,
+            col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,  col.x, col.y, col.z, col.a,    );
+        
+        normals.push( Math.sin(a1), Math.cos(a1), 0 );
+        normals.push( Math.sin(a2), Math.cos(a2), 0 );
+        normals.push( Math.sin(aAvg), Math.cos(aAvg), 0 );
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+        normals.push( Math.sin(a1), Math.cos(a1), 0 );
+        normals.push( Math.sin(a2), Math.cos(a2), 0 );
+        normals.push( Math.sin(a1), Math.cos(a1), 0 );
+        normals.push( Math.sin(a2), Math.cos(a2), 0 );
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+        normals.push( 0, 0, -1);
+
+
+        indices.push(indOn, indOn + 2, indOn + 1,  //slant part
+            indOn+3, indOn + 4, indOn + 5, //back part
+            indOn+6, indOn+7, indOn+8,  indOn+9, indOn+8, indOn+7, //shaft
+            indOn+10, indOn+11, indOn+12, //back of shaft
+            ); 
+        if (enableLines)
+        {
+            lineIndices.push(indOn, indOn+1, indOn, indOn+2, //slant part
+                indOn+3, indOn+5, indOn+4, indOn+5, //back part
+                indOn+6, indOn+8, indOn+7, indOn+9, //shaft
+                indOn+10, indOn+11, //end of shaft
+                );
+        } else {
+            lineIndices.push(indOn, indOn+1, 
+                indOn+10, indOn+11, //end of shaft
+                );
+        }
+        
+
+        indOn += 13;
+    }
+    
+
+    return {
+        type: 'arrow',
+        vertices: vertices,
+        indices: indices,
+        normals: normals,
+        colors: colors,
+        lineIndices: lineIndices,
+    }
+}
+
 
 //Cubes
 const cubeVertices =  [
@@ -382,7 +472,6 @@ function computeAsciiWidths_ONLY_NEEDED_ONCE() {
 
     console.log(widths);
 }
-
 
 
 

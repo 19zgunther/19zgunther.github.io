@@ -35,7 +35,7 @@ var zoom = orthogonal_zoomSliderElement.value;
 var perspectiveProjectionMatrix = new mat4();
 var orthogonalProjectionMatrix = new mat4();
 var projectionMatrix;
-var pGlCanvasWidth = -1;
+//var pGlCanvasWidth = -1;
 
 
 
@@ -50,15 +50,20 @@ var tick = 0;
 
 var grids = []; // holds all grid objects 
 var objects = []; //hold all body objects
+var arrows = [];
 var sketches = []; //unusued at the moment because sketches are hard
 var compass; //view rotation compass object in the upper lefthand corner
-var selectedObject = null;
+var selectedObject = null; //Stores whichever Object we're editing, moving, etc
+var selectedArrow = null;  //Stores whichever arrow we've selected
 var editingObject = false;
 var editHistory = [];
 
 var pObjectsLength = 0; //used to determine if we need to refresh the objects list
 
 var mouseCanvasPos = new vec4();
+var mouseGlPos = new vec4();
+var mouseDirectionVector = new vec4();
+var mouseIsDown = false;
 
 var confirmBoxOpen = false; //used to keep track of it  aconfirm box is open. If it is, stop all key handling
 
@@ -108,7 +113,7 @@ function keyPressed(event)
             break;
             
         case "Delete": 
-            if (selectedObject != null && editingObject == false)
+            /*if (selectedObject != null && editingObject == false)
 
             confirmBoxOpen = true;
             if (!confirm('Are you sure you want to delete object: ' + selectedObject.type + " " + selectedObject.id + "?\n(Action cannot be undone)"))
@@ -116,7 +121,7 @@ function keyPressed(event)
                 confirmBoxOpen = false;
                 break;
             }
-            confirmBoxOpen = false;
+            confirmBoxOpen = false;*/
             removeObject(selectedObject);
             selectedObject = null;            
             break;
@@ -145,18 +150,17 @@ function mouseMoved(event)
         currentSketch.mouseMoved(event);
         return;
     }
-    let rect = glCanvasElement.getBoundingClientRect();
-    mouseCanvasPos.x = event.clientX - rect.left;
-    mouseCanvasPos.y = event.clientY - rect.top;
-    //console.log(mouseCanvasPos.toString());
-    
-}
-function mouseDown(event)
-{
-
     let bb = glCanvasElement.getBoundingClientRect();
     mouseCanvasPos.x = event.clientX - bb.left;
     mouseCanvasPos.y = event.clientY - bb.top;
+    mouseGlPos = mouseCanvasPos.mul(new vec4(2/bb.width, -2/bb.height,0,0)).addi(new vec4(-1,1,0,0));
+    mouseDirectionVector = screenToWorldVector( mouseGlPos, projectionMatrix, camera.getRotationMatrix() );
+    //mouseDirectionVector.a = 0;
+    //mouseDirectionVector.scaleToUnit();
+
+}
+function mouseDown(event)
+{
 
     if (currentSketch != null)
     {
@@ -164,19 +168,49 @@ function mouseDown(event)
         return;
     }
 
-    //Cam position, scale by 2*width, shift -1,-1,  y axis needs to be inverted
-    let glPos = mouseCanvasPos.mul(new vec4(2/bb.width, -2/bb.height,0,0)).addi(new vec4(-1,1,0,0));
-    if (objects.length > 0)
-    {
-        let p = screenToWorldVector( glPos, projectionMatrix, camera.getRotationMatrix() ).mul(10).addi(camera.getPosition());
-        //objects[0].setPosition( p );
-    }
+    let bb = glCanvasElement.getBoundingClientRect();
+    mouseCanvasPos.x = event.clientX - bb.left;
+    mouseCanvasPos.y = event.clientY - bb.top;
+    mouseIsDown = true;
+    mouseGlPos = mouseCanvasPos.mul(new vec4(2/bb.width, -2/bb.height,0,0)).addi(new vec4(-1,1,0,0));
+    mouseDirectionVector = screenToWorldVector( mouseGlPos, projectionMatrix, camera.getRotationMatrix() );
 
-    let o = getObjectFromMousePos();
-    selectedObject = o;
+
+    let obj = getObjectFromMousePos();
+    selectedArrow = null;
+    if (obj != null && selectedObject != null)
+    {
+        switch(obj.type)
+        {
+            case 'xarrow': 
+                selectedArrow = obj;
+                saveEditHistory(selectedObject, 'objectParameterChange', selectedObject.getPosition(), selectedObject.getRotation(), selectedObject.getScale());
+                break;
+            case 'yarrow': 
+                selectedArrow = obj; 
+                saveEditHistory(selectedObject, 'objectParameterChange', selectedObject.getPosition(), selectedObject.getRotation(), selectedObject.getScale());
+                break;
+            case 'zarrow': 
+                selectedArrow = obj; 
+                saveEditHistory(selectedObject, 'objectParameterChange', selectedObject.getPosition(), selectedObject.getRotation(), selectedObject.getScale());
+                break;
+            default: selectedObject = obj; break;
+        }
+    } else if (obj != null) {
+        selectedObject = obj;
+    } else {
+        selectedObject = null;
+        selectedArrow = null;
+    }
 }
 function mouseUp(event)
 {
+    mouseIsDown = false;
+    
+    //Save move in edit history if moved
+
+    selectedArrow = null;
+
     if (currentSketch != null)
     {
         currentSketch.mouseUp(event);
@@ -318,7 +352,7 @@ function save_file_button_press() {
 	URL.revokeObjectURL(a.href);
 }
 function loadFile(text) {
-    console.log(text);
+    //console.log(text);
     let array = text.split('@');
     for (var i=0; i<array.length; i++)
     {
@@ -326,7 +360,7 @@ function loadFile(text) {
         array[i].shift();
     }
     array.shift();
-    console.log(array);
+    //console.log(array);
 
 
     for (var i=0; i<array.length; i++){
@@ -375,7 +409,7 @@ if(e.target.files) {
 });
 
 
-function saveEditHistory(object_, eventType_, position_, rotation_, scale_, eventDetail_)
+function saveEditHistory(object_=null, eventType_ = "objectParameterChange", position_=new vec4(), rotation_ = new vec4(), scale_ = new vec4(), eventDetail_ = "")
 {
 
     //eventTypes: objectParameterChange, objectCreation, objectDeletion, 
@@ -403,7 +437,7 @@ function revertEditHistory()
 
         if (event.eventType == 'objectParameterChange')
         {
-            if (event.object instanceof Body == false) { console.error("Failed to revert edit. Event.body DNE"); return;}
+            if (event.object instanceof Object == false) { console.error("Failed to revert edit. Event.body DNE"); return;}
             event.object.setPosition(event.position);
             event.object.setRotation(event.rotation);
             event.object.setScale(event.scale);
@@ -549,16 +583,56 @@ function setup() {
     run = true;
     compass = new Compass();
     grids.push( createObject('grid') );
+
+    arrows = [
+        new Object().setData( generateArrow(1, .15, 8, new vec4(1,.1,.1,1), .05, 0.7, false, 0.2) ).setRotation(new vec4(0,Math.PI/2,0)).setData({type:'xarrow'}),
+        new Object().setData( generateArrow(1, .15, 8, new vec4(.1,1,.1,1), .05, 0.7, false, 0.2) ).setRotation(new vec4(0,0,-Math.PI/2)).setData({type:'yarrow'}),
+        new Object().setData( generateArrow(1, .15, 8, new vec4(.1,.1,1,1), .05, 0.7, false, 0.2) ).setData({type:'zarrow'}),
+    ];
+
     updateObjectsContainer();
+
+
+
 }
 function main() {
     if (!run)
     {
         return;
     }
+    //Update tick 
     tick += 1;
 
+    //Update camera position & rotation
     camera.update(pressedKeys);
+
+    //Update selectedObject position if we are currently dragging an arrow.
+    if (selectedArrow != null && mouseIsDown && selectedObject != null)
+    {
+        let objPos = selectedObject.getPosition();
+        let rayD = null;
+        switch(selectedArrow.type)
+        {
+            case 'xarrow': 
+                rayD = new vec4(1,0,0);
+                break;
+            case 'yarrow': 
+                rayD = new vec4(0,1,0);
+                break;
+            case 'zarrow': 
+                rayD = new vec4(0,0,1);
+                break;
+            default:
+                console.error("Error in mouseMoved(): global var 'selectedArrow' is not of type:'xarrow', 'yarrow', or 'zarrow'. Critical error! Where the fuck did you set 'selectedArrow'?");
+                break;
+        }
+        
+        let newPos = closestPointOnRayToRay(rayD, objPos, mouseDirectionVector, camera.getPosition());
+        if (newPos != null)
+        {
+            selectedObject.setPosition(newPos);   
+        }
+    }
 
     render();
 
@@ -574,19 +648,12 @@ function render()
     //Clear Screen
     gl.clearColor(1, 1, 1, 1);    // Clear to white, fully opaque
     gl.clearDepth(1);                   // Clear everything
-    //gl.enable(gl.DEPTH_TEST);           // Enable depth testing
-    //gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    //gl.enable(gl.BLEND);
-    //gl.blendEquation( gl.FUNC_ADD );
-    //gl.blendFunc(gl.ONE, gl.ONE);
-    //gl.depthMask(false); // turn off depth write
-    //gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-    //gl.blendFunc(gl.SRC_COLOR, gl.ONE);
     gl.enable(gl.CULL_FACE);
+
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -623,47 +690,75 @@ function render()
         }
     }
 
-    //let o = new Object();
-    //o.draw(gl, pm, vm);
+    if (selectedObject != null)
+    {
+        gl.clear( gl.DEPTH_BUFFER_BIT);
+        gl.depthMask(true); 
+        
+        let d = distanceBetweenPoints( selectedObject.getPosition(), camera.getPosition() )/6;
 
-    //gl.depthMask(false);
+        for (var i=0; i<arrows.length; i++)
+        {
+            arrows[i].setPosition(selectedObject.getPosition());
+
+            arrows[i].setScale( new vec4(d, d, d, d) );
+            arrows[i].render(gl, wm);
+        }
+    }
+
+
+    gl.depthMask(true);
+
     //Draw Compass
     compass.draw(gl,pm,vm);
-
-    //console.log(pixels);
 }
+
 
 
 function getObjectFromMousePos()
 {
 
-
     // create to render to
-    const targetTextureWidth = Math.round(glCanvasElement.width/4);
-    const targetTextureHeight = Math.round(glCanvasElement.height/4);
+    const targetTextureWidth = Math.round(glCanvasElement.width);
+    const targetTextureHeight = Math.round(glCanvasElement.height);
     const targetTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, targetTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, targetTextureWidth, targetTextureHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-    // set the filtering so we don't need mips
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    
+
     // Create and bind the framebuffer
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
     // attach the texture as the first color attachment
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, targetTexture, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
     gl.bindTexture(gl.TEXTURE_2D, targetTexture);
+
+    // create a depth renderbuffer
+    const depthBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthBuffer);
+    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, targetTextureWidth, targetTextureHeight);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthBuffer);
+
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, targetTextureWidth, targetTextureHeight);
-
+    
     gl.clearColor(1, 1, 1, 1);    // Clear to white, fully opaque
-    gl.clearDepth(1);                   // Clear everything
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clearDepth(1);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
     gl.enable(gl.CULL_FACE);
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    
+    
 
     //Draw Each object, all but selected object (selectde object has transparency, so render last)
     let wm = projectionMatrix.mul(camera.getViewMatrix());
@@ -673,8 +768,16 @@ function getObjectFromMousePos()
         color.x = i/255;
         objects[i].renderPicker(gl, wm, color);
     }
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+    for (var i=0; i<arrows.length; i++)
+    {
+        color.x = (i+objects.length)/255;
+        arrows[i].renderPicker(gl, wm, color);
+    }
 
-    pixels = new Uint8Array(4);
+
+    //create buffer for pixel
+    let pixels = new Uint8Array(4);
 
     //Scale x and y to the correct texture width & height
     let bb = glCanvasElement.getBoundingClientRect();
@@ -683,39 +786,24 @@ function getObjectFromMousePos()
     x = Math.round(x * targetTextureWidth);
     y = Math.round(y * targetTextureHeight);
 
+    //Read Pixels
     gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    //Detach framebuffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    color.set(pixels[0], pixels[1], pixels[2], pixels[3]);
 
-    console.log("texture: " + targetTextureWidth + " " + targetTextureHeight);
-    console.log("  gl: " + glCanvasElement.width + " " + glCanvasElement.height);
-
-
-    /*
-    let c = document.createElement('canvas');
-    c.width = glCanvasElement.width;
-    c.height = glCanvasElement.height;
-    c.setAttribute('style', "height: "+c.height+"px; width: "+c.width+"px;");
-    document.body.appendChild(c);
-    var ctx=c.getContext("2d");
-
-    var imgData=ctx.getImageData(0,0,c.width,c.height);
-    var data=imgData.data;
-
-    // manipulate some pixel elements
-    for(var i=0;i<data.length;i+=4){
-        data[i]=pixels[i];
-    }
-
-    // put the modified pixels back on the canvas
-    ctx.putImageData(imgData,0,0);*/
-
-
-    console.log(pixels);
-    if (pixels[0] >= 0 && pixels[0] < 100)
+    //return object
+    if (color.x >= 0 && color.x < objects.length)
     {
-        return objects[pixels[0]];
+        return objects[color.x];
     }
-
+    if (color.x >= objects.length && color.x < objects.length + arrows.length)
+    {
+        //console.log(arrows[color.x-objects.length].type);
+        return arrows[color.x-objects.length];
+    }
+    return null;
 }
 
 
@@ -736,6 +824,7 @@ function screenToWorldVector(screenScaledPos, projectionMatrix, cameraRotationMa
     p.x *= p.a;
     p.y *= p.a;
     p.z *= p.a;
+    p.a = 0;
     return  p.scaleToUnit() ;
 }
 

@@ -587,7 +587,6 @@ class vec4 {
         this.z = z;
         this.a = a;
     }
-
     set(x,y,z,a) {
         if (x != null && (x instanceof Array == false))
         {
@@ -605,7 +604,6 @@ class vec4 {
         }
         return this;
     }
-
     add(x,y,z,a)
     {
         if (x instanceof vec4)
@@ -641,7 +639,6 @@ class vec4 {
         }
         return this;
     }
-
     sub(x,y,z,a)
     {
         //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);
@@ -656,7 +653,6 @@ class vec4 {
             return new vec4(this.x-x, this.y-y, this.z-z, this.a-a);
         }
     }
-
     mul(x,y=null,z=null,a=null)
     {
         //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);
@@ -708,15 +704,12 @@ class vec4 {
         }
         return this;
     }
-
-
     mulScalar(n)
     {
         //depricated
         console.error("vec4.mulScalar is depricated. Just use mul() and pass 1 Number.");
         return new vec4(this.x*n, this.y*n, this.z*n, this.a*n);
     }
-
     dot(vec)
     {
         if (vec instanceof vec4 == false)
@@ -726,17 +719,14 @@ class vec4 {
         }
         return this.x*vec.x + this.y*vec.y + this.z*vec.z + this.a*vec.a;
     }
-
     getFloat32Array()
     {
         return new Float32Array([this.x,this.y,this.z,this.a]);
     }
-
     copy()
     {
         return new vec4(this.x, this.y, this.z, this.a);
     }
-
     getLength()
     {
         return Math.sqrt(  this.x*this.x + this.y*this.y + this.z*this.z  );
@@ -744,7 +734,6 @@ class vec4 {
     getMagnitude() {
         return Math.sqrt(  this.x*this.x + this.y*this.y + this.z*this.z  + this.a * this.a);
     }
-
     scaleToUnit()
     {
         //divide each component by the length of the vector
@@ -755,7 +744,6 @@ class vec4 {
         this.a = this.a/L;
         return this;
     }
-
     round(val = 1)
     {   
         this.x = Math.round(this.x/val)*val;
@@ -763,7 +751,6 @@ class vec4 {
         this.z = Math.round(this.z/val)*val;
         return this;
     }
-
     toString(roundToValue = 0.01)
     {
         var p = 3;
@@ -771,7 +758,6 @@ class vec4 {
         return s;
         return "[ "+this.x.toPrecision(p)+", "+this.y.toPrecision(p)+", "+this.z.toPrecision(p)+", "+this.a.toPrecision(p)+" ]";
     }
-
     equals(otherVec4)
     {
         if (otherVec4 instanceof vec4 && otherVec4.x == this.x && otherVec4.y == this.y && otherVec4.z == this.z && otherVec4.a == this.a)
@@ -835,4 +821,66 @@ function getRotationFromRotationMatrix(mat = new mat4().makeRotation()){
     const cy = mat.f32a[10]/cb;
     rot.z = Math.acos(cy);
     return rot;
+}
+
+function distanceFromPointToRay(rayStart = new vec4(), rayDirection = new vec4(), point = new vec4())
+{
+    let t = (point.sub(rayStart)).dot(rayDirection) / rayDirection.dot(rayDirection);
+    let p2 = rayStart.add(rayDirection.mul(t));
+    return point.sub(p2).getMagnitude();
+}
+
+function closestPointOnRayToRay(constraintRayDirection, constraintRayStart, ray2Direction, ray2Start)
+{
+    // d = sqrt( ( )
+    constraintRayDirection.scaleToUnit();
+    ray2Direction.scaleToUnit();
+    //constraintRayDirection = constraintRayDirection.copy().scaleToUnit();
+    //ray2Direction = ray2Direction.copy().scaleToUnit();
+
+    let t = -1;
+    let dt = 1;
+    let d = 0;
+    let pd = 100000000;
+    for (var i=0; i<30; i++)
+    {
+        d = distanceFromPointToRay(ray2Start, ray2Direction, constraintRayStart.add(constraintRayDirection.mul(t)));
+        if (d < pd)
+        {
+            t += dt;
+            pd = d;
+        }  else {
+            t -= dt;
+            dt = dt/2;
+            pd = d;
+        }
+    }
+
+    dt = -1;
+    pd = 100000000;
+    for (var i=0; i<30; i++)
+    {
+        d = distanceFromPointToRay(ray2Start, ray2Direction, constraintRayStart.add(constraintRayDirection.mul(t)));
+        if (d < pd)
+        {
+            t += dt;
+            pd = d;
+        }  else {
+            t -= dt;
+            dt = dt/2;
+            pd = d;
+        }
+    }
+
+    return constraintRayStart.add(constraintRayDirection.mul(t));
+
+    if (dt < 0.1)
+    {
+        console.log(d);
+        
+    } else {
+        console.error("closestPointOnRayToRay() could not find point. I'm sorry I've failed you.");
+        return null;
+    }
+    //return d;
 }
