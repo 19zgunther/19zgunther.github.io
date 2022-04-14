@@ -873,14 +873,49 @@ function closestPointOnRayToRay(constraintRayDirection, constraintRayStart, ray2
     }
 
     return constraintRayStart.add(constraintRayDirection.mul(t));
+}
 
-    if (dt < 0.1)
+function distToClosestPointOnRayToRay(constraintRayDirection, constraintRayStart, ray2Direction, ray2Start)
+{
+    // d = sqrt( ( )
+    constraintRayDirection.scaleToUnit();
+    ray2Direction.scaleToUnit();
+    //constraintRayDirection = constraintRayDirection.copy().scaleToUnit();
+    //ray2Direction = ray2Direction.copy().scaleToUnit();
+
+    let t = -1;
+    let dt = 1;
+    let d = 0;
+    let pd = 100000000;
+    for (var i=0; i<30; i++)
     {
-        console.log(d);
-        
-    } else {
-        console.error("closestPointOnRayToRay() could not find point. I'm sorry I've failed you.");
-        return null;
+        d = distanceFromPointToRay(ray2Start, ray2Direction, constraintRayStart.add(constraintRayDirection.mul(t)));
+        if (d < pd)
+        {
+            t += dt;
+            pd = d;
+        }  else {
+            t -= dt;
+            dt = dt/2;
+            pd = d;
+        }
     }
-    //return d;
+
+    dt = -1;
+    pd = 100000000;
+    for (var i=0; i<30; i++)
+    {
+        d = distanceFromPointToRay(ray2Start, ray2Direction, constraintRayStart.add(constraintRayDirection.mul(t)));
+        if (d < pd)
+        {
+            t += dt;
+            pd = d;
+        }  else {
+            t -= dt;
+            dt = dt/2;
+            pd = d;
+        }
+    }
+
+    return t;
 }

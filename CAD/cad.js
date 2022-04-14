@@ -649,7 +649,7 @@ function main() {
         let rayD_pos = null;
         let rayD_rot = null;
         let rayS = null;
-        console.log(selectedArrow.type);
+        //console.log(selectedArrow.type);
         switch(selectedArrow.type)
         {
             case '_arrow_posX': 
@@ -681,6 +681,7 @@ function main() {
         if (rayD_pos != null)
         {
             let newPos = closestPointOnRayToRay(rayD_pos, objPos, mouseDirectionVector, camera.getPosition());
+            newPos.round(.1); //round to nearest .1
             if (newPos != null)
             {
                 selectedObject.setPosition(newPos);   
@@ -689,28 +690,24 @@ function main() {
         if (rayD_rot != null)
         {
             rayS.addi(objPos);
-            let newPos = closestPointOnRayToRay(rayD_rot, rayS, mouseDirectionVector, camera.getPosition());
-            
-            if (newPos != null)
-            {
-                let d = newPos.sub(rayS).getMagnitude();
-        
-                console.log(d);
-                if (selectedArrow.type == '_arrow_rotX')
-                {
-                    objRot.z = d;
-                    selectedObject.setRotation(objRot);
-                } else if (selectedArrow.type == '_arrow_rotY')
-                {
-                    objRot.y = d;
-                    selectedObject.setRotation(objRot);
-                } else if (selectedArrow.type == '_arrow_rotZ')
-                {
-                    objRot.x = d;
-                    selectedObject.setRotation(objRot);
-                }
 
+            let d = distToClosestPointOnRayToRay(rayD_rot, rayS, mouseDirectionVector, camera.getPosition());
+            d = Math.round( (d*180/Math.PI)/15 ) * 15 * Math.PI/180; //Rounding d to nearest 15 degrees
+            if (selectedArrow.type == '_arrow_rotX')
+            {
+                objRot.z = -d;
+                selectedObject.setRotation(objRot);
+            } else if (selectedArrow.type == '_arrow_rotY')
+            {
+                objRot.y = d;
+                selectedObject.setRotation(objRot);
+            } else if (selectedArrow.type == '_arrow_rotZ')
+            {
+                objRot.x = d;
+                selectedObject.setRotation(objRot);
             }
+
+            
         }
     }
 

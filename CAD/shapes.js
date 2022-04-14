@@ -138,7 +138,7 @@ function generateCube()
 }
 
 
-function generateArrow(length = 1, radius = 0.2, numDivisions = 6,  color = new vec4(1, 0.4, 0.4, 1), shaftRadius = 0.07, shaftRatio = 0.6, enableLines = false, zStartOffset=0)
+function generateArrow(length = 1, radius = 0.2, numDivisions = 40,  color = new vec4(1, 0.4, 0.4, 1), shaftRadius = 0.07, shaftRatio = 0.6, enableLines = false, zStartOffset=0)
 {
     let col = color;
 
@@ -360,7 +360,7 @@ function rotateData(data = {}, rotation = new vec4())
         temp.a = 0;
 
         temp = mat.mul(temp);
-        
+
         data.vertices[i  ] = temp.x;
         data.vertices[i+1] = temp.y;
         data.vertices[i+2] = temp.z;
