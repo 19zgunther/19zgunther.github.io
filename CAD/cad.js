@@ -252,6 +252,8 @@ function addObjectButtonPress(buttonElement) {
     console.log(buttonElement.id);
     if (o != null) {
         addObject(o);
+        selectedObject = o;
+        selectedArrow = null;
     }
 }
 function objectClicked(element) {
@@ -583,15 +585,15 @@ function setup() {
 
     arrows = [
         new Object().setData(
-            rotateData( generateArrow(1, .15, 8, new vec4(1,.1,.1,1), .05, 0.7, false, 0.2),  new vec4(0,Math.PI/2,0) )
+            rotateData( generateArrow(1.5, .15, 8, new vec4(1,.1,.1,1), .05, 0.7, false, 0.5),  new vec4(0,Math.PI/2,0) )
             ).setData({type: '_arrow_posX'}
         ),
         new Object().setData(
-            rotateData( generateArrow(1, .15, 8, new vec4(.1,1,.1,1), .05, 0.7, false, 0.2),  new vec4(0,0,-Math.PI/2,0) )
+            rotateData( generateArrow(1.5, .15, 8, new vec4(.1,1,.1,1), .05, 0.7, false, 0.5),  new vec4(0,0,-Math.PI/2,0) )
             ).setData({type: '_arrow_posY'}
         ),
         new Object().setData(
-            rotateData( generateArrow(1, .15, 8, new vec4(.1,.1,1,1), .05, 0.7, false, 0.2),  new vec4() )
+            rotateData( generateArrow(1.5, .15, 8, new vec4(.1,.1,1,1), .05, 0.7, false, 0.5),  new vec4() )
             ).setData({type: '_arrow_posZ'}
         ),
 
@@ -612,16 +614,15 @@ function setup() {
         ),
     ];
 
-    let text = `@_type:default_id:29401_position:0,0,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:149610_position:1,0,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:813754_position:2,0,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:828032_position:0,1,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:156834_position:1,1,3,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:850914_position:2,1,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:675529_position:0,2,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:598242_position:1,2,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    @_type:default_id:603387_position:2,2,0,0_rotation:0,0,0,0_scale:1,1,1,1_
-    `
+    let text = `@_type:default_id:29401_position:0,0,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:149610_position:1,0,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:813754_position:2,0,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:828032_position:0,1,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:850914_position:2,1,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:675529_position:0,2,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:598242_position:1,2,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:603387_position:2,2,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
+    @_type:default_id:156834_position:1,1,-1,0_rotation:0,0,0,0_scale:1,1,1,1_  `;
 
     loadFile(text);
 
@@ -670,7 +671,7 @@ function main() {
                 break;
             
             default:
-                console.error("Error in mouseMoved(): global var 'selectedArrow' is not of type:'xarrow', 'yarrow', or 'zarrow'. Critical error! Where the fuck did you set 'selectedArrow'?");
+                console.error("Error in mouseMoved(): global var 'selectedArrow' is not of type:'xarrow', 'yarrow', or 'zarrow'. Critical error! Where the f*** did you set 'selectedArrow'?");
                 break;
         }
         if (rayD_pos != null)
