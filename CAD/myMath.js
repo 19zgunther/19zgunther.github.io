@@ -653,6 +653,28 @@ class vec4 {
             return new vec4(this.x-x, this.y-y, this.z-z, this.a-a);
         }
     }
+    subi(x,y=0,z=0,a=0)
+    {
+        if (x instanceof vec4)
+        {
+            //return new vec4(this.x+x.x, this.y+x.y, this.z+x.z, this.a+x.a);
+            this.x -= x.x;
+            this.y -= x.y;
+            this.z -= x.z;
+            this.a -= x.a;
+        } else {
+            if (isNaN(x)) { x = 0;}
+            if (isNaN(y)) { y = 0;}
+            if (isNaN(z)) { z = 0;}
+            if (isNaN(a)) { a = 0;}
+            //return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
+            this.x -= x;
+            this.y -= y;
+            this.z -= z;
+            this.a -= a;
+        }
+        return this;
+    }
     mul(x,y=null,z=null,a=null)
     {
         //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);

@@ -63,7 +63,9 @@ var pObjectsLength = 0; //used to determine if we need to refresh the objects li
 var mouseCanvasPos = new vec4();
 var mouseGlPos = new vec4();
 var mouseDirectionVector = new vec4();
-var mouseIsDown = false;
+var mouseIsDown = false;                //Boolean to remember if the mouse is currently depressed
+var mouseJustDown = false;              //Boolean to signify first update since mouse clicked
+var mouseDeltaVector = new vec4();      //vector is used to determine mouse offset while moving/dragging/translating objects
 
 var confirmBoxOpen = false; //used to keep track of it  aconfirm box is open. If it is, stop all key handling
 
@@ -73,7 +75,10 @@ document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
 window.addEventListener('resize', resizeScreen);
 //document.addEventListener('mousemove', mouseMoved);
-var interval = setInterval(main, 1000/40);
+
+var mainInterval = setInterval(update, 1000/40);
+var slowUpdate = setInterval(slowUpdate, 250);
+//var objInterfal = setInterval(() => {updateObjectsContainer()}, 500);
 //var updateObjectsContainerInterval = setInterval(updateObjectsContainer, 1000);
 
 
@@ -161,7 +166,6 @@ function mouseMoved(event)
     mouseDirectionVector = screenToWorldVector( mouseGlPos, projectionMatrix, camera.getRotationMatrix() );
     //mouseDirectionVector.a = 0;
     //mouseDirectionVector.scaleToUnit();
-
 }
 function mouseDown(event)
 {
@@ -177,6 +181,7 @@ function mouseDown(event)
     mouseCanvasPos.x = event.clientX - bb.left;
     mouseCanvasPos.y = event.clientY - bb.top;
     mouseIsDown = true;
+    mouseJustDown = true;
     mouseGlPos = mouseCanvasPos.mul(new vec4(2/bb.width, -2/bb.height,0,0)).addi(new vec4(-1,1,0,0));
     mouseDirectionVector = screenToWorldVector( mouseGlPos, projectionMatrix, camera.getRotationMatrix() );
 
@@ -240,6 +245,7 @@ function mouseWheel(event)
 function resizeScreen()
 {
     console.log('resizing');
+    //Normal stuff
     let bb = glCanvasElement.getBoundingClientRect();
     glCanvasElement.width = bb.width;//window.visualViewport.width;
     glCanvasElement.height = bb.height;
@@ -530,7 +536,8 @@ function updateObjectsContainer() {
     for (var i in ins)
     {
         try {
-            ins[i].style.width = ins[i].value.length + "ch";
+            let len = ins[i].value.length;
+            ins[i].style.width = Math.min(len, 3) + "ch";
         } catch {
 
         }
@@ -598,8 +605,12 @@ function setup() {
         ),
 
         new Object().setData(
-            translateData( rotateData( generateDoubleArrow(0.8, .1, 8, new vec4(1,.5,.5,0.2), .05, 0.75, false ),  new vec4(0,0,Math.PI/4) )
-            , new vec4(0,0.7,0.7))
+            translateData( 
+                rotateData( 
+                    generateDoubleArrow(0.8, .1, 8, new vec4(1,.5,.5,0.2), .05, 0.75, false ),  
+                    new vec4(0,0,Math.PI/4) 
+                ), 
+                new vec4(0,0.7,0.7))
             ).setData({type: '_arrow_rotX'}
         ),
         new Object().setData(
@@ -626,11 +637,9 @@ function setup() {
 
     loadFile(text);
 
-
     updateObjectsContainer();
-
 }
-function main() {
+function update() {
     if (!run)
     {
         return;
@@ -641,78 +650,23 @@ function main() {
     //Update camera position & rotation
     camera.update(pressedKeys);
 
-    //Update selectedObject position if we are currently dragging an arrow.
-    if (selectedArrow != null && mouseIsDown && selectedObject != null)
-    {
-        let objPos = selectedObject.getPosition();
-        let objRot = selectedObject.getRotation();
-        let rayD_pos = null;
-        let rayD_rot = null;
-        let rayS = null;
-        //console.log(selectedArrow.type);
-        switch(selectedArrow.type)
-        {
-            case '_arrow_posX': 
-                rayD_pos = new vec4(1,0,0);
-                break;
-            case '_arrow_posY': 
-                rayD_pos = new vec4(0,1,0);
-                break;
-            case '_arrow_posZ': 
-                rayD_pos = new vec4(0,0,1);
-                break;
-            case '_arrow_rotX': 
-                rayD_rot = new vec4(0,.7,-.7);
-                rayS = new vec4(0,.7,.7);
-                break;
-            case '_arrow_rotY': 
-                rayD_rot = new vec4(.7,1,-.7);
-                rayS = new vec4(.7,0,.7);
-                break;
-            case '_arrow_rotZ': 
-                rayD_rot = new vec4(-.7,.7,0);
-                rayS = new vec4(.7,.7,0);
-                break;
-            
-            default:
-                console.error("Error in mouseMoved(): global var 'selectedArrow' is not of type:'xarrow', 'yarrow', or 'zarrow'. Critical error! Where the f*** did you set 'selectedArrow'?");
-                break;
-        }
-        if (rayD_pos != null)
-        {
-            let newPos = closestPointOnRayToRay(rayD_pos, objPos, mouseDirectionVector, camera.getPosition());
-            newPos.round(.1); //round to nearest .1
-            if (newPos != null)
-            {
-                selectedObject.setPosition(newPos);   
-            }
-        }
-        if (rayD_rot != null)
-        {
-            rayS.addi(objPos);
 
-            let d = distToClosestPointOnRayToRay(rayD_rot, rayS, mouseDirectionVector, camera.getPosition());
-            d = Math.round( (d*180/Math.PI)/15 ) * 15 * Math.PI/180; //Rounding d to nearest 15 degrees
-            if (selectedArrow.type == '_arrow_rotX')
-            {
-                objRot.z = -d;
-                selectedObject.setRotation(objRot);
-            } else if (selectedArrow.type == '_arrow_rotY')
-            {
-                objRot.y = d;
-                selectedObject.setRotation(objRot);
-            } else if (selectedArrow.type == '_arrow_rotZ')
-            {
-                objRot.x = d;
-                selectedObject.setRotation(objRot);
-            }
+    //update moving & rotation objects - mouse drag function
+    updateMouseArrowDrag();
 
-            
-        }
-    }
-
+    //render scene
     render();
 
+    mouseJustDown = false;
+}
+
+function slowUpdate()
+{
+    //We want to do this to update values
+    updateObjectsContainer();
+
+    //Update cursor (if hovering, should be pointer, if )
+    updateMouseCursor();
 }
 
 
@@ -809,7 +763,6 @@ function render()
 
 function getObjectFromMousePos()
 {
-
     // create to render to
     const targetTextureWidth = Math.round(glCanvasElement.width);
     const targetTextureHeight = Math.round(glCanvasElement.height);
@@ -821,7 +774,6 @@ function getObjectFromMousePos()
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     
-
     // Create and bind the framebuffer
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
@@ -902,7 +854,98 @@ function getObjectFromMousePos()
     }
     return null;
 }
+function updateMouseCursor()
+{
+    //Update mouse cursor style
+    let obj = getObjectFromMousePos();
+    if (obj != null)
+    {
+        if (obj.type.substring(0,7) == '_arrow_')
+        {
+            glCanvasElement.style.cursor = "move";
+        } else {
+            glCanvasElement.style.cursor = "pointer";
+        }
+    } else {
+        glCanvasElement.style.cursor = "default";
+    }
 
+    if (mouseIsDown)
+    {
+        glCanvasElement.style.cursor = "grabbing";
+    }
+}
+function updateMouseArrowDrag()
+{
+    //Update selectedObject position if we are currently dragging an arrow.
+    if (selectedArrow != null && mouseIsDown && selectedObject != null)
+    {
+        let objPos = selectedObject.getPosition();
+        let objRot = selectedObject.getRotation();
+        let rayD_pos = null;
+        let rayD_rot = null;
+        let rayS = null;
+        switch(selectedArrow.type)
+        {
+            case '_arrow_posX': rayD_pos = new vec4(1,0,0); break;
+            case '_arrow_posY': rayD_pos = new vec4(0,1,0); break;
+            case '_arrow_posZ': rayD_pos = new vec4(0,0,1); break;
+            case '_arrow_rotX': rayD_rot = new vec4(0,.7,-.7); rayS = new vec4(0,.7,.7); break;
+            case '_arrow_rotY': rayD_rot = new vec4(.7,1,-.7); rayS = new vec4(.7,0,.7); break;
+            case '_arrow_rotZ': rayD_rot = new vec4(-.7,.7,0); rayS = new vec4(.7,.7,0); break;
+            default:
+                console.error("Error in mouseMoved(): global var 'selectedArrow' is not of type:'xarrow', 'yarrow', or 'zarrow'. Critical error! Where the f*** did you set 'selectedArrow'?");
+                break;
+        }
+        //If rayD_pos is not null, then a posX/Y/Z arrow must be selected
+        //USED FOR TRANSLATING _arrow_pos*
+        if (rayD_pos != null)
+        {
+            let newPos = closestPointOnRayToRay(rayD_pos, objPos, mouseDirectionVector, camera.getPosition());
+            if (newPos != null)
+            {
+                if (mouseJustDown) //if it's the first run since the mouse was clicked, we need to record the mouseDeltaVector to object origin
+                {
+                    mouseDeltaVector = objPos.sub(newPos);
+                } else{
+                    newPos.addi(mouseDeltaVector);
+                    newPos.round(.1); //round to nearest .1
+                    selectedObject.setPosition(newPos);   
+                }
+            }
+        }
+
+        //USED FOR ROTATION _arrow_rot*
+        if (rayD_rot != null)
+        {
+            rayS.addi(objPos);
+
+            if (mouseJustDown)
+            {
+                let newPos = closestPointOnRayToRay(rayD_rot, rayS, mouseDirectionVector, camera.getPosition());
+                mouseDeltaVector = rayS.sub(newPos);
+            }
+
+            rayS.subi(mouseDeltaVector);
+
+            let d = distToClosestPointOnRayToRay(rayD_rot, rayS, mouseDirectionVector, camera.getPosition());
+            d = Math.round( (d*180/Math.PI)/15 ) * 15 * Math.PI/180; //Rounding d to nearest 15 degrees
+            if (selectedArrow.type == '_arrow_rotX')
+            {
+                objRot.z = -d;
+                selectedObject.setRotation(objRot);
+            } else if (selectedArrow.type == '_arrow_rotY')
+            {
+                objRot.y = d;
+                selectedObject.setRotation(objRot);
+            } else if (selectedArrow.type == '_arrow_rotZ')
+            {
+                objRot.x = d;
+                selectedObject.setRotation(objRot);
+            }            
+        }
+    }
+}
 
 
 

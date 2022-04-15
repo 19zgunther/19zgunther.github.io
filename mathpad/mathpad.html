@@ -119,9 +119,28 @@
         </div>
     </section>
 
+    <section>
+        <header>
+            Plotter
+        </header>
+        <br>
+        <br>
+        Inputs:
+        <input id='numSeriesInput' type='number' value='3' min='1' max='5' oninput="numSeriesChanged()">
+        <div id='seriesInputs'>
+            <!--Autofilled by numSeriesChanged()-->
+        </div>
+        <br>
+        <canvas id='plotterCanvas' style='width: 100%; height: 50%;'>
+
+        </canvas>
+    </section>
+
+    
+
 
 </body>
-
+<script src="../painter.js"></script>
 <script src="../CAD/myMath.js"></script>
 <script src="mathpad.js"></script>
 <script src="../script.js"></script>

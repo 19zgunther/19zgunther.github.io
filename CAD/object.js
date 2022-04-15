@@ -829,6 +829,7 @@ class Object {
 
 }
 
+
 /*
 class Grid2 extends Object2{
     constructor(position = new vec4(), rotation = new vec4(), scale = new vec4(1,1,1,1))
@@ -843,6 +844,7 @@ class Grid2 extends Object2{
     }
 }
 */
+
 
 function createObject(type = 'cube')
 {

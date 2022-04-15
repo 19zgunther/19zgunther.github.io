@@ -82,6 +82,7 @@
 
 .button:hover {
     opacity: 100%;
+    cursor: pointer;
 }
 
 
@@ -174,6 +175,27 @@ item:hover itemDropdown{
 }
 itemDropdown:hover {
     max-height: 100%;
+}
+
+
+.addObjectButton{
+    background-color:#666666;
+    height: fit-content;
+    width:fit-content;
+    min-width: 50px;
+    justify-content: center;
+    padding: 2px;
+    margin: 3px;
+    opacity: 90%;
+    width:90%; 
+    border-radius: 2px;
+    text-align: center;
+
+    transition: opacity 0.5s;
+}
+.addObjectButton:hover {
+    cursor: pointer;
+    opacity: 100%;
 }
 
 
