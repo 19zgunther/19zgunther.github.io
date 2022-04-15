@@ -65,6 +65,7 @@ var mouseGlPos = new vec4();
 var mouseDirectionVector = new vec4();
 var mouseIsDown = false;                //Boolean to remember if the mouse is currently depressed
 var mouseJustDown = false;              //Boolean to signify first update since mouse clicked
+var mouseMovedLast = 0;                 //Int signifying the last time the mouse moved
 var mouseDeltaVector = new vec4();      //vector is used to determine mouse offset while moving/dragging/translating objects
 
 var confirmBoxOpen = false; //used to keep track of it  aconfirm box is open. If it is, stop all key handling
@@ -154,6 +155,8 @@ function keyReleased(event)
 }
 function mouseMoved(event)
 {
+    mouseMovedLast = 0;
+
     if (currentSketch != null)
     {
         currentSketch.mouseMoved(event);
@@ -658,6 +661,7 @@ function update() {
     render();
 
     mouseJustDown = false;
+    mouseMovedLast += 1;
 }
 
 function slowUpdate()
@@ -758,9 +762,6 @@ function render()
     //Draw Compass
     compass.draw(gl,pm,vm);
 }
-
-
-
 function getObjectFromMousePos()
 {
     // create to render to
@@ -856,6 +857,12 @@ function getObjectFromMousePos()
 }
 function updateMouseCursor()
 {
+    //Don't update if we haven't moved the mouse recently EDIT - do update - we might have translated the camera
+    if (mouseMovedLast > 15)
+    {
+        //return;
+    }
+
     //Update mouse cursor style
     let obj = getObjectFromMousePos();
     if (obj != null)
@@ -877,6 +884,7 @@ function updateMouseCursor()
 }
 function updateMouseArrowDrag()
 {
+
     //Update selectedObject position if we are currently dragging an arrow.
     if (selectedArrow != null && mouseIsDown && selectedObject != null)
     {
