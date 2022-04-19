@@ -756,6 +756,10 @@ class vec4 {
     getMagnitude() {
         return Math.sqrt(  this.x*this.x + this.y*this.y + this.z*this.z  + this.a * this.a);
     }
+    getHash()
+    {
+        return this.x*1000000 + this.y*1000 + this.z;
+    }
     scaleToUnit()
     {
         //divide each component by the length of the vector

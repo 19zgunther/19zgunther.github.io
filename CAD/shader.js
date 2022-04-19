@@ -1014,3 +1014,170 @@ function DrawPicker(gl, viewMatrix, objectMatrix, indices, buffers, colorVector 
     //gl.drawElements(gl.LINES, indices.length, gl.UNSIGNED_SHORT, 0);
     gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
 }
+
+
+
+
+
+//This is used for getting mouse position over objects
+class FrameBuffer
+{
+    constructor(gl, canvasElement )
+    {
+        this.canvasElement = canvasElement;
+        let bb = this.canvasElement.getBoundingClientRect();
+        this.width = Math.round(bb.width);
+        this.height = Math.round(bb.height);
+
+        //initialize framebuffer
+        this.frameBuffer = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+
+        //initialize texture
+        this.texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        // attach the texture as the first color attachment
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+        this.depthBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthBuffer);
+
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        this.lastGetObjectTime = 0;//new Date().getTime();
+    }
+
+    _resize(newWidth, newHeight)
+    {
+        this.width = newWidth;
+        this.height = newHeight;
+        
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    getObject(gl, viewMatrix = new mat4(), objects = [], arrows = [], needToUpdateTexture = true)
+    {
+        let tempTime = new Date().getTime();
+        if (tempTime > this.lastGetObjectTime + 2000)
+        {
+            this.lastGetObjectTime = tempTime;
+            let bb = glCanvasElement.getBoundingClientRect();
+            if (this.width != Math.round(bb.width) || this.height != Math.round(bb.height))
+            {
+                this._resize(Math.round(bb.width), Math.round(bb.height));
+            }
+        }
+
+
+        //Don't re-render texture if its been less than 0.19 seconds. That's absurd.
+        if (tempTime < this.lastGetObjectTime + 190)
+        {
+            //needToUpdateTexture = false;
+        }
+
+        //Bind gl FrameBuffer
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+
+        // attach the texture as the first color attachment
+        /*gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+
+        // create a depth renderbuffer
+        //const depthBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthBuffer);
+        */
+        // Tell WebGL how to convert from clip space to pixels
+        //gl.viewport(0, 0, this.width, this.height);
+
+        let color = new vec4(-1,0,0,1);
+
+        if (needToUpdateTexture)
+        {
+            gl.clearColor(1, 1, 1, 1);    // Clear to white, fully opaque
+            gl.clearDepth(1);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LESS);
+            gl.enable(gl.CULL_FACE);
+            gl.depthMask(true);
+            gl.disable(gl.BLEND);
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            
+
+            //Draw Each object, all but selected object (selectde object has transparency, so render last)
+            //let wm = projectionMatrix.mul(camera.getViewMatrix());
+            //let color = new vec4(0,0,0,1);
+            for (var i=0; i<objects.length; i++)
+            {
+                color.x = i/255;
+                objects[i].renderPicker(gl, viewMatrix, color);
+            }
+
+            //We only want to render and search for the translation&rotation arrows if an object is already selected
+            if (selectedObject != null)
+            {
+                gl.clear(gl.DEPTH_BUFFER_BIT);
+                for (var i=0; i<arrows.length; i++)
+                {
+                    color.x = (i+objects.length)/255;
+                    arrows[i].renderPicker(gl, viewMatrix, color);
+                }
+            }
+        }
+
+
+        //create buffer for pixel
+        let pixels = new Uint8Array(4);
+
+        //Scale x and y to the correct texture width & height
+        let x = mouseCanvasPos.x / this.width;
+        let y = (this.height - mouseCanvasPos.y) / this.height;
+        x = Math.round(x * this.width);
+        y = Math.round(y * this.height);
+
+        //Read Pixels
+        gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+        //Detach framebuffer
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        color.set(pixels[0], pixels[1], pixels[2], pixels[3]);
+
+        //return object
+        if (color.x >= 0 && color.x < objects.length)
+        {
+            return objects[color.x];
+        }
+        if (color.x >= objects.length && color.x < objects.length + arrows.length)
+        {
+            return arrows[color.x-objects.length];
+        }
+        return null;
+    }
+
+}
+
+
+
+
+

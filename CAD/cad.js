@@ -21,7 +21,6 @@ const objectContainerElement = document.getElementById('objectContainer');
 const historyContainerElement = document.getElementById('historyContainer');
 
 
-var pixels = new Uint8Array(4);
 
 
 
@@ -35,7 +34,9 @@ var zoom = orthogonal_zoomSliderElement.value;
 var perspectiveProjectionMatrix = new mat4();
 var orthogonalProjectionMatrix = new mat4();
 var projectionMatrix;
-//var pGlCanvasWidth = -1;
+
+var mouseFrameBuffer = null; //FrameBuffer object (custom object) initialized in setup after gl is initialized
+
 
 
 
@@ -75,10 +76,11 @@ setup();
 document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
 window.addEventListener('resize', resizeScreen);
+glCanvasElement.addEventListener('mouseleave', mouseUp);
 //document.addEventListener('mousemove', mouseMoved);
 
 var mainInterval = setInterval(update, 1000/40);
-var slowUpdate = setInterval(slowUpdate, 250);
+var slowUpdate = setInterval(slowUpdate, 200);
 //var objInterfal = setInterval(() => {updateObjectsContainer()}, 500);
 //var updateObjectsContainerInterval = setInterval(updateObjectsContainer, 1000);
 
@@ -533,8 +535,15 @@ function updateObjectsContainer() {
     objectContainerElement.innerHTML = "<div style='font-size:large;'>Objects</div>";
     for (var i=0; i<objects.length; i++)
     {
-        objectContainerElement.innerHTML += objects[i].getHTMLText() + "<br>";
+        if (selectedObject == objects[i])
+        {
+            objectContainerElement.innerHTML += objects[i].getHTMLText(true) + "<br>";
+        } else {
+            objectContainerElement.innerHTML += objects[i].getHTMLText(false) + "<br>";
+        }
     }
+
+    //Update all of the input widths
     let ins = document.getElementsByClassName('vectorInput');
     for (var i in ins)
     {
@@ -588,6 +597,10 @@ function setup() {
     }
 
     InitShader(gl);
+
+
+    mouseFrameBuffer = new FrameBuffer(gl, glCanvasElement);
+
     run = true;
     compass = new Compass();
     grids.push( createObject('grid') );
@@ -641,6 +654,10 @@ function setup() {
     loadFile(text);
 
     updateObjectsContainer();
+
+
+    //let o = new Object();
+    //simplifyMesh(o.vertices, o.indices, o.normals);
 }
 function update() {
     if (!run)
@@ -671,6 +688,14 @@ function slowUpdate()
 
     //Update cursor (if hovering, should be pointer, if )
     updateMouseCursor();
+
+
+    if (objects.length > 1)
+    {
+        //console.log("subMesh");
+        //subtractMesh(objects[0], objects[1]);
+    }
+
 }
 
 
@@ -764,6 +789,9 @@ function render()
 }
 function getObjectFromMousePos()
 {
+
+    let wm2 = projectionMatrix.mul(camera.getViewMatrix());
+    return mouseFrameBuffer.getObject(gl, wm2, objects, arrows);
     // create to render to
     const targetTextureWidth = Math.round(glCanvasElement.width);
     const targetTextureHeight = Math.round(glCanvasElement.height);
@@ -855,12 +883,16 @@ function getObjectFromMousePos()
     }
     return null;
 }
+
 function updateMouseCursor()
 {
     //Don't update if we haven't moved the mouse recently EDIT - do update - we might have translated the camera
     if (mouseMovedLast > 15)
     {
-        //return;
+        if (mouseMovedLast < 100)
+        {
+            return;
+        }
     }
 
     //Update mouse cursor style
@@ -975,13 +1007,6 @@ function screenToWorldVector(screenScaledPos, projectionMatrix, cameraRotationMa
     p.a = 0;
     return  p.scaleToUnit() ;
 }
-
-
-
-
-
-
-
 
 
 

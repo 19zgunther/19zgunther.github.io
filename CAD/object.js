@@ -231,7 +231,6 @@ class Compass extends Object2{
         var aspect = glCanvasElement.width/glCanvasElement.height;
         this.setPosition(new vec4(-0.92*aspect,0.87,-1));
     }
-
     draw(gl, projectionMatrix, viewMatrix)
     {
         if (!this.enableDraw) {return;}
@@ -623,7 +622,7 @@ class Object {
 
         //Misc
         this.enableDraw = true;
-        this.type = 'default';
+        this.type = 'default_object';
         this.id = Math.round(Math.random()*1000000); //assign random id
 
         this._refresh();
@@ -757,14 +756,14 @@ class Object {
     {
         return this.scaleMatrix;
     }
-    getHTMLText()
+    getHTMLText(displayInputsBoolean = false)
     {
-        return ""
-            + "<item id = \'"+this.id+"\' checked=false onclick = \"objectClicked(this); this.setAttribute('checked', 'checked'); console.log(this.checked);\" >" 
+        let start = "<item id = \'"+this.id+"\' checked=false onclick = \"objectClicked(this);\" >" 
                 + "<div style='font-size: larger'>"    
                     + this.type + ":" + this.id
-                + "</div>"
-                + "<div class = 'objectDetailsContainer'>"
+                + "</div>";
+        
+        let mid ="<div class = 'objectDetailsContainer'>"
                     + "<div style='display:flex;'>"
                         + "p"
                         + "\<<input class = 'vectorInput' name='posX' id = \'"+this.id+"\' type='number' value = "+this.position.x+" oninput=objectParameterChanged(this)></input> "
@@ -783,8 +782,14 @@ class Object {
                         + ",<input class = 'vectorInput' name='scaY' id = \'"+this.id+"\' type='number' value = "+this.scale.y+" oninput=objectParameterChanged(this)></input> "
                         + ",<input class = 'vectorInput' name='scaZ' id = \'"+this.id+"\' type='number' value = "+this.scale.z+" oninput=objectParameterChanged(this)></input> \>"
                     +"</div>"
-                + "</div>"
-            + "</item>";
+                + "</div>";
+        let end =  "</item>";
+
+        if (displayInputsBoolean)
+        {
+            return start + mid + end;
+        }
+        return start + end;
     }
     getSaveText(){
         let out = "@"
@@ -866,7 +871,100 @@ function createObject(type = 'cube')
 
 
 
+function simplifyMesh(vertices = [], indices = [])
+{
+    //Here we want to take the vertices, and remove all unnecessary vertices.
+    //This way, each point is only defined once. 
+    //Each indice then also will have an associated triangleNormal vector
+    let vDict = new Map();
+    let newVertices = [];
+    let newIndices = [];
+    let triangleNormals = [];
+    let v = new vec4();
+    let ret = null;
 
+    for (var i=0; i<indices.length; i++)
+    {
+        v.x = vertices[indices[i]*3 + 0];
+        v.y = vertices[indices[i]*3 + 1];
+        v.z = vertices[indices[i]*3 + 2];
+        v.a = 0;
+        ret = vDict.get(v.getHash());
+        if (ret != null)
+        {
+            newIndices.push( ret );
+        } else {
+            let ind = newVertices.length;
+            newIndices.push(ind);
+            newVertices.push(v.copy());
+            vDict.set(v.getHash(), ind);
+        }
+    }
+
+    for (var i=0; i<newIndices.length; i+=3)
+    {
+        //let n = new vec4(normals[indices[i]*3 + 0], normals[indices[i]*3 + 1], normals[indices[i]*3 + 2]);
+        //triangleNormals.push( n );
+        let a = newVertices[newIndices[i+1]].sub(newVertices[newIndices[i]]);
+        let b = newVertices[newIndices[i+2]].sub(newVertices[newIndices[i]]);
+        b.scaleToUnit();
+        a.scaleToUnit();
+        let nx = a.y*b.z - a.z*b.y;
+        let ny = a.z*b.x - a.x*b.z;
+        let nz = a.x*b.y - a.y*b.x;
+        triangleNormals.push(  new vec4(nx,ny,nz).scaleToUnit() );
+    }
+    //console.log(vertices, indices);
+    //console.log(newVertices, newIndices, triangleNormals);
+
+    return {
+        vertices: newVertices,
+        indices: newIndices,
+        triangleNormals: triangleNormals,
+    }
+}
+
+
+function subtractMesh(obj1, obj2)
+{
+
+    const mesh1 = simplifyMesh(obj1.vertices, obj1.indices);
+    const mesh2 = simplifyMesh(obj2.vertices, obj2.indices);
+
+    //console.log(mesh1);
+    
+    for (var i=0; i<mesh1.indices.length; i+=3)
+    {
+        let v1_1 = mesh1.vertices[mesh1.indices[i]];
+        let v1_2 = mesh1.vertices[mesh1.indices[i]+1];
+        let v1_3 = mesh1.vertices[mesh1.indices[i]+2];
+        for (var j=0; j<mesh2.indices.length; j+=3)
+        {
+
+            let v2_1 = mesh2.vertices[mesh2.indices[j]];
+            let v2_2 = mesh2.vertices[mesh2.indices[j]+1];
+            let v2_3 = mesh2.vertices[mesh2.indices[j]+2];
+
+            let d1 = v2_1.sub(v1_1).scaleToUnit().dot(mesh1.triangleNormals[i/3]);
+            let d2 = v2_2.sub(v1_1).scaleToUnit().dot(mesh1.triangleNormals[i/3]);
+            let d3 = v2_3.sub(v1_1).scaleToUnit().dot(mesh1.triangleNormals[i/3]);
+            //console.log(d1);
+
+            let min = Math.min(d1,d2,d3);
+            let max = Math.max(d1,d2,d3);
+
+            if (min < 0 && max > 0 )
+            {
+                console.log("True");
+            }
+            
+        }
+    }
+
+
+
+
+}
 
 
 
