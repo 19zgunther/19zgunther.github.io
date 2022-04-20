@@ -920,49 +920,206 @@ function simplifyMesh(vertices = [], indices = [])
     return {
         vertices: newVertices,
         indices: newIndices,
+        triangleColors: [],
         triangleNormals: triangleNormals,
+    }
+}
+
+
+function expandMesh(vertices, indices, triangleColors, triangleNormals)
+{
+    let v = [];
+    let ind = [];
+    let c = [];
+    let n = [];
+
+    for (var i=0; i<indices.length; i+=3)
+    {
+        let v1 = vertices[indices[i]];
+        let v2 = vertices[indices[i+1]];
+        let v3 = vertices[indices[i+2]];
+        let indOn = v.length/3;
+        v.push(v1.x, v1.y, v1.z,  v2.x, v2.y, v2.z,  v3.x, v3.y, v3.z);
+        ind.push( indOn, indOn+1, indOn+2 );
+
+        let col = triangleColors[i/3];
+        c.push( col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a );
+
+        let norm = triangleNormals[i/3];
+        n.push( norm.x, norm.y, norm.z,   norm.x, norm.y, norm.z,   norm.x, norm.y, norm.z );
+    }
+
+    //console.log(v, ind, c, n);
+    return {
+        vertices: v,
+        indices: ind,
+        colors: c,
+        normals: n,
+        lineIndices: [],
     }
 }
 
 
 function subtractMesh(obj1, obj2)
 {
+    /*
+    var mesh1 = simplifyMesh(obj1.vertices, obj1.indices);
+    var mesh2 = simplifyMesh(obj2.vertices, obj2.indices);
 
-    const mesh1 = simplifyMesh(obj1.vertices, obj1.indices);
-    const mesh2 = simplifyMesh(obj2.vertices, obj2.indices);
+    var posDif = obj2.getPosition().sub( obj1.getPosition() );
 
-    //console.log(mesh1);
-    
-    for (var i=0; i<mesh1.indices.length; i+=3)
+    //Create triangle colors
+    mesh1.triangleColors = [];
+    mesh2.triangleColors = [];
+    for (var i=0; i<mesh1.triangleNormals.length; i++)
     {
+        mesh1.triangleColors.push( new vec4(1,0,0,1) );
+    }
+    for (var i=0; i<mesh2.triangleNormals.length; i++)
+    {
+        mesh2.triangleColors.push( new vec4(0,1,0,1) );
+    }
+
+    //Shift mesh vertices;
+    for (var i=0; i<mesh2.vertices.length; i++)
+    {
+        mesh2.vertices[i].addi(posDif);
+    }*/
+
+    var mesh1 = {
+        vertices: [ new vec4(0,0,1), new vec4(0,1,0),new vec4(0,0,-1)],
+        indices: [0,1,2],
+        triangleNormals: [new vec4(1,0,0)],
+        triangleColors: [new vec4(1,0,0,1)]
+    };
+
+    var mesh2 = {
+        vertices: [new vec4(1,.2,1), new vec4(1,.2,-1),new vec4(-1,.2,.1)],
+        indices: [0,1,2],
+        triangleNormals: [new vec4(0,1,0)],
+        triangleColors: [new vec4(0,1,0,1)]
+    };
+
+    posDif = new vec4();
+
+
+    
+    let numMesh1Indices = mesh1.indices.length; //we need to do this because we (might) add triangles to the meshes
+    let numMesh2Indices = mesh2.indices.length;
+    for (var i=0; i<numMesh1Indices; i+=3)
+    {
+        let n1 = mesh1.triangleNormals[i/3];
         let v1_1 = mesh1.vertices[mesh1.indices[i]];
         let v1_2 = mesh1.vertices[mesh1.indices[i]+1];
         let v1_3 = mesh1.vertices[mesh1.indices[i]+2];
-        for (var j=0; j<mesh2.indices.length; j+=3)
+
+        //Inside this loop...
+        //   Start by getting the points of edge intersections with planes. p1-p3 are for plane of mesh2 triangle, p4-p6 are for plane of mesh1
+        //   Next, we have 4 points. p1 & p2 are a ray, and p4 and p5 are a ray, and we need to find the intersection of these two rays
+        for (var j=0; j<numMesh2Indices; j+=3)
         {
+
+            let n2 = mesh2.triangleNormals[j/3];
+
+            if (n1.equals(n2))
+            {
+                continue;
+            }
 
             let v2_1 = mesh2.vertices[mesh2.indices[j]];
             let v2_2 = mesh2.vertices[mesh2.indices[j]+1];
             let v2_3 = mesh2.vertices[mesh2.indices[j]+2];
-
-            let d1 = v2_1.sub(v1_1).scaleToUnit().dot(mesh1.triangleNormals[i/3]);
-            let d2 = v2_2.sub(v1_1).scaleToUnit().dot(mesh1.triangleNormals[i/3]);
-            let d3 = v2_3.sub(v1_1).scaleToUnit().dot(mesh1.triangleNormals[i/3]);
-            //console.log(d1);
-
-            let min = Math.min(d1,d2,d3);
-            let max = Math.max(d1,d2,d3);
-
-            if (min < 0 && max > 0 )
-            {
-                console.log("True");
-            }
             
+            let p1 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_1, v1_2);
+            let p2 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_1, v1_3);
+            let p3 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_3, v1_2);
+
+            if (p1 == null && p2 == null)
+            {
+                continue;
+            }
+
+            let p4 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_1, v2_2);
+            let p5 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_1, v2_3);
+            let p6 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_3, v2_2);
+            
+
+            if (p1 == null) {p1 =p2; p2 = p3;}
+            else if (p2 == null) {p2 = p3;}
+            
+            if (p4 == null) {p4 =p5; p5 = p6;}
+            else if (p5 == null) {p5 = p6;}
+
+            //console.log(p1,p2,p4,p5);
+            let p1ToP2 = p2.sub(p1).scaleToUnit();
+            let p1ToP4 = p4.sub(p1).scaleToUnit();
+            let p1ToP5 = p5.sub(p1).scaleToUnit();
+            let p4ToP5 = p5.sub(p4).scaleToUnit();
+
+            //Make sure d4-->d5 points same direction as d1-->d2
+            if (p1ToP2.dot(p4ToP5) < 0) {
+                let temp = p5;
+                p5 = p4;
+                p4 = temp;
+
+                temp = p1ToP4;
+                p1ToP4 = p1ToP5;
+                p1ToP5 = temp;
+            }
+
+            let d1 = p1ToP2.dot(p1ToP4);
+            let d2 = p1ToP2.dot(p1ToP5);
+
+            if (d1 > 0 && d2 > 0)
+            {
+                //forget p1
+                if (p4.sub(p2).getMagnitude() < p4.sub(p5).getMagnitude())
+                {
+                    //p4 and p2 are closest
+                    console.log("p4 & p2");
+                    p1 = p4;
+                } else {
+                    //p4 and p5 are closest
+                    console.log("p4 & p5");
+                    p1 = p4;
+                    p2 = p5;
+                }
+            } else if (d1 < 0 && d2 > 0)
+            {
+                //forget p4
+                if (p1.sub(p2).getMagnitude() < p1.sub(p5).getMagnitude())
+                {
+                    //p1 and p2 are closest
+                } else {
+                    //p1 and p5 are closest
+                    p2 = p5;
+                }
+            } // else {} is not needed. If we get to else, rays do not overlap
+
+       
+
+            let ind = mesh1.vertices.length;
+            mesh1.vertices.push(p1,p2, new vec4(0,100,0));
+            mesh1.indices.push(ind, ind+1, ind+2);
+            mesh1.triangleNormals.push( n1 );
+            mesh1.triangleColors.push( new vec4(1,1,0,1) );
+
         }
     }
 
+    //Shift mesh vertices;
+    /*for (var i=0; i<mesh2.vertices.length; i++)
+    {
+        mesh2.vertices[i].subi(posDif);
+    }*/
 
+    
+    obj1.setData(expandMesh(mesh1.vertices, mesh1.indices, mesh1.triangleColors, mesh1.triangleNormals));
+    obj2.setData(expandMesh(mesh2.vertices, mesh2.indices, mesh2.triangleColors, mesh2.triangleNormals));
 
+    //obj1.vertices = mesh1.vertices;
+    //obj1.indices = mesh1.indices;
+    //obj1._refresh(true, true);
 
 }
 

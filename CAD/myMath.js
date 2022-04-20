@@ -764,6 +764,7 @@ class vec4 {
     {
         //divide each component by the length of the vector
         var L = this.getMagnitude();
+        if (L == 0) { return this; } 
         this.x = this.x/L;
         this.y = this.y/L;
         this.z = this.z/L;
@@ -792,6 +793,10 @@ class vec4 {
         }
         return false;
     }
+    greaterThan(otherVec4)
+    {
+        return this.getHash() > otherVec4.getHash();
+    }
 }
 
 
@@ -800,7 +805,6 @@ function distanceBetweenPoints(v1,v2) //ONLY is for x y z NO a.
 {
     return Math.sqrt(  Math.abs(Math.pow(v1.x-v2.x,2)) + Math.abs(Math.pow(v1.y-v2.y,2)) + Math.abs(Math.pow(v1.z-v2.z,2))  );
 }
-
 
 function vectorFromPointToPlane(planePoint, planeNormal, pointPosition, unitVecFromPoint)
 {
@@ -834,8 +838,6 @@ function vectorFromPointToPlane(planePoint, planeNormal, pointPosition, unitVecF
         }
     }
 }
-
-
 
 function getRotationFromRotationMatrix(mat = new mat4().makeRotation()){
     console.error("IDK IF THIS WORKS");
@@ -945,3 +947,39 @@ function distToClosestPointOnRayToRay(constraintRayDirection, constraintRayStart
 
     return t;
 }
+
+
+
+
+
+
+function distToRayPlaneIntersection(planeNormal = new vec4(), planePoint = new vec4, rayD = new vec4(), rayP = new vec4())
+{
+    let denom = planeNormal.dot(rayD);
+
+    if (denom > 0)
+    {
+        let t = (planePoint.sub(rayP)).dot(planeNormal) / denom;
+        return t;
+    }
+    return NaN;
+}
+
+
+function pointLineSegmentIntersectsPlane(planeNormal = new vec4(), planePoint = new vec4(), linePoint1, linePoint2)
+{
+    let rayD = linePoint2.sub(linePoint1);
+    let rayP = linePoint1;
+    let dist = rayD.getMagnitude();
+    rayD.scaleToUnit();
+
+    //now we have rayD and rayP=linePoint1
+
+    let t = (planePoint.sub(rayP)).dot(planeNormal) / planeNormal.dot(rayD);
+    if (!isNaN(t) && t > 0 && t < dist)
+    {
+        return rayP.add(rayD.mul(t));
+    }
+    return null;
+}
+

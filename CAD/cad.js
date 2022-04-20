@@ -651,12 +651,19 @@ function setup() {
     @_type:default_id:603387_position:2,2,-3,0_rotation:0,0,0,0_scale:1,1,1,1_
     @_type:default_id:156834_position:1,1,-1,0_rotation:0,0,0,0_scale:1,1,1,1_  `;
 
-    loadFile(text);
+    //loadFile(text);
 
     updateObjectsContainer();
 
+    
 
-    //let o = new Object();
+    let o1 = new Object();
+    let o2 = new Object();
+
+    subtractMesh(o1, o2);
+
+    addObject(o1, true);
+    addObject(o2, true);
     //simplifyMesh(o.vertices, o.indices, o.normals);
 }
 function update() {
@@ -731,6 +738,7 @@ function render()
     if (selectedObject != null)
     {
         gl.depthMask(false); // turn off depth write
+        gl.disable(gl.CULL_FACE);
         selectedObject.render(gl, wm, new vec4(1,0.3,0.3,0.7));
     } else {
         gl.depthMask(true); 
