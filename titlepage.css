@@ -166,17 +166,14 @@ body.loaded .image_me{
     padding-top: 5%;
     padding-left:10%;
 }
-
 .dualSectionA{
     position:relative;
     width: 70%; 
 }
-
 .dualSectionB{
     position:relative;
     width: 50%;
 }
-
 .image_downarrow{
     opacity: 0;
     width: 70px;
@@ -190,7 +187,6 @@ body.loaded .image_me{
     transition: opacity 3s 6s;
 
 }
-
 body.loaded .image_downarrow{
     opacity:1;
 }
@@ -213,7 +209,6 @@ body.loaded .image_downarrow{
     opacity: 1;
     transition: opacity 0.5s;
 }
-
 .project_container{
     opacity: 0.1;
     width: 100%;
@@ -225,12 +220,48 @@ body.loaded .image_downarrow{
     border-style:solid;
     border-color: var(--project_container_border_color);
     justify-self: center;
+    position: relative;
 
     transition: opacity 0.5s, border-color 0.5s, transform 0.5s;
+}
+.project_container::before{
+    content: '';
+    display:block;
+    position: absolute;
+    /*outline: 3px solid var(--project_container_border_color);*/
+    background-color: var(--project_container_border_color);
+    border-style: solid 2px;
+    border-radius:inherit;
+    animation-duration: 8s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-name: snake;
+}
+@keyframes snake {
+    0.1%  { left: 0; top: -2px; width: 0; height: 0; }
+    5%  { left: 0; top: -2px; width: 20%; height: 5px; }
+    20% { left: 80%; top: -2px; width: 20%; height: 5px;}
+    25% { left: 100%; top: -2px; width: 0; height: 0; }
+
+    25.1% {left: 100%; top: 0; width:0; height: 0;}
+    30% {left: 100%; top: 0; width:5px; height: 20%;}
+    45% {left: 100%; top: 80%; width:5px; height: 20%;}
+    50% {left: 100%; top: 100%; width:0; height: 0;}
+
+    50.1% {left: 100%; top:100%; width:0; height:0;}
+    55% {left: 80%; top:100%; width:20%; height:5px;}
+    70% {left: 0; top:100%; width:20%; height:5px;}
+    75% {left: 0; top:100%; width:0; height:0px;}
+
+    75.1% {left: -2px; top:100%; width:0; height:0;}
+    80% {left: -2px; top:80%; width:5px; height:20%;}
+    95% {left: -2px; top:0; width:5px; height:20%;}
+    100% {left: -2px; top:0; width:0; height:0px;}
 }
 .project_container:hover {
     border-color: var(--project_container_border_color_highlight);
 }
+
 
 
 .left_trapezoid{
@@ -369,7 +400,6 @@ body.loaded .image_downarrow{
 
 #glcanvas {
     opacity: 0.2;
-
     transition: opacity 3s 6s;
 }
 body.loaded #glcanvas {

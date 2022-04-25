@@ -9,7 +9,7 @@
     //var menuProjectsElement = document.getElementById("INSERT_MENU_PROJECTS");
     var menuElement = document.createElement('div');
     menuElement.setAttribute('class', 'menu');
-    menuElement.innerHTML = `<div class='menu'>
+    menuElement.innerHTML = `<div id='menu' class='menu'>
     <div style='left:0; justify-self:left;'>
         <logo onclick='buttonClick("home")'>
             ZG

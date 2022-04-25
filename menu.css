@@ -45,8 +45,6 @@
     display:flex;
     justify-content: right;
 }
-
-
 .menu_item {
     cursor: pointer;
     font-size: 2vmax;
@@ -69,13 +67,11 @@
     background-color: var(--button_highlight_color);
     color:var(--theme_color);
 }
-
 .menu_item:hover .menu_dropdown{
     max-height: 70vmax;
     overflow: visible;
     opacity: 1;
 }
-
 .menu_dropdown {
     width: 100%;
     position: absolute;
@@ -94,7 +90,6 @@
     -ms-transition: all 1s, color 0.2s, background-color 0.2s;
     transition: all 1s, color 0.2s, background-color 0.2s;
 }
-
 .menu_dropdown_child {
 
     border-radius: .4vmax;
@@ -124,7 +119,6 @@
     background-color: var(--button_highlight_color);
     color: var(--theme_color);
 }
-
 .menu_item:hover .menu_dropdown_child {
     max-height:100px;
     opacity: 1;
@@ -172,15 +166,13 @@ logo{
     -ms-transition: background-color 0.5s, color 0.5s 0.1s;
     transition: background-color 0.5s, color 0.5s 0.1s, clip-path 1s;
 }
-
 logo:hover {
     /*background-color: var(--button_highlight_color);*/
     color: rgba(0,0,0,1);
     /*background-clip: border-box;*/
     background-color: var(--theme_color);
 }
-
-.scrollIndicator {
+#scrollIndicator {
     width: 0%;
     height:0.25vh;
     background-color: var(--scroll_indicator_color);
@@ -197,12 +189,10 @@ logo:hover {
     -ms-transition: width 0.3s, background-color 0.5s, color 0.5s 0.1s;
     transition: width 0.3s, background-color 0.5s, color 0.5s 0.1s;
 }
-
-.logo:hover .scrollIndicator{
+logo:hover #scrollIndicator{
     background-color: rgba(100,0,0,1); /*var(--button_highlight_color);*/
 }
-
-.scrollIndicatorBackground {
+#scrollIndicatorBackground {
     top:0;
     display:block;
     position:fixed;
