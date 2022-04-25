@@ -4,6 +4,7 @@
 ************************************************************************************************/
 
 class Object2 {
+    // hehe it looked like it said ass instead of class for a moment when I was looking through your code
     constructor(pos = new vec4(), rot = new vec4()) {
         this.position = pos;
         this.rotation = rot;
@@ -401,6 +402,7 @@ class Body extends Object2 {
         DrawLine(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.lineIndices, this.lineBuffers);
         DrawBody(gl, projectionMatrix, viewMatrix, this.translationMatrix, this.rotationMatrix, this.scale, this.indices, this.buffers, highlightVector);
     }
+    // so fresh and so clean
     refresh(){
         super.refresh();
         this.lineBuffers = initBuffers(this.vertices, [], [], this.lineIndices);
@@ -627,7 +629,7 @@ class Object {
 
         this._refresh();
     }
-
+    // yobjectz
     setPosition(position)
     {
         if (position instanceof vec4)
@@ -848,6 +850,8 @@ class Grid2 extends Object2{
         this.lineIndices = [];
     }
 }
+// look at you - using those good psoft specifications!
+// barbara liscov would be proud of you!
 */
 
 
@@ -871,14 +875,14 @@ function createObject(type = 'cube')
 
 
 
-function simplifyMesh(vertices = [], indices = [])
+function simplifyMeshOLD(vertices = [], indices = [])
 {
     //Here we want to take the vertices, and remove all unnecessary vertices.
     //This way, each point is only defined once. 
     //Each indice then also will have an associated triangleNormal vector
-    let vDict = new Map();
+    //let vDict = new Map();
     let newVertices = [];
-    let newIndices = [];
+    //let newIndices = [];
     let triangleNormals = [];
     let v = new vec4();
     let ret = null;
@@ -889,7 +893,7 @@ function simplifyMesh(vertices = [], indices = [])
         v.y = vertices[indices[i]*3 + 1];
         v.z = vertices[indices[i]*3 + 2];
         v.a = 0;
-        ret = vDict.get(v.getHash());
+        /*ret = vDict.get(v.getHash());
         if (ret != null)
         {
             newIndices.push( ret );
@@ -898,15 +902,16 @@ function simplifyMesh(vertices = [], indices = [])
             newIndices.push(ind);
             newVertices.push(v.copy());
             vDict.set(v.getHash(), ind);
-        }
+        }*/
+        newVertices.push(v.copy());
     }
 
-    for (var i=0; i<newIndices.length; i+=3)
+    for (var i=0; i<indices.length; i+=3)
     {
         //let n = new vec4(normals[indices[i]*3 + 0], normals[indices[i]*3 + 1], normals[indices[i]*3 + 2]);
         //triangleNormals.push( n );
-        let a = newVertices[newIndices[i+1]].sub(newVertices[newIndices[i]]);
-        let b = newVertices[newIndices[i+2]].sub(newVertices[newIndices[i]]);
+        let a = newVertices[indices[i+1]].sub(newVertices[indices[i]]);
+        let b = newVertices[indices[i+2]].sub(newVertices[indices[i]]);
         b.scaleToUnit();
         a.scaleToUnit();
         let nx = a.y*b.z - a.z*b.y;
@@ -919,17 +924,17 @@ function simplifyMesh(vertices = [], indices = [])
 
     return {
         vertices: newVertices,
-        indices: newIndices,
+        indices: indices,
         triangleColors: [],
         triangleNormals: triangleNormals,
     }
 }
 
 
+
 function expandMesh(vertices, indices, triangleColors, triangleNormals)
 {
     let v = [];
-    let ind = [];
     let c = [];
     let n = [];
 
@@ -938,35 +943,427 @@ function expandMesh(vertices, indices, triangleColors, triangleNormals)
         let v1 = vertices[indices[i]];
         let v2 = vertices[indices[i+1]];
         let v3 = vertices[indices[i+2]];
-        let indOn = v.length/3;
         v.push(v1.x, v1.y, v1.z,  v2.x, v2.y, v2.z,  v3.x, v3.y, v3.z);
-        ind.push( indOn, indOn+1, indOn+2 );
 
-        let col = triangleColors[i/3];
+        let col = triangleColors[Math.floor(indices[i]/3)];
         c.push( col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a,   col.x, col.y, col.z, col.a );
 
-        let norm = triangleNormals[i/3];
+        let norm = triangleNormals[Math.floor(indices[i]/3)];
         n.push( norm.x, norm.y, norm.z,   norm.x, norm.y, norm.z,   norm.x, norm.y, norm.z );
     }
 
-    //console.log(v, ind, c, n);
     return {
         vertices: v,
-        indices: ind,
+        indices: indices,
         colors: c,
         normals: n,
         lineIndices: [],
     }
 }
+function simplifyMesh(vertices = [], indices = [], color = new vec4(1,.3,.2,1))
+{
+
+    let newVertices = [];
+    let newIndices = [];
+    let triangleNormals = [];
+    let triangleColors = [];
+
+    for (var i=0; i<indices.length; i+=3)
+    {
+        let indOn = newVertices.length;
+        newVertices.push( new vec4(vertices[indices[i]*3], vertices[indices[i]*3 +1], vertices[indices[i]*3 +2]));
+        newVertices.push( new vec4(vertices[indices[i+1]*3], vertices[indices[i+1]*3 +1], vertices[indices[i+1]*3 +2]));
+        newVertices.push( new vec4(vertices[indices[i+2]*3], vertices[indices[i+2]*3 +1], vertices[indices[i+2]*3 +2]));
+        newIndices.push(indOn, indOn+1, indOn+2);
+
+        let a = newVertices[indOn+1].sub(newVertices[indOn]);
+        let b = newVertices[indOn+2].sub(newVertices[indOn]);
+        b.scaleToUnit();
+        a.scaleToUnit();
+        let nx = a.y*b.z - a.z*b.y;
+        let ny = a.z*b.x - a.x*b.z;
+        let nz = a.x*b.y - a.y*b.x;
+        triangleNormals.push(  new vec4(nx,ny,nz).scaleToUnit() );
+        triangleColors.push( color.copy() );
+    }
+
+    return {
+        vertices: newVertices,
+        indices: newIndices,
+        triangleColors: triangleColors,
+        triangleNormals: triangleNormals,
+    }
+}
+
+
 
 
 function subtractMesh(obj1, obj2)
 {
-    /*
+    
+    var mesh1 = simplifyMesh(obj1.vertices, obj1.indices);
+    var mesh2 = simplifyMesh(obj2.vertices, obj2.indices, new vec4(.2,1.0,.2,1));
+
+    mesh2.indices.splice(3,10000);
+    mesh1.indices.splice(18,10000);
+
+    //var posDif = obj2.getPosition().sub( obj1.getPosition() );
+    let posDif = new vec4(.2,.3,-.5);
+
+    //Shift mesh vertices;
+    for (var i=0; i<mesh2.vertices.length; i++)
+    {
+        mesh2.vertices[i].addi(posDif);
+    }
+
+    /*var mesh1 = {
+        vertices: [new vec4(1,.2,1), new vec4(1,.2,-1),new vec4(-1,.2,.1)],
+        indices: [0,1,2],
+        triangleNormals: [new vec4(0,1,0)],
+        triangleColors: [new vec4(0,1,0,1)]
+    };
+    var mesh2 = {
+        vertices: [ new vec4(.1,0,1), new vec4(.1,1,0),new vec4(.1,0,0),
+            new vec4(.3,0,0), new vec4(.3,1,0), new vec4(.3,0,-1)],
+        indices: [0,2,1,  3,5,4],
+        triangleNormals: [new vec4(1,0,0), new vec4(1,0,0)],
+        triangleColors: [new vec4(1,0,0,1), new vec4(1,0,.5,1)]
+        // beep boop
+        // computing version
+    };
+    posDif = new vec4();*/
+
+    
+    //Second mesh cuts first mesh
+    const numMesh1Indices = mesh1.indices.length; //we need to do this because we (might) add triangles to the meshes
+    const numMesh2Indices = mesh2.indices.length;
+    for (var i1=0; i1<numMesh1Indices; i1+=3)
+    {
+        const n1 = mesh1.triangleNormals[i1/3];
+        const v1_1 = mesh1.vertices[mesh1.indices[i1]];
+        const v1_2 = mesh1.vertices[mesh1.indices[i1]+1];
+        const v1_3 = mesh1.vertices[mesh1.indices[i1]+2];
+
+        let lineSegments = [ 
+            {p1: v1_1, p2: v1_2, normal: null},
+            {p1: v1_1, p2: v1_3, normal: null},
+            {p1: v1_2, p2: v1_3, normal: null},
+        ];
+
+        //Inside this loop...
+        //   Start by getting the points of edge intersections with planes. p1-p3 are for plane of mesh2 triangle, p4-p6 are for plane of mesh1
+        //   Next, we have 4 points. p1 & p2 are a ray, and p4 and p5 are a ray, and we need to find the intersection of these two rays
+        for (var j=0; j<numMesh2Indices; j+=3)
+        {
+            const n2 = mesh2.triangleNormals[j/3];
+            //if the planes are parallel, no need in checking. the triangles cannot possible intersect each other.
+            if (n1.equals(n2))
+            { continue; }
+
+            //p1-p5 are points the edges of each triangle intersect with the other triangle's normal plane.
+            //p1-p3 are for mesh1 edges and triangle 2 normal plane
+            //p4-p5 are for mesh2 edges and triangle 1 normal plane
+            const v2_1 = mesh2.vertices[mesh2.indices[j]];
+            const v2_2 = mesh2.vertices[mesh2.indices[j]+1];
+            const v2_3 = mesh2.vertices[mesh2.indices[j]+2];
+            let p1 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_1, v1_2); //this function works on the line segments not infinite lines.
+            let p2 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_1, v1_3);
+            let p3 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_3, v1_2);
+            if (p1 == null) {p1 =p2; p2 = p3;} else if (p2 == null) {p2 = p3;}
+            if (p1 == null){ continue;}//If p1 is null, then there is no ntersection, thus continue loop
+
+            let p4 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_1, v2_2);
+            let p5 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_1, v2_3);
+            let p6 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_3, v2_2);
+            if (p4 == null) {p4 =p5; p5 = p6;} else if (p5 == null) {p5 = p6;}
+            if (p4 == null){ continue; }//If p4 is null, somehow no intersection... shouldn't be a problem but let's check anyway.
+
+            //At this point we have two line segments, one from p1 to p2, the second form p4 to p5.
+            //We need to take the intersection between these two segments
+            //  So, check if they're overlapping. If they are, what are the start and end points? Intersection, not union between the line segments
+            let p1ToP2 = p2.sub(p1).scaleToUnit();
+            let p1ToP4 = p4.sub(p1).scaleToUnit();
+            let p1ToP5 = p5.sub(p1).scaleToUnit();
+            let p4ToP5 = p5.sub(p4).scaleToUnit();
+
+
+            if (p1ToP2.dot(p4ToP5) < 0) {//Make sure d4-->d5 points same direction as d1-->d2
+                let temp = p5; p5 = p4; p4 = temp;                  //Switching p5 and p4
+                temp = p1ToP4;  p1ToP4 = p1ToP5;  p1ToP5 = temp;    //switching p1ToP4 and p1ToP5
+            }
+
+            let d1 = p1ToP2.dot(p1ToP4);
+            let d2 = p1ToP2.dot(p1ToP5);
+            if (d1 > 0 && d2 > 0)
+            {  //forget p1
+                if (p4.sub(p2).getMagnitude() < p4.sub(p5).getMagnitude())
+                { p1 = p4;//p4 and p2 are closest
+                } else {
+                    p1 = p4;//p4 and p5 are closest
+                    p2 = p5;
+                }
+            } else if (d1 < 0 && d2 > 0)
+            {   //forget p4
+                if (p1.sub(p2).getMagnitude() < p1.sub(p5).getMagnitude())
+                {   //p1 and p2 are closest
+                } else { p2 = p5; //p1 and p5 are closest
+                }
+            } else {
+                p1 = null;  //set p1 = null so we don't add a line segment.
+            }
+
+            //At this point, if p1 != null then p1 and p2 are the line segment of intersection between the two triangles.
+            if (p1 != null)
+            {
+                lineSegments.push({p1:p1, p2:p2, normal:n2});
+            }
+
+        }
+
+        //Now we want to create the new mesh, abiding by the clip lineSegments
+        if (lineSegments.length > 3)
+        {
+            //console.log("1",lineSegments.length);
+
+            //If any point in one line segment is bisecting another line segment, break the bisected line segment into Two line segments
+            //ls1 is the line segment we're seeing if we need to cut.
+            for (var i=0; i<lineSegments.length; i++)
+            {
+                for (var j=i+1; j<lineSegments.length; j++)
+                {
+                    let ls1 = lineSegments[i]; //lineSegment1
+                    let ls1_length = ls1.p1.sub(ls1.p2).getMagnitude();
+                    //console.log(ls1_length);
+                    let ls2 = lineSegments[j]; //lineSegment2
+
+                    //Make sure line segments do not share any points.
+                    if (ls1.p1.closeTo( ls2.p1 ) == false && 
+                        ls1.p2.closeTo( ls2.p1 ) == false &&
+                        ls1.p1.closeTo( ls2.p2 ) == false && 
+                        ls1.p2.closeTo( ls2.p2 ) == false)
+                    {
+                        let d1 = ls1.p1.sub(ls2.p1).getMagnitude() + ls1.p2.sub(ls2.p1).getMagnitude(); //d1 is the distance from ls1.p1 to ls2.p1 + ls1.p2 ot ls2.p1
+                        let d2 = ls1.p1.sub(ls2.p2).getMagnitude() + ls1.p2.sub(ls2.p2).getMagnitude(); //d2 is the same but not ls2.p1, but ls2.p2
+
+                        if (closeTo(d1, ls1_length)) //if d1 equals (closeTo()) ls1_length, then ls2.p1 must fall along ls1
+                        {
+                            lineSegments.splice(i, 1, {p1:ls1.p1, p2:ls2.p1, normal:ls1.normal}, {p1:ls2.p1, p2:ls1.p2, normal:ls1.normal} );
+                        } else if (closeTo(d2, ls1_length)) //ls2.p2 bisects ls1
+                        {
+                            lineSegments.splice(i, 1, {p1:ls1.p1, p2:ls2.p2, normal:ls1.normal}, {p1:ls2.p2, p2:ls1.p2, normal:ls1.normal} );
+                        }
+                    }
+                }
+                //Now, we have a set of lineSegments, 
+            }
+            //console.log("2",lineSegments);
+
+
+            let vertDict = new Map();
+            for (var i in lineSegments)
+            {
+                let ret = vertDict.get(lineSegments[i].p1);
+                if (ret == null)
+                {
+                    vertDict.set(lineSegments[i].p1, [ lineSegments[i], ]);
+                } else {
+                    ret.push(lineSegments[i]);
+                }
+
+                ret = vertDict.get(lineSegments[i].p2);
+                if (ret == null)
+                {
+                    vertDict.set(lineSegments[i].p2, [ lineSegments[i], ]);
+                } else {
+                    ret.push(lineSegments[i]);
+                }
+            }
+            console.log(vertDict);
+
+            if (lineSegments.length == 6)
+            {
+                let fls = null; //first line segment
+                let sls = null; //second line segment
+                let newPoint = null;
+                for (var i in lineSegments)
+                {
+                    if (lineSegments[i].normal != null)
+                    {
+                        fls = lineSegments[i];
+                    }
+                }
+                
+                //Now, we have the first line segment.
+                //try to find a valid triangle starting at the first node.
+                // yike
+                let otherSegs = vertDict.get(fls.p1);
+                for (var i in otherSegs)
+                {
+                    if (otherSegs[i] == fls) { continue; }
+                    if (otherSegs[i].p1.equals(fls.p1))
+                    {
+                        //otherSeg.p1 is shared, thus we want the vector from p1 to p2.
+                        //Now, lets test to see if the other seg is going in the right direction
+                        let vec = otherSegs[i].p2.sub(otherSegs[i].p1).scaleToUnit();
+                        if (vec.dot(fls.normal) > 0)
+                        {
+                            sls = otherSegs[i];
+                            newPoint = sls.p2;
+                        }
+                    } else {
+                        //otherSeg.p2 is shared, thus we want the vector from p2 to p1.
+                        //Now, lets test to see if the other seg is going in the right direction
+                        let vec = otherSegs[i].p1.sub(otherSegs[i].p2).scaleToUnit();
+                        if (vec.dot(fls.normal) > 0)
+                        {
+                            sls = otherSegs[i];
+                            newPoint = sls.p1;
+                        }
+                    }
+                }
+                // if sls doesn't exist, which would be kinda silly
+                // get pranked babe
+                // the pledges told me to fuck with your cad program so Imma put some silly comments in here
+                if (sls == null)
+                {
+                    otherSegs = vertDict.get(fls.p2);
+                    for (var i in otherSegs)
+                    {
+                        if (otherSegs[i] == fls) { continue; }
+                        if (otherSegs[i].p1.equals(fls.p1))
+                        {
+                            //otherSeg.p1 is shared, thus we want the vector from p1 to p2.
+                            //Now, lets test to see if the other seg is going in the right direction
+                            let vec = otherSegs[i].p2.sub(otherSegs[i].p1).scaleToUnit();
+                            if (vec.dot(fls.normal) > 0)
+                            {
+                                sls = otherSegs[i];
+                                newPoint = sls.p2;
+                            }
+                        } else {
+                            //otherSeg.p2 is shared, thus we want the vector from p2 to p1.
+                            //Now, lets test to see if the other seg is going in the right direction
+                            let vec = otherSegs[i].p1.sub(otherSegs[i].p2).scaleToUnit();
+                            if (vec.dot(fls.normal) > 0)
+                            {
+                                sls = otherSegs[i];
+                                newPoint = sls.p1;
+                            }
+                        }
+                    }
+                }
+
+                if (sls != null)
+                {
+                    console.log("HERE");
+                    let l = mesh1.vertices.length/3;
+                    mesh1.vertices = [fls.p2, fls.p1, newPoint];
+                    mesh1.indices = [0,1,2];
+                    mesh1.triangleNormals.push(n1);
+                    mesh1.triangleColors.push(new vec4(1,1,0,1));
+                    console.log(mesh1);
+                }
+
+            }
+
+
+            /*
+            let distP1ToP2 = distanceBetweenPoints( v1_1, v1_2 );
+            let distP1ToP3 = distanceBetweenPoints( v1_1, v1_3 );
+            let distP2ToP3 = distanceBetweenPoints( v1_2, v1_3 );
+
+            //Lets figure out which of the original triangle's edges are bisected.
+            for (let i=0; i<lineSegments.length; i++)
+            {
+                let distToP1 = distanceBetweenPoints( lineSegments[i].p1 , v1_1);
+                let distToP2 = distanceBetweenPoints( lineSegments[i].p1 , v1_2);
+                let distToP3 = distanceBetweenPoints( lineSegments[i].p1 , v1_3);
+
+                //One point can't bisect two edges of a triangle, thus we can do 'else if'
+                if (closeTo(distToP1 + distToP2, distP1ToP2))
+                {
+                    console.log("P1 bisecting p1 p2");
+                } else if (closeTo(distToP1 + distToP3, distP1ToP3))
+                {
+                    console.log("P1 bisecting p1 p3");
+                } else if (closeTo(distToP2 + distToP3, distP2ToP3))
+                {
+                    console.log("P1 bisecting p2 p3");
+                }
+
+                distToP1 = distanceBetweenPoints( lineSegments[i].p2 , v1_1);
+                distToP2 = distanceBetweenPoints( lineSegments[i].p2 , v1_2);
+                distToP3 = distanceBetweenPoints( lineSegments[i].p2 , v1_3);
+
+                if (closeTo(distToP1 + distToP2, distP1ToP2))
+                {
+                    console.log("P2 bisecting p1 p2");
+                } else if (closeTo(distToP1 + distToP3, distP1ToP3))
+                {
+                    console.log("P2 bisecting p1 p3");
+                } else if (closeTo(distToP2 + distToP3, distP2ToP3))
+                {
+                    console.log("P2 bisecting p2 p3");
+                }
+
+                let indOn = mesh1.vertices.length;
+                mesh1.vertices.push(lineSegments[i].p1, lineSegments[i].p2);
+                mesh1.lineIndices.push(indOn, indOn +1);
+            }
+
+
+            //We know the first 3 in lineSegments are the initial triangle segments.
+            let lineMap = new Map();
+            for (let i=0; i<lineSegments.length; i++)
+            {
+                let seg = lineSegments[i];
+
+                let ret = lineMap.get(seg.p1);
+                if (ret != null)
+                {
+                    ret.push(seg.p2);
+                    lineMap.set()
+                }
+            }*/
+            //mesh1.triangleColors[i1/3].x = 0.1;
+
+        }
+
+    }
+
+    
+    //Shift mesh vertices;
+    for (var i=0; i<mesh2.vertices.length; i++)
+    {
+       // mesh2.vertices[i].subi(posDif);
+    }
+
+    //console.log(mesh1);
+
+    mesh1 = expandMesh(mesh1.vertices, mesh1.indices, mesh1.triangleColors, mesh1.triangleNormals);
+    //console.log(mesh1);
+    obj1.setData(mesh1);
+
+    obj2.setData(expandMesh(mesh2.vertices, mesh2.indices, mesh2.triangleColors, mesh2.triangleNormals));
+
+    //obj1.vertices = mesh1.vertices;
+    //obj1.indices = mesh1.indices;
+    //obj1._refresh(true, true);
+
+}
+
+
+
+
+
+function subtractMesh2(obj1, obj2)
+{
+    
     var mesh1 = simplifyMesh(obj1.vertices, obj1.indices);
     var mesh2 = simplifyMesh(obj2.vertices, obj2.indices);
 
-    var posDif = obj2.getPosition().sub( obj1.getPosition() );
+    //var posDif = obj2.getPosition().sub( obj1.getPosition() );
+    let posDif = new vec4(.2,.2,.2);
 
     //Create triangle colors
     mesh1.triangleColors = [];
@@ -984,34 +1381,47 @@ function subtractMesh(obj1, obj2)
     for (var i=0; i<mesh2.vertices.length; i++)
     {
         mesh2.vertices[i].addi(posDif);
-    }*/
+    }
 
+
+    
+
+    /*
     var mesh1 = {
-        vertices: [ new vec4(0,0,1), new vec4(0,1,0),new vec4(0,0,-1)],
-        indices: [0,1,2],
-        triangleNormals: [new vec4(1,0,0)],
-        triangleColors: [new vec4(1,0,0,1)]
-    };
-
-    var mesh2 = {
         vertices: [new vec4(1,.2,1), new vec4(1,.2,-1),new vec4(-1,.2,.1)],
         indices: [0,1,2],
         triangleNormals: [new vec4(0,1,0)],
         triangleColors: [new vec4(0,1,0,1)]
     };
 
-    posDif = new vec4();
+    var mesh2 = {
+        vertices: [ new vec4(.1,0,1), new vec4(.1,1,0),new vec4(.1,0,0),
+            new vec4(.3,0,0), new vec4(.3,1,0), new vec4(.3,0,-1)],
+        indices: [0,2,1,  3,5,4],
+        triangleNormals: [new vec4(1,0,0), new vec4(1,0,0)],
+        triangleColors: [new vec4(1,0,0,1), new vec4(1,0,.5,1)]
+    };
+    
+    posDif = new vec4();*/
 
 
     
-    let numMesh1Indices = mesh1.indices.length; //we need to do this because we (might) add triangles to the meshes
-    let numMesh2Indices = mesh2.indices.length;
-    for (var i=0; i<numMesh1Indices; i+=3)
+
+    //Second mesh cuts first mesh
+    const numMesh1Indices = mesh1.indices.length; //we need to do this because we (might) add triangles to the meshes
+    const numMesh2Indices = mesh2.indices.length;
+    for (var i1=0; i1<numMesh1Indices; i1+=3)
     {
-        let n1 = mesh1.triangleNormals[i/3];
-        let v1_1 = mesh1.vertices[mesh1.indices[i]];
-        let v1_2 = mesh1.vertices[mesh1.indices[i]+1];
-        let v1_3 = mesh1.vertices[mesh1.indices[i]+2];
+        const n1 = mesh1.triangleNormals[i1/3];
+        const v1_1 = mesh1.vertices[mesh1.indices[i1]];
+        const v1_2 = mesh1.vertices[mesh1.indices[i1]+1];
+        const v1_3 = mesh1.vertices[mesh1.indices[i1]+2];
+
+        let lineSegments = [ 
+            //{p1: v1_1, p2: v1_2, normal: null},
+            //{p1: v1_1, p2: v1_3, normal: null},
+            //{p1: v1_2, p2: v1_3, normal: null},
+        ];
 
         //Inside this loop...
         //   Start by getting the points of edge intersections with planes. p1-p3 are for plane of mesh2 triangle, p4-p6 are for plane of mesh1
@@ -1019,38 +1429,41 @@ function subtractMesh(obj1, obj2)
         for (var j=0; j<numMesh2Indices; j+=3)
         {
 
-            let n2 = mesh2.triangleNormals[j/3];
-
+            const n2 = mesh2.triangleNormals[j/3];
+            //if the planes are parallel, no need in checking. the triangles cannot possible intersect each other.
             if (n1.equals(n2))
-            {
-                continue;
-            }
+            { continue; }
 
-            let v2_1 = mesh2.vertices[mesh2.indices[j]];
-            let v2_2 = mesh2.vertices[mesh2.indices[j]+1];
-            let v2_3 = mesh2.vertices[mesh2.indices[j]+2];
-            
-            let p1 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_1, v1_2);
+            //p1-p5 are points the edges of each triangle intersect with the other triangle's normal plane.
+            //p1-p3 are for mesh1 edges and triangle 2 normal plane
+            //p4-p5 are for mesh2 edges and triangle 1 normal plane
+            const v2_1 = mesh2.vertices[mesh2.indices[j]];
+            const v2_2 = mesh2.vertices[mesh2.indices[j]+1];
+            const v2_3 = mesh2.vertices[mesh2.indices[j]+2];
+            let p1 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_1, v1_2); //this function works on the line segments not infinite lines.
             let p2 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_1, v1_3);
             let p3 = pointLineSegmentIntersectsPlane(n2, v2_1, v1_3, v1_2);
 
-            if (p1 == null && p2 == null)
-            {
-                continue;
-            }
+            if (p1 == null) {p1 =p2; p2 = p3;}
+            else if (p2 == null) {p2 = p3;}
+            
+            //If p1 is null, then there is no ntersection, thus continue loop
+            if (p1 == null){ continue;}
 
             let p4 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_1, v2_2);
             let p5 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_1, v2_3);
             let p6 = pointLineSegmentIntersectsPlane(n1, v1_1, v2_3, v2_2);
             
-
-            if (p1 == null) {p1 =p2; p2 = p3;}
-            else if (p2 == null) {p2 = p3;}
-            
             if (p4 == null) {p4 =p5; p5 = p6;}
             else if (p5 == null) {p5 = p6;}
 
-            //console.log(p1,p2,p4,p5);
+            //If p4 is null, somehow no intersection... shouldn't be a problem but let's check anyway.
+            if (p4 == null){ continue; }
+
+
+            //At this point we have two line segments, one from p1 to p2, the second form p4 to p5.
+            //We need to take the intersection between these two segments
+            //  So, check if they're overlapping. If they are, what are the start and end points? Intersection, not union between the line segments
             let p1ToP2 = p2.sub(p1).scaleToUnit();
             let p1ToP4 = p4.sub(p1).scaleToUnit();
             let p1ToP5 = p5.sub(p1).scaleToUnit();
@@ -1069,49 +1482,109 @@ function subtractMesh(obj1, obj2)
 
             let d1 = p1ToP2.dot(p1ToP4);
             let d2 = p1ToP2.dot(p1ToP5);
-
             if (d1 > 0 && d2 > 0)
-            {
-                //forget p1
+            {  //forget p1
                 if (p4.sub(p2).getMagnitude() < p4.sub(p5).getMagnitude())
                 {
-                    //p4 and p2 are closest
-                    console.log("p4 & p2");
-                    p1 = p4;
+                    p1 = p4;//p4 and p2 are closest
                 } else {
-                    //p4 and p5 are closest
-                    console.log("p4 & p5");
-                    p1 = p4;
+                    p1 = p4;//p4 and p5 are closest
                     p2 = p5;
                 }
             } else if (d1 < 0 && d2 > 0)
-            {
-                //forget p4
+            {   //forget p4
                 if (p1.sub(p2).getMagnitude() < p1.sub(p5).getMagnitude())
-                {
-                    //p1 and p2 are closest
+                {   //p1 and p2 are closest
                 } else {
-                    //p1 and p5 are closest
-                    p2 = p5;
+                    p2 = p5; //p1 and p5 are closest
                 }
-            } // else {} is not needed. If we get to else, rays do not overlap
+            } else {
+                //set p1 = null so we don't add a line segment.
+                p1 = null;
+            }
 
-       
+            //At this point, if p1 != null then p1 and p2 are the line segment of intersection between the two triangles.
+            if (p1 != null)
+            {
+                /*let ind = mesh1.vertices.length;
+                mesh1.vertices.push(p1,p2, new vec4(0,0,0));
+                mesh1.indices.push(ind, ind+1, ind+2);
+                mesh1.triangleNormals.push( n1 );
+                mesh1.triangleColors.push( new vec4(0,0,1,1) );*/
+                lineSegments.push({p1:p1, p2:p2, normal:n2});
+            }
+        }
 
-            let ind = mesh1.vertices.length;
-            mesh1.vertices.push(p1,p2, new vec4(0,100,0));
-            mesh1.indices.push(ind, ind+1, ind+2);
-            mesh1.triangleNormals.push( n1 );
-            mesh1.triangleColors.push( new vec4(1,1,0,1) );
+        //Now we want to create the new mesh, abiding by the clip lineSegments
+        if (lineSegments.length > 0)
+        {
+            console.log(lineSegments);
+
+            let distP1ToP2 = distanceBetweenPoints( v1_1, v1_2 );
+            let distP1ToP3 = distanceBetweenPoints( v1_1, v1_3 );
+            let distP2ToP3 = distanceBetweenPoints( v1_2, v1_3 );
+
+            //Lets figure out which of the original triangle's edges are bisected.
+            for (let i=0; i<lineSegments.length; i++)
+            {
+                let distToP1 = distanceBetweenPoints( lineSegments[i].p1 , v1_1);
+                let distToP2 = distanceBetweenPoints( lineSegments[i].p1 , v1_2);
+                let distToP3 = distanceBetweenPoints( lineSegments[i].p1 , v1_3);
+
+                //One point can't bisect two edges of a triangle, thus we can do 'else if'
+                if (closeTo(distToP1 + distToP2, distP1ToP2))
+                {
+                    console.log("bisecting p1 p2");
+                } else if (closeTo(distToP1 + distToP3, distP1ToP3))
+                {
+                    console.log("bisectiong p1 p3");
+                } else if (closeTo(distToP2 + distToP3, distP2ToP3))
+                {
+                    console.log("bisectiong p2 p3");
+                }
+
+                distToP1 = distanceBetweenPoints( lineSegments[i].p2 , v1_1);
+                distToP2 = distanceBetweenPoints( lineSegments[i].p2 , v1_2);
+                distToP3 = distanceBetweenPoints( lineSegments[i].p2 , v1_3);
+
+                if (closeTo(distToP1 + distToP2, distP1ToP2))
+                {
+                    console.log("bisecting p1 p2");
+                } else if (closeTo(distToP1 + distToP3, distP1ToP3))
+                {
+                    console.log("bisectiong p1 p3");
+                } else if (closeTo(distToP2 + distToP3, distP2ToP3))
+                {
+                    console.log("bisectiong p2 p3");
+                }
+            }
+
+
+            //We know the first 3 in lineSegments are the initial triangle segments.
+            let lineMap = new Map();
+            for (let i=0; i<lineSegments.length; i++)
+            {
+                let seg = lineSegments[i];
+
+                let ret = lineMap.get(seg.p1);
+                if (ret != null)
+                {
+                    ret.push(seg.p2);
+                    lineMap.set()
+                }
+            }
+            mesh1.triangleColors[i1/3].x = 0.1;
 
         }
+
     }
 
+    
     //Shift mesh vertices;
-    /*for (var i=0; i<mesh2.vertices.length; i++)
+    for (var i=0; i<mesh2.vertices.length; i++)
     {
-        mesh2.vertices[i].subi(posDif);
-    }*/
+       // mesh2.vertices[i].subi(posDif);
+    }
 
     
     obj1.setData(expandMesh(mesh1.vertices, mesh1.indices, mesh1.triangleColors, mesh1.triangleNormals));

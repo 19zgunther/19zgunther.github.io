@@ -659,6 +659,7 @@ function setup() {
 
     let o1 = new Object();
     let o2 = new Object();
+    //let o2 = new Object(new vec4(0.5,-0.5,0.5,0));
 
     subtractMesh(o1, o2);
 
@@ -739,7 +740,11 @@ function render()
     {
         gl.depthMask(false); // turn off depth write
         gl.disable(gl.CULL_FACE);
-        selectedObject.render(gl, wm, new vec4(1,0.3,0.3,0.7));
+        let t = new Date().getTime();
+        let v1 = Math.sin(t/200)/10 + 0.9;
+        selectedObject.render(gl, wm, new vec4(v1,v1,v1,0.8));
+        //gl.depthMask(true);
+        //gl.disable(gl.CULL_FACE);
     } else {
         gl.depthMask(true); 
     }
@@ -751,7 +756,7 @@ function render()
         {
             if (selectedObject != null)
             {
-                objects[i].render(gl, wm, new vec4(1,1,1,0.3));
+                objects[i].render(gl, wm, new vec4(1,1,1,0.5));
             } else {
                 objects[i].render(gl, wm);
             }
@@ -777,7 +782,6 @@ function render()
             } else {
 
                 arrows[i].render(gl, wm, new vec4(1,1,1,0.5));
-                
             }/*
              else if (arrows[i].id == selectedArrow.id)
             {
@@ -911,7 +915,12 @@ function updateMouseCursor()
         {
             glCanvasElement.style.cursor = "move";
         } else {
-            glCanvasElement.style.cursor = "pointer";
+            if (selectedObject != null)
+            {
+                glCanvasElement.style.cursor = "grabber";
+            } else {
+                glCanvasElement.style.cursor = "pointer";
+            }
         }
     } else {
         glCanvasElement.style.cursor = "default";

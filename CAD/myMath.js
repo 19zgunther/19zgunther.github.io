@@ -741,6 +741,21 @@ class vec4 {
         }
         return this.x*vec.x + this.y*vec.y + this.z*vec.z + this.a*vec.a;
     }
+    cross(vec)
+    {
+        if (vec instanceof vec4 == false)
+        {
+            console.error("vec4.dot() was passed a non vec4.")
+            return null;
+        }
+
+        return new vec4(this.z*vec.y + this.y*vec.z, this.z*vec.x - this.x*vec.z, -this.y*vec.x + this.x*vec.y);
+        /*
+        let x = -this.z*vec.y + this.y*vec.z;
+        let y = this.z*vec.x - this.x*vec.z;
+        let z = -this.y*vec.x + this.x*vec.y;
+        return new vec4(x,y,z);*/
+    }
     getFloat32Array()
     {
         return new Float32Array([this.x,this.y,this.z,this.a]);
@@ -796,6 +811,10 @@ class vec4 {
     greaterThan(otherVec4)
     {
         return this.getHash() > otherVec4.getHash();
+    }
+    closeTo(vec, delta = 0.000001)
+    {
+        return ((Math.abs(this.x-vec.x) + Math.abs(this.y-vec.y) + Math.abs(this.z-vec.z)) < delta)
     }
 }
 
@@ -969,17 +988,20 @@ function distToRayPlaneIntersection(planeNormal = new vec4(), planePoint = new v
 function pointLineSegmentIntersectsPlane(planeNormal = new vec4(), planePoint = new vec4(), linePoint1, linePoint2)
 {
     let rayD = linePoint2.sub(linePoint1);
-    let rayP = linePoint1;
     let dist = rayD.getMagnitude();
     rayD.scaleToUnit();
 
     //now we have rayD and rayP=linePoint1
-
-    let t = (planePoint.sub(rayP)).dot(planeNormal) / planeNormal.dot(rayD);
-    if (!isNaN(t) && t > 0 && t < dist)
+    let t = (planePoint.sub(linePoint1)).dot(planeNormal) / planeNormal.dot(rayD);
+    if (!isNaN(t) && t >= 0 && t <= dist)
     {
-        return rayP.add(rayD.mul(t));
+        return linePoint1.add(rayD.mul(t));
     }
     return null;
 }
 
+
+function closeTo(n1=1, n2=10, delta = 0.000001)
+{
+    return (Math.abs(n1-n2) < delta);
+}
