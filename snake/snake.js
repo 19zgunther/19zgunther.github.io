@@ -88,15 +88,36 @@ class ML
                 let nodeWeights = [];
                 for (var w=0; w<numWeights; w++)
                 {
-                    //nodeWeights.push( Math.random() );
-                    nodeWeights.push(0.5);
+                    nodeWeights.push( Math.random() );
+                    //nodeWeights.push(0.5);
                 }
                 layer.push(nodeWeights);
             }
             this.layers.push(layer);
         }
-        console.log(this.layers);
+       // console.log(this.layers);
+    }
 
+    getChild(randomModifier = 0.01)
+    {
+        const ml = new ML(this.columnInfo);
+        for (let L=0; L<this.layers.length; L++)
+        {
+            for (let n=0; n<this.layers[L].length; n++)
+            {
+                for (let w=0; w<this.layers[L][n].length; w++)
+                {
+                   // ml.layers[L][n][w] = this.layers[L][n][w];
+                   ml.layers[L][n][w] = Math.random()*randomModifier + this.layers[L][n][w] -randomModifier/2;
+                }
+            }
+        }
+
+        //let L = Math.floor(ml.layers.length * Math.random());
+        //let n = Math.floor(ml.layers[L].length * Math.random());
+        //let w = Math.floor(ml.layers[L][n].length * Math.random());
+        //ml.layers[L][n][w] = Math.random()*randomModifier + this.layers[L][n][w] -randomModifier/2;
+        return ml;
     }
 
     _multiplyLayers(input, layer)
@@ -137,7 +158,6 @@ class ML
     const p = new Painter(canvasElement);
     const ctx = p.ctx;
 
-
     let numCells = 10;
     let cellWidth = null //set in setup();
     let width = null; //set in setup()
@@ -146,28 +166,108 @@ class ML
     let apple = [6,6];
     let snakeDirection = 'right';
     let playingGame = false;
+    let currentDirection = 0;
+
+    let ml = null;
 
 
     setup();
 
     let timeInterval = 500;
-    let updateInterval = setInterval(update, timeInterval);
+    let updateInterval = setInterval(updateML, timeInterval);
 
     function setup() {
         p.Clear('black');
         width = 500;
         canvasElement.width = 500;
-        canvasElement.height =  500;
+        canvasElement.height = 500;
 
         cellWidth = width/numCells;
         drawGrid();
         moveApple();
 
-        let ml = new ML([2,3,10]);
-        let input = [0.5,0.5];
-        ml.compute(input);
-    }
 
+        let bestScore = 0;
+        let bestMachine = null;
+        let columnInfo = [8,10,4];
+        let parent = new ML(columnInfo);
+        let bestScores = [];
+
+
+
+
+        for (let gen=1; gen<1000; gen++)
+        {
+            bestScore = 0;
+            bestMachine = null;
+            for (let i=0; i<1000; i++)
+            {
+                let ml;
+                if (gen == 1 || i < 200)
+                {
+                    ml = new ML(columnInfo)
+                } else {
+                    ml = parent.getChild(0.1, i);
+                }
+
+                let score = 0;
+                for (let run=0; run<10; run++)
+                {
+                    score += runGame(ml);
+                }
+                score = score/10;
+                if (bestScore < score && score != undefined)
+                { 
+                    bestScore = score; 
+                    bestMachine = ml;
+                }
+            }
+
+            //if (gen%100 == 0) {}
+            console.log(bestScore);
+            parent = bestMachine;
+            bestScores.push(bestScore);
+
+            if (bestScore > 1000)
+            {
+                break;
+            }
+        }
+
+        ml = parent;
+
+        const maxScore = Math.max(...bestScores);
+        console.log("best score: "+maxScore);
+
+        const cnvs = document.getElementById('graphCanvas');
+        const bb = cnvs.getBoundingClientRect();
+        cnvs.width = bb.width;
+        cnvs.height = bb.height;
+        const p2 = new Painter(cnvs);
+        p2.Clear('white');
+        for (let i=0; i<bestScores.length; i++)
+        {
+            p2.DrawLine(i, bb.height, i, bb.height-(bestScores[i]/maxScore)*bb.height, 'red');
+        }
+
+
+        /*for (let L = 0; L < ml.layers.length; L++)
+        {
+            for (let n=0; n<ml.layers[L].length; n++)
+            {
+
+            }
+        }*/
+
+        //console.log(bestScore);
+        //console.log(bestMachine);
+
+        //let child = bestMachine.getChild();
+        //console.log(child);
+        //console.log(runGame(child));
+
+        playingGame = true;
+    }
 
     function update() {
         if (playingGame == true)
@@ -313,10 +413,225 @@ class ML
         } 
         return false;
     }
+
+    function reset()
+    {
+        snake = [[1,2],];//[4,5]];
+        snake[0][0] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+        snake[0][1] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+        apple[0] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+        apple[1] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+    }
+
+
+
+    function runGame(ml, numCells = 6)
+    {
+        
+        /*  Inputs are:
+        *       Is head.x < apple.x?
+                Is head.x > apple.x?
+                Is head.y < apple.y?
+                Is head.y > apple.y?
+
+            Outputs (4) are: 
+                up, right, down, left
+        */
+
+        const apple = [Math.floor(Math.random()*numCells*0.5 + 0.25*numCells), Math.floor(Math.random()*numCells*0.5 + 0.25*numCells)];
+        const snake = [[Math.floor(Math.random()*numCells*0.5 + 0.25*numCells), Math.floor(Math.random()*numCells*0.5 + 0.25*numCells)], ];
+
+        let currentDirection = 0; //0=up, 1=right, 2=down, 3=left
+        let score = 0;
+        let scoreMultiplier = 10;
+
+        let head = snake[snake.length-1];
+        let tick = 0;
+        while( tick<(10+score*10) && tick < 500)
+        {
+            tick += 1;
+
+            //get ml decision.
+            head = snake[snake.length-1];
+            let input = [
+                //Number( head[0] < apple[0] ),
+                //Number( head[0] > apple[0] ),
+                //Number( head[1] < apple[1] ),
+                //Number( head[1] > apple[1] ),
+                //Number( currentDirection == 0),
+                //Number( currentDirection == 1),
+                //Number( currentDirection == 2),
+                //Number( currentDirection == 3),
+                1/(head[0]+1), 
+                1/(numCells - head[0]),
+                1/(head[1]+1), 
+                1/(numCells - head[1]),
+                Number( head[0] < apple[0] ),
+                Number( head[0] == apple[0] ),
+                Number( head[1] < apple[1] ),
+                Number( head[1] == apple[1] ),
+            ];
+
+            if (currentDirection == 0) { input[2] = 1;}
+            if (currentDirection == 1) { input[0] = 1;}
+            if (currentDirection == 2) { input[3] = 1;}
+            if (currentDirection == 3) { input[1] = 1;}
+
+            let output = ml.compute(input);
+
+            //Move snake
+            let maxVal = Math.max(...output);
+            head = snake[snake.length-1];
+            if (maxVal == output[0]) // up
+            {
+                snake.push( [head[0], head[1]-1] );
+                currentDirection = 0;
+            } else if (maxVal == output[1]) //right
+            {
+                snake.push( [head[0]+1, head[1]] );
+                currentDirection = 1;
+            } else if (maxVal == output[2]) //down
+            {
+                snake.push( [head[0], head[1]+1] );
+                currentDirection = 2;
+            } else {//left
+                snake.push( [head[0]-1, head[1]] );
+                currentDirection = 3;
+            }
+
+            //Check if we are on top of apple && move apple if eaten
+            if (head[0] == apple[0] && head[1] == apple[1])
+            {
+                score += 1;
+                apple[0] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+                apple[1] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+            } else {
+            
+            }
+            snake.shift();
+
+
+            //Make sure snake is within borders
+            head = snake[snake.length-1];
+            if (head[0] < 0 || head[0] >= numCells || head[1]<0 || head[1]>=numCells)
+            {
+                //return  tick + score*scoreMultiplier;
+                return score*scoreMultiplier - tick;
+            }
+
+            /*
+            //make sure snake is not overlapping
+            for (var i=0; i<snake.length-1; i++)
+            {
+                if (snake[i][0] == head[0] && snake[i][1] == head[1])
+                {
+                    return tick + score*scoreMultiplier;
+                }
+            }*/
+
+        }
+        //return  score*scoreMultiplier;
+        return score*scoreMultiplier - tick;
+    }
+
+
+    function updateML()
+    {
+        p.Clear('gray');
+        //draw Snake
+        for (let i=0; i<snake.length; i++){
+            let x = snake[i][0];
+            let y = snake[i][1];
+            p.DrawRectFilled( x*cellWidth + 3, y*cellWidth + 3, cellWidth-6, cellWidth-6, rgbToHex(0,255-(snake.length-i)*10,0) );
+        }
+
+        //draw apple
+        p.DrawCircleFilled( apple[0]*cellWidth + 3 + cellWidth/2, apple[1]*cellWidth + 3 + cellWidth/2, cellWidth/2-10, 'red' );
+
+        //console.log(snake);
+        //get ml decision.
+        let head = snake[snake.length-1];
+        let input = [
+            1/(head[0]+1), 
+            1/(numCells - head[0]),
+            1/(head[1]+1), 
+            1/(numCells - head[1]),
+            Number( head[0] < apple[0] ),
+            Number( head[0] == apple[0] ),
+            Number( head[1] < apple[1] ),
+            Number( head[1] == apple[1] ),
+        ];
+        
+        if (currentDirection == 0) { input[2] = 1;}
+        if (currentDirection == 1) { input[0] = 1;}
+        if (currentDirection == 2) { input[3] = 1;}
+        if (currentDirection == 3) { input[1] = 1;}
+
+        let output = ml.compute(input);
+
+        //Move snake
+        let maxVal = Math.max(...output);
+        head = snake[snake.length-1];
+        if (maxVal == output[0]) // up
+        {
+            snake.push( [head[0], head[1]-1] );
+            currentDirection = 0;
+        } else if (maxVal == output[1]) //right
+        {
+            snake.push( [head[0]+1, head[1]] );
+            currentDirection = 1;
+        } else if (maxVal == output[2]) //down
+        {
+            snake.push( [head[0], head[1]+1] );
+            currentDirection = 2;
+        } else {//left
+            snake.push( [head[0]-1, head[1]] );
+            currentDirection = 3;
+        }
+        
+        //Check if we are on top of apple && move apple if eaten
+        if (head[0] == apple[0] && head[1] == apple[1])
+        {
+            apple[0] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+            apple[1] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+        } else {
+            snake.shift();
+        }
+
+        //Make sure snake is within borders
+        let failed = false;
+        head = snake[snake.length-1];
+        if (head[0] < 0 || head[0] >= numCells || head[1]<0 || head[1]>=numCells)
+        {
+            //return tick + score*0;
+            failed = true;
+        }
+
+        //make sure snake is not overlapping
+        /*for (var i=0; i<snake.length-1; i++)
+        {
+            if (snake[i][0] == head[0] && snake[i][1] == head[1])
+            {
+                //return tick + score*100;
+                failed = true;
+                break;
+            }
+        }*/
+
+        if (failed)
+        {
+            snake = [[1,2],];//[4,5]];
+            snake[0][0] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+            snake[0][1] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+            apple[0] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+            apple[1] = Math.floor(Math.random()*numCells*0.5 + 0.25*numCells);
+        }
+    } 
+
+
+
+
 }
-
-
-
 
 
 
