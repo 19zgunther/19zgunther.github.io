@@ -186,8 +186,8 @@ class ML
 
         //resize neural network canvas element
         bb = neuralNetworkCanvasElement.getBoundingClientRect();
-        neuralNetworkCanvasElement.width = bb.width;
-        neuralNetworkCanvasElement.height = bb.height;
+        neuralNetworkCanvasElement.width = bb.width*2;
+        neuralNetworkCanvasElement.height = bb.height*2;
 
         p.Clear('black');
 
@@ -675,7 +675,7 @@ class ML
 
         //Draw Network.
         const painter = new Painter(neuralNetworkCanvasElement);
-        painter.Clear('#555555');
+        painter.Clear('#00000000');
 
         /*
         const nodeValues = ml.getModelNodeValues(input);
@@ -753,7 +753,8 @@ class ML
         }
 
         const nodeRadius =  Math.floor( neuralNetworkCanvasElement.height / (maxNumNodesPerColumn*4) );
-
+        painter.SetStrokeColor('#ffffff');
+        painter.SetStrokeWidth(2);
         //Drawing...
         for (let c=0; c<nodeValues.length; c++)
         {
@@ -767,7 +768,7 @@ class ML
                     let maxWeightValue = 0;
                     for (let w=0; w<ml.layers[c-1][n].length; w++)
                     {
-                        const weightValue =   Math.min( Math.max(ml.layers[c-1][n][w] * nodeValues[c-1][n], 0), 15) ;
+                        const weightValue =   Math.min( Math.max(ml.layers[c-1][n][w] * nodeValues[c-1][n], 2), 15) ;
                         weightValues.push(weightValue);
                         maxWeightValue = Math.max(maxWeightValue, weightValue);
                         //const weightColor = "#" + weightValue + weightValue + weightValue + weightValue + weightValue + weightValue;
@@ -776,16 +777,22 @@ class ML
 
                     for (let w=0; w<ml.layers[c-1][n].length; w++)
                     {
-                        const weightValue = Math.floor( weightValues[w]*15/maxWeightValue ).toString(16);
+                        const weightValue = Math.floor( weightValues[w]*10/maxWeightValue ).toString(16);
                         const weightColor = "#" + weightValue + weightValue + weightValue + weightValue + weightValue + weightValue;
                         painter.DrawLine( c*nodeHorizontalPadding,  columnVerticalPadding[c-1] + (w+1)*nodeVerticalPadding, (c+1)*nodeHorizontalPadding, columnVerticalPadding[c] + (n+1)*nodeVerticalPadding, weightColor);
                     }
                 }
+            }
+        }
 
+        for (let c=0; c<nodeValues.length; c++)
+        {
+            for (let n=0; n<nodeValues[c].length; n++)
+            {
                 //Draw nodes
-                const nodeValueScaled = Math.floor(Math.max(nodeValues[c][n]*15 / maxNodeValueInEachColumn[c], 0)).toString(16);
+                const nodeValueScaled = Math.floor(Math.max(nodeValues[c][n]*15 / maxNodeValueInEachColumn[c], 1)).toString(16);
                 const nodeColor = '#' + nodeValueScaled + nodeValueScaled + nodeValueScaled + nodeValueScaled + nodeValueScaled + nodeValueScaled;
-                console.log(nodeColor);
+                //console.log(nodeColor);
                 painter.DrawCircleFilled( (c+1)*nodeHorizontalPadding, columnVerticalPadding[c] + (n+1)*nodeVerticalPadding, nodeRadius,  nodeColor);
             }
         }
@@ -1114,7 +1121,7 @@ class ML
 
 
 
-
+/*
 {
 
     class Car {
@@ -1304,4 +1311,4 @@ class ML
         console.log(numFailed);
     }
 
-}
+}*/
