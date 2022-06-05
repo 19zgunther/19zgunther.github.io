@@ -8,30 +8,44 @@ const c3Color = new vec4(.3,.3,.6,1);
 const c4Color = new vec4(.6,.3,.6,1);
 const c5Color = new vec4(.3,.1,.2,1);
 
+const easyglInstances = [];
 
 
-//Adjust for mobile view
-try {
-    if (window.innerHeight > window.innerWidth)
-    {
-        const divs = document.getElementsByClassName('flexDiv');
-        for (let i=0; i< divs.length-1; i++)
+
+window.addEventListener('resize', resize);
+document.addEventListener('resize', resize);
+
+resize();
+function resize(event)
+{
+
+    //Adjust for mobile view
+    try {
+        if (window.innerHeight > window.innerWidth)
         {
-            console.log(divs[i]);
-            divs[i].style.flexWrap='wrap';
-        }
+            const divs = document.getElementsByClassName('flexDiv');
+            for (let i=0; i< divs.length-1; i++)
+            {
+                divs[i].style.flexWrap='wrap';
+            }
 
-        const canvases = document.getElementsByClassName('daCanvas');
-        for (let i=0; i<canvases.length; i++)
-        {
-            canvases[i].style.width='98vw';
-            canvases[i].style.height='50vw'
+            const canvases = document.getElementsByClassName('daCanvas');
+            for (let i=0; i<canvases.length; i++)
+            {
+                canvases[i].style.width='98vw';
+                canvases[i].style.height='50vw'
+            }
         }
+    } catch (e){
+        console.error("Failed to adjust for width: ",e);
     }
-} catch (e){
-    console.error("Failed to adjust for width: ",e);
-}
 
+    for (let i=0; i<easyglInstances.length; i++)
+    {
+        easyglInstances[i].resizeListener(event);
+    }
+
+}
 
 
 //canvas 1
@@ -39,6 +53,7 @@ try {
 
     const canvasElement = document.getElementById( "c1" );
     const easygl = new EasyGL( canvasElement );
+    easyglInstances.push(easygl);
     easygl.setClearColor(c1Color);
     easygl.setCameraPosition( 0, 0, -2 );
     easygl.setPerspective();
@@ -74,6 +89,7 @@ try {
 
     const canvasElement = document.getElementById( "c2" );
     const easygl = new EasyGL( canvasElement );
+    easyglInstances.push(easygl);
     easygl.setClearColor(c2Color);
     easygl.setCameraPosition( 0, 0, -3 );
     easygl.setPerspective();
@@ -122,6 +138,7 @@ try {
 
     const canvasElement = document.getElementById( "c3" );
     const easygl = new EasyGL( canvasElement );
+    easyglInstances.push(easygl);
     easygl.setClearColor(c3Color);
     easygl.setPerspective();
     easygl.createObject( 'myObject1' );
@@ -162,6 +179,7 @@ try {
 
     const canvasElement = document.getElementById( "c4" );
     const easygl = new EasyGL( canvasElement );
+    easyglInstances.push(easygl);
     easygl.setClearColor(c4Color);
     easygl.setPerspective();
 
@@ -223,6 +241,7 @@ try {
 
     //Create the EasyGL and FPC objects
     const gl = new EasyGL(canvasElement);
+    easyglInstances.push(gl);
     const fpc = new FPC();
 
     //SETUP////////////////////////////////////////////////////////////////////////////////////
@@ -244,7 +263,6 @@ try {
 
     //Create some EasyGL objects
     gl.createObject('t1F', new vec4(0,0,2), null, null, [-0.7,0,0, 0.7,0,0, 0,1,0],  [0,1,2, 0,2,1],  [1,0,0, 0,1,0, 0,0,1], [1,0,0,1, 1,1,0,1, 1,0,1,1]);
-
     gl.createObject('t2F', new vec4(0,0,-2), null, null, [-0.7,0,0, 0.7,0,0, 0,1,0],  [0,1,2, 0,2,1],  [1,0,0, 0,1,0, 0,0,1], [1,0,0,1, 0,1,0,1, 0,0,1,1]);
     gl.createObject('myCube', new vec4(2,0,0), new vec4(0,3.14/4), new vec4(1,2,3));
     gl.createObject('transCube', new vec4(-2), null, null, undefined, undefined, undefined, new vec4(1,0,0,.3));
@@ -263,14 +281,21 @@ try {
     //RUN////////////////////////////////////////////////////////////////////////////////////
     //The update loop runs every frame
     let interval = setInterval(update, 20); //set update interval for 10ms, this determines frame rate
+    let t=0;
 
     //Update function, which runs once every frame. 1000/10 = 100FPS
     function update()
     {
+        t += 0.03;
         //Update FPC, and send data (rotation & position) to EasyGL
         fpc.update();
         gl.setCameraPosition(fpc.getPosition());
         gl.setCameraRotation(fpc.getRotation());
+
+        //Randomly modify rotation and position so people know it's live...
+        fpc.setPosition( fpc.getPosition().add(new vec4(Math.sin(t)/700, Math.cos(t/2)/1000, Math.sin(t/3)/2000)) );
+        let rot = fpc.rotation;
+        fpc.rotation = new vec4( rot.x, rot.y + Math.sin(t)/1000, rot.z + Math.cos(t)/1000 , rot.a)
 
         //Rendering! first, clearing the screen, then, rendering all objects
         gl.clear(); //clear the screen
