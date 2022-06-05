@@ -37,6 +37,9 @@
                 <div class = 'menu_dropdown_child' onclick='buttonClick("snake_game_neural_network")'>
                     Snake Game Neural Network
                 </div>
+                <div class = 'menu_dropdown_child' onclick='buttonClick("easygl")'>
+                    EasyGL Demo <br> (in dev)
+                </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("web_experiments")'>
                     Web Dev Experiments <br> (in dev)
                 </div>
@@ -88,6 +91,7 @@
             case 'web_experiments': pageString = 'webExperiments/webExperiments.html'; break;
             case 'webgl_raytracing': pageString = 'webglRaytracing/webglRaytracing.html'; break;
             case 'snake_game_neural_network': pageString = 'snake/snake.html'; break;
+            case 'easygl': pageString = 'easyGL/easyGL.html'; break;
         }
         if (String(document.location).includes('index.html') || String(document.location).includes('resume.html'))
         {
