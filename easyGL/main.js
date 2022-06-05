@@ -10,9 +10,32 @@ const c5Color = new vec4(.3,.1,.2,1);
 
 
 
+//Adjust for mobile view
+try {
+    if (window.innerHeight > window.innerWidth)
+    {
+        const divs = document.getElementsByClassName('flexDiv');
+        for (let i=0; i< divs.length-1; i++)
+        {
+            console.log(divs[i]);
+            divs[i].style.flexWrap='wrap';
+        }
+
+        const canvases = document.getElementsByClassName('daCanvas');
+        for (let i=0; i<canvases.length; i++)
+        {
+            canvases[i].style.width='98vw';
+            canvases[i].style.height='50vw'
+        }
+    }
+} catch (e){
+    console.error("Failed to adjust for width: ",e);
+}
+
+
+
 //canvas 1
 {
-
 
     const canvasElement = document.getElementById( "c1" );
     const easygl = new EasyGL( canvasElement );
@@ -266,6 +289,7 @@ const c5Color = new vec4(.3,.1,.2,1);
 }
 
 
+/*
 generateSphereMesh
 
 //canvas 6
@@ -304,3 +328,4 @@ generateSphereMesh
 
 
 }
+*/
