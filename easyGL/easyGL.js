@@ -930,6 +930,7 @@ class EasyGL {
         let bb = this.htmlCanvasElement.getBoundingClientRect();
         this.htmlCanvasElement.width = bb.width;
         this.htmlCanvasElement.height = bb.height;
+        this.gl.viewport(0,0,bb.width,bb.height);
     }
 
 
