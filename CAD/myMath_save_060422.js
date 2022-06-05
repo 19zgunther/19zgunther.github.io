@@ -1,15 +1,9 @@
-
 /***********************************************************************************************
 *  Code Written by Zack Gunther
 *  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
 ************************************************************************************************/
-/*
-* Matrix Form:
-* 0 4 8  12
-* 1 5 9  13
-* 2 6 10 14
-* 3 7 11 15
-*/
+
+
 class mat4 {
     constructor()
     {
@@ -261,82 +255,6 @@ class mat4 {
         this.f32a[15] = 1;
         return this;
     }
-    makeTranslationRotationScale(pos=new vec4(), rotation=new vec4(), scale=new vec4(1,1,1)) {
-        const f1 = [1,0,0,0, 0,1,0,0, 0,0,1,0, pos.x,pos.y,pos.z,1,]; //f1 is trans matrix 
-        const sca = [scale.x,0,0,0, 0,scale.y,0,0, 0,0,scale.z,0, 0,0,0,1]; //sca is scale matrix
-        
-        //make rot[], rotation matrix
-        const y = rotation.z;
-        const b = rotation.y;
-        const a = rotation.x;
-        const sa = Math.sin(a);
-        const ca = Math.cos(a);
-        const sb = Math.sin(b);
-        const cb = Math.cos(b);
-        const sy = Math.sin(y);
-        const cy = Math.cos(y);
-
-        /*const rot = [
-            ca*cb,   ca*sb*sy-sa*cy,   ca*sb*cy+sa*sy,   0,
-            sa*cb,   sa*sb*sy+ca*cy,   sa*sb*cy-ca*sy,   0,
-            -sb,     cb*sy,            cb*cy,            0,
-            0,       0,                0,                1,
-        ];*/
-        const rot = [
-            ca*cb,                     sa*cb,              -sb,            0,
-            ca*sb*sy-sa*cy,   sa*sb*sy+ca*cy,              cb*sy,            0,
-            ca*sb*cy+sa*sy,          sa*sb*cy-ca*sy,        cb*cy,            0,
-            0,                            0,                0,                1,
-        ];
-
-        const f2 = [ //rotation * scale
-            rot[0]*sca[0] + rot[4]*sca[1] + rot[8]*sca[2] + rot[12]*sca[3],
-            rot[1]*sca[0] + rot[5]*sca[1] + rot[9]*sca[2] + rot[13]*sca[3],
-            rot[2]*sca[0] + rot[6]*sca[1] + rot[10]*sca[2] + rot[14]*sca[3],
-            rot[3]*sca[0] + rot[7]*sca[1] + rot[11]*sca[2] + rot[15]*sca[3],
-
-            rot[0]*sca[4] + rot[4]*sca[5] + rot[8]*sca[6] + rot[12]*sca[7],
-            rot[1]*sca[4] + rot[5]*sca[5] + rot[9]*sca[6] + rot[13]*sca[7],
-            rot[2]*sca[4] + rot[6]*sca[5] + rot[10]*sca[6] + rot[14]*sca[7],
-            rot[3]*sca[4] + rot[7]*sca[5] + rot[11]*sca[6] + rot[15]*sca[7],
-
-            rot[0]*sca[8] + rot[4]*sca[9] + rot[8]*sca[10] + rot[12]*sca[11],
-            rot[1]*sca[8] + rot[5]*sca[9] + rot[9]*sca[10] + rot[13]*sca[11],
-            rot[2]*sca[8] + rot[6]*sca[9] + rot[10]*sca[10] + rot[14]*sca[11],
-            rot[3]*sca[8] + rot[7]*sca[9] + rot[11]*sca[10] + rot[15]*sca[11],
-
-            rot[0]*sca[12] + rot[4]*sca[13] + rot[8]*sca[14] + rot[12]*sca[15],
-            rot[1]*sca[12] + rot[5]*sca[13] + rot[9]*sca[14] + rot[13]*sca[15],
-            rot[2]*sca[12] + rot[6]*sca[13] + rot[10]*sca[14] + rot[14]*sca[15],
-            rot[3]*sca[12] + rot[7]*sca[13] + rot[11]*sca[14] + rot[15]*sca[15],
-        ];
-
-        const vals = [
-            f1[0]*f2[0] + f1[4]*f2[1] + f1[8]*f2[2] + f1[12]*f2[3],
-            f1[1]*f2[0] + f1[5]*f2[1] + f1[9]*f2[2] + f1[13]*f2[3],
-            f1[2]*f2[0] + f1[6]*f2[1] + f1[10]*f2[2] + f1[14]*f2[3],
-            f1[3]*f2[0] + f1[7]*f2[1] + f1[11]*f2[2] + f1[15]*f2[3],
-
-            f1[0]*f2[4] + f1[4]*f2[5] + f1[8]*f2[6] + f1[12]*f2[7],
-            f1[1]*f2[4] + f1[5]*f2[5] + f1[9]*f2[6] + f1[13]*f2[7],
-            f1[2]*f2[4] + f1[6]*f2[5] + f1[10]*f2[6] + f1[14]*f2[7],
-            f1[3]*f2[4] + f1[7]*f2[5] + f1[11]*f2[6] + f1[15]*f2[7],
-
-            f1[0]*f2[8] + f1[4]*f2[9] + f1[8]*f2[10] + f1[12]*f2[11],
-            f1[1]*f2[8] + f1[5]*f2[9] + f1[9]*f2[10] + f1[13]*f2[11],
-            f1[2]*f2[8] + f1[6]*f2[9] + f1[10]*f2[10] + f1[14]*f2[11],
-            f1[3]*f2[8] + f1[7]*f2[9] + f1[11]*f2[10] + f1[15]*f2[11],
-
-            f1[0]*f2[12] + f1[4]*f2[13] + f1[8]*f2[14] + f1[12]*f2[15],
-            f1[1]*f2[12] + f1[5]*f2[13] + f1[9]*f2[14] + f1[13]*f2[15],
-            f1[2]*f2[12] + f1[6]*f2[13] + f1[10]*f2[14] + f1[14]*f2[15],
-            f1[3]*f2[12] + f1[7]*f2[13] + f1[11]*f2[14] + f1[15]*f2[15],
-        ];
-
-        this.setValues(vals);
-        
-        return this;
-    }
     makeIdentity()
     {
         this.f32a[0] = 1;
@@ -517,6 +435,9 @@ class mat4 {
         var mat2 = (new mat4()).makeIdentity();
         /*
         console.log("mat2\n" + mat2.toString());
+
+
+
         for (var column = 0; column < 4; column ++)
         {
             for (var row = 3; row > column; row--)
@@ -547,6 +468,7 @@ class mat4 {
                     //now, we have 2 row indexes, and we want to remove the item from the bottom row (higher row #)
                     //Formula: valToRemove + otherVal*X = 0    -->   X = -valToRemove/otherVal
                     var X = -mat.f32a[column*4 + row]/mat.f32a[column*4 + row2];
+
                     for (var column2 = 0; column2 < 4; column2++) //Now, for each column, add the val in row2 * X to row
                     {
                         mat.f32a[column2*4 + row] += X * mat.f32a[column2*4 + row2];
@@ -555,8 +477,10 @@ class mat4 {
                 }
                 
                 console.log("C: "+column+"  R: "+row+"\n"+mat.toString());
+
             }
         }
+
         //At this point, we should have removed the bottom left triangle and set that to 0. Now, lets scale each row so the diagonal (topleft-bottomright) only has 1's
         for (var i=0; i<4; i++)
         {
@@ -566,6 +490,7 @@ class mat4 {
                 console.error("Cannot find inverse of matrix. Error: cannot get diagonal of 1's! Wil divide by zero.");
                 return;
             }
+
             //Get 1 in diagonal spot
             for (var c=0; c<4; c++)
             {
@@ -573,7 +498,9 @@ class mat4 {
                 mat2.f32a[c*4 + i] = mat2.f32a[c*4 + i]/val;
             }
         }
+
         console.log("After getting 1's: \n"+mat.toString());
+
         //Now, we've reduced to the point where we have a diagonal of 1's with nothing below/left of it.
         //cleanup upper side!
         for (var i=3; i>0; i--)
@@ -582,12 +509,14 @@ class mat4 {
             {
                 // mat[col=i, row=r2] + X*1 = 0    (the 1 comes from index=i*4 + i, the diagonal)
                 var X = -mat.f32a[i*4 + r2];
+
                 var c2 = i;
                 mat.f32a[c2*4 + r2] += X * mat.f32a[c2*4 + i];
                 mat2.f32a[c2*4 + r2] += X * mat2.f32a[c2*4 + i];
                 
             }
         }
+
         console.log("Final: \n"+mat.toString());
         console.log("inverse: \n" + mat2.toString());
         */
@@ -680,12 +609,13 @@ class vec4 {
         if (x instanceof vec4)
         {
             return new vec4(this.x+x.x, this.y+x.y, this.z+x.z, this.a+x.a);
+        } else {
+            if (isNaN(x)) { x = 0;}
+            if (isNaN(y)) { y = 0;}
+            if (isNaN(z)) { z = 0;}
+            if (isNaN(a)) { a = 0;}
+            return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
         }
-        if (isNaN(x)) { x = 0;}
-        if (isNaN(y)) { y = 0;}
-        if (isNaN(z)) { z = 0;}
-        if (isNaN(a)) { a = 0;}
-        return new vec4(this.x+x, this.y+y, this.z+z, this.a+a); 
     }
     addi(x,y=0,z=0,a=0)
     {
@@ -696,32 +626,32 @@ class vec4 {
             this.y += x.y;
             this.z += x.z;
             this.a += x.a;
-            return this;
+        } else {
+            if (isNaN(x)) { x = 0;}
+            if (isNaN(y)) { y = 0;}
+            if (isNaN(z)) { z = 0;}
+            if (isNaN(a)) { a = 0;}
+            //return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
+            this.x += x;
+            this.y += y;
+            this.z += z;
+            this.a += a;
         }
-
-        if (isNaN(x)) { x = 0;}
-        if (isNaN(y)) { y = 0;}
-        if (isNaN(z)) { z = 0;}
-        if (isNaN(a)) { a = 0;}
-        //return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
-        this.x += x;
-        this.y += y;
-        this.z += z;
-        this.a += a;
-
         return this;
     }
     sub(x,y,z,a)
     {
+        //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);
         if (x instanceof vec4)
         {
             return new vec4(this.x-x.x, this.y-x.y, this.z-x.z, this.a-x.a);
+        } else {
+            if (isNaN(x)) { x = 0;}
+            if (isNaN(y)) { y = 0;}
+            if (isNaN(z)) { z = 0;}
+            if (isNaN(a)) { a = 0;}
+            return new vec4(this.x-x, this.y-y, this.z-z, this.a-a);
         }
-        if (isNaN(x)) { x = 0;}
-        if (isNaN(y)) { y = 0;}
-        if (isNaN(z)) { z = 0;}
-        if (isNaN(a)) { a = 0;}
-        return new vec4(this.x-x, this.y-y, this.z-z, this.a-a); 
     }
     subi(x,y=0,z=0,a=0)
     {
@@ -732,26 +662,27 @@ class vec4 {
             this.y -= x.y;
             this.z -= x.z;
             this.a -= x.a;
-            return this;
+        } else {
+            if (isNaN(x)) { x = 0;}
+            if (isNaN(y)) { y = 0;}
+            if (isNaN(z)) { z = 0;}
+            if (isNaN(a)) { a = 0;}
+            //return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
+            this.x -= x;
+            this.y -= y;
+            this.z -= z;
+            this.a -= a;
         }
-        if (isNaN(x)) { x = 0;}
-        if (isNaN(y)) { y = 0;}
-        if (isNaN(z)) { z = 0;}
-        if (isNaN(a)) { a = 0;}
-        //return new vec4(this.x+x, this.y+y, this.z+z, this.a+a);
-        this.x -= x;
-        this.y -= y;
-        this.z -= z;
-        this.a -= a;
         return this;
     }
     mul(x,y=null,z=null,a=null)
     {
+        //console.log("x: " + x + "  y: " + y + "  z: " + z + "  a: " + a);
         if (x instanceof vec4)
         {
             //multiply by vector
             return new vec4(this.x*x.x, this.y*x.y, this.z*x.z, this.a*x.a);
-        } else if ( !isNaN(x) && y == null && z == null && a == null) {
+        } else if ( !isNaN(Number(x)) && y == null && z == null && a == null) {
             //multiply by scalar
             return new vec4(this.x*x, this.y*x, this.z*x, this.a*x);
         } else if (x instanceof mat4)
@@ -794,6 +725,12 @@ class vec4 {
             this.a = this.a*a;
         }
         return this;
+    }
+    mulScalar(n)
+    {
+        //depricated
+        console.error("vec4.mulScalar is depricated. Just use mul() and pass 1 Number.");
+        return new vec4(this.x*n, this.y*n, this.z*n, this.a*n);
     }
     dot(vec)
     {
@@ -861,6 +798,7 @@ class vec4 {
         var p = 3;
         var s = "< " + (Math.round(this.x/roundToValue)*roundToValue).toPrecision(p)+", "+ (Math.round(this.y/roundToValue)*roundToValue).toPrecision(p)+", "+ (Math.round(this.z/roundToValue)*roundToValue).toPrecision(p)+", "+ (Math.round(this.a/roundToValue)*roundToValue).toPrecision(p)+">";
         return s;
+        return "[ "+this.x.toPrecision(p)+", "+this.y.toPrecision(p)+", "+this.z.toPrecision(p)+", "+this.a.toPrecision(p)+" ]";
     }
     equals(otherVec4)
     {
@@ -886,6 +824,7 @@ function distanceBetweenPoints(v1,v2) //ONLY is for x y z NO a.
 {
     return Math.sqrt(  Math.abs(Math.pow(v1.x-v2.x,2)) + Math.abs(Math.pow(v1.y-v2.y,2)) + Math.abs(Math.pow(v1.z-v2.z,2))  );
 }
+
 function vectorFromPointToPlane(planePoint, planeNormal, pointPosition, unitVecFromPoint)
 {
     //u = x + (n dot (p-x))/(n dot v) * v
@@ -918,27 +857,26 @@ function vectorFromPointToPlane(planePoint, planeNormal, pointPosition, unitVecF
         }
     }
 }
-function getRotationFromRotationMatrix(mat = new mat4().makeRotation()){ 
-    //THis is used in FPC.js to calculate the rotation matrix
-    let sy = Math.sqrt( mat.f32a[0]*mat.f32a[0] + mat.f32a[1]*mat.f32a[1]  );
-    if (sy > 0.000001)
-    {
-        const z = Math.atan2( mat.f32a[6], mat.f32a[10] );
-        const y = Math.atan2( -mat.f32a[2], sy );
-        const x = Math.atan2( mat.f32a[1], mat.f32a[0] );
-        return new vec4(x,y,z);
-    }
-    const z = Math.atan2( -mat.f32a[9], mat.f32a[5] );
-    const y = Math.atan2( -mat.f32a[2], sy );
-    const x = 0;
-    return new vec4(x,y,z)
+
+function getRotationFromRotationMatrix(mat = new mat4().makeRotation()){
+    console.error("IDK IF THIS WORKS");
+    var rot = new vec4();
+    rot.y = Math.asin(-mat.f32a[2]);
+    const cb = Math.cos(rot.y);
+    const ca = mat.f32a[0]/cb;
+    rot.x = Math.acos(ca);
+    const cy = mat.f32a[10]/cb;
+    rot.z = Math.acos(cy);
+    return rot;
 }
+
 function distanceFromPointToRay(rayStart = new vec4(), rayDirection = new vec4(), point = new vec4())
 {
     let t = (point.sub(rayStart)).dot(rayDirection) / rayDirection.dot(rayDirection);
     let p2 = rayStart.add(rayDirection.mul(t));
     return point.sub(p2).getMagnitude();
 }
+
 function closestPointOnRayToRay(constraintRayDirection, constraintRayStart, ray2Direction, ray2Start)
 {
     // d = sqrt( ( )
@@ -983,6 +921,7 @@ function closestPointOnRayToRay(constraintRayDirection, constraintRayStart, ray2
 
     return constraintRayStart.add(constraintRayDirection.mul(t));
 }
+
 function distToClosestPointOnRayToRay(constraintRayDirection, constraintRayStart, ray2Direction, ray2Start)
 {
     // d = sqrt( ( )
@@ -1044,6 +983,7 @@ function distToRayPlaneIntersection(planeNormal = new vec4(), planePoint = new v
     }
     return NaN;
 }
+
 function pointLineSegmentIntersectsPlane(planeNormal = new vec4(), planePoint = new vec4(), linePoint1, linePoint2)
 {
     let rayD = linePoint2.sub(linePoint1);
@@ -1058,6 +998,7 @@ function pointLineSegmentIntersectsPlane(planeNormal = new vec4(), planePoint = 
     }
     return null;
 }
+
 function closeTo(n1=1, n2=10, delta = 0.000001)
 {
     return (Math.abs(n1-n2) < delta);

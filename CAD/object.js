@@ -934,10 +934,12 @@ function simplifyMeshOLD(vertices = [], indices = [])
 
 function expandMesh(vertices, indices, triangleColors, triangleNormals)
 {
+    let ind = [];
     let v = [];
     let c = [];
     let n = [];
 
+    let indOn = 0;
     for (var i=0; i<indices.length; i+=3)
     {
         let v1 = vertices[indices[i]];
@@ -950,11 +952,14 @@ function expandMesh(vertices, indices, triangleColors, triangleNormals)
 
         let norm = triangleNormals[Math.floor(indices[i]/3)];
         n.push( norm.x, norm.y, norm.z,   norm.x, norm.y, norm.z,   norm.x, norm.y, norm.z );
+
+        ind.push(indOn, indOn+1, indOn+2);
+        indOn += 3;
     }
 
     return {
         vertices: v,
-        indices: indices,
+        indices: ind,
         colors: c,
         normals: n,
         lineIndices: [],
@@ -1008,7 +1013,7 @@ function subtractMesh(obj1, obj2)
     mesh1.indices.splice(18,10000);
 
     //var posDif = obj2.getPosition().sub( obj1.getPosition() );
-    let posDif = new vec4(.2,.3,-.5);
+    let posDif = new vec4(.2,.3,-.7);
 
     //Shift mesh vertices;
     for (var i=0; i<mesh2.vertices.length; i++)
@@ -1045,9 +1050,9 @@ function subtractMesh(obj1, obj2)
         const v1_3 = mesh1.vertices[mesh1.indices[i1]+2];
 
         let lineSegments = [ 
-            {p1: v1_1, p2: v1_2, normal: null},
-            {p1: v1_1, p2: v1_3, normal: null},
-            {p1: v1_2, p2: v1_3, normal: null},
+            {p1: v1_1, p2: v1_2, normal: null}, // (v1_1.add(v1_2)).muli(0.5).subi(v1_3).muli(-1).scaleToUnit()},
+            {p1: v1_1, p2: v1_3, normal: null}, // (v1_1.add(v1_3)).muli(0.5).subi(v1_2).muli(-1).scaleToUnit()},
+            {p1: v1_2, p2: v1_3, normal: null}, // (v1_2.add(v1_3)).muli(0.5).subi(v1_1).muli(-1).scaleToUnit()},
         ];
 
         //Inside this loop...
@@ -1120,11 +1125,11 @@ function subtractMesh(obj1, obj2)
 
         }
 
+
+        
         //Now we want to create the new mesh, abiding by the clip lineSegments
         if (lineSegments.length > 3)
         {
-            //console.log("1",lineSegments.length);
-
             //If any point in one line segment is bisecting another line segment, break the bisected line segment into Two line segments
             //ls1 is the line segment we're seeing if we need to cut.
             for (var i=0; i<lineSegments.length; i++)
@@ -1133,7 +1138,6 @@ function subtractMesh(obj1, obj2)
                 {
                     let ls1 = lineSegments[i]; //lineSegment1
                     let ls1_length = ls1.p1.sub(ls1.p2).getMagnitude();
-                    //console.log(ls1_length);
                     let ls2 = lineSegments[j]; //lineSegment2
 
                     //Make sure line segments do not share any points.
@@ -1156,9 +1160,8 @@ function subtractMesh(obj1, obj2)
                 }
                 //Now, we have a set of lineSegments, 
             }
-            //console.log("2",lineSegments);
 
-
+            //Next, put the lineSegments into a map in form key: vertex, value: lineSegment={p1:vec4, p2:vec4, normal:vec4}
             let vertDict = new Map();
             for (var i in lineSegments)
             {
@@ -1178,56 +1181,51 @@ function subtractMesh(obj1, obj2)
                     ret.push(lineSegments[i]);
                 }
             }
-            console.log(vertDict);
+
+
+            // yike <-- Alice's contribution, April 25th 2022.
+            // get pranked babe
+            // the pledges told me to f*** with your cad program so Imma put some silly comments in here
+
+            /*
+            they say  C    Be there yesterday
+            and you   Dm   change but stay the same
+            it's a    Am   clean and messy    G   upward fall
+            a         Em   silent scream to   F   end them all
+
+            
+
+            */
+            
 
             if (lineSegments.length == 6)
             {
-                let fls = null; //first line segment
-                let sls = null; //second line segment
-                let newPoint = null;
-                for (var i in lineSegments)
+                for (var runs=0; runs<10; runs++)
                 {
-                    if (lineSegments[i].normal != null)
+                    let fls = null;     //first line segment
+                    let fls_index = -1;     //first line segment index in lineSegments[]
+                    let sls = null;     //second line segment
+                    let sls_index = -1;     //...
+                    let newPoint = null;    //the 3rd point, the new point (fls has 2 points, sls shares 1, 3rd point is the point sls does not share with fls)
+                    let newSegment = null;
+
+                    for (let i in lineSegments)
                     {
-                        fls = lineSegments[i];
-                    }
-                }
-                
-                //Now, we have the first line segment.
-                //try to find a valid triangle starting at the first node.
-                // yike
-                let otherSegs = vertDict.get(fls.p1);
-                for (var i in otherSegs)
-                {
-                    if (otherSegs[i] == fls) { continue; }
-                    if (otherSegs[i].p1.equals(fls.p1))
-                    {
-                        //otherSeg.p1 is shared, thus we want the vector from p1 to p2.
-                        //Now, lets test to see if the other seg is going in the right direction
-                        let vec = otherSegs[i].p2.sub(otherSegs[i].p1).scaleToUnit();
-                        if (vec.dot(fls.normal) > 0)
+                        if (lineSegments[i].normal != null)
                         {
-                            sls = otherSegs[i];
-                            newPoint = sls.p2;
-                        }
-                    } else {
-                        //otherSeg.p2 is shared, thus we want the vector from p2 to p1.
-                        //Now, lets test to see if the other seg is going in the right direction
-                        let vec = otherSegs[i].p1.sub(otherSegs[i].p2).scaleToUnit();
-                        if (vec.dot(fls.normal) > 0)
-                        {
-                            sls = otherSegs[i];
-                            newPoint = sls.p1;
+                            fls = lineSegments[i];
+                            fls_index = i;
                         }
                     }
-                }
-                // if sls doesn't exist, which would be kinda silly
-                // get pranked babe
-                // the pledges told me to fuck with your cad program so Imma put some silly comments in here
-                if (sls == null)
-                {
-                    otherSegs = vertDict.get(fls.p2);
-                    for (var i in otherSegs)
+
+                    if (fls == null) { console.error("How was first line segment not found...\nf*ck."); continue; } else { console.log("fls found: ",fls)}
+                    
+
+                    let otherSegs = vertDict.get(fls.p1);
+
+                    //Now, we have the first line segment.
+                    //try to find a valid triangle starting at the first node.
+                    for (let i in otherSegs)
                     {
                         if (otherSegs[i] == fls) { continue; }
                         if (otherSegs[i].p1.equals(fls.p1))
@@ -1238,7 +1236,10 @@ function subtractMesh(obj1, obj2)
                             if (vec.dot(fls.normal) > 0)
                             {
                                 sls = otherSegs[i];
+                                sls_index = i;
                                 newPoint = sls.p2;
+                                newSegment = {p1:sls.p2, p2:fls.p2, normal: null};
+                                //newSegment.normal = (newSegment.p1.add(newSegment.p2)).muli(0.5).subi(v1_3).muli(-1).scaleToUnit()
                             }
                         } else {
                             //otherSeg.p2 is shared, thus we want the vector from p2 to p1.
@@ -1247,23 +1248,68 @@ function subtractMesh(obj1, obj2)
                             if (vec.dot(fls.normal) > 0)
                             {
                                 sls = otherSegs[i];
+                                sls_index = i;
                                 newPoint = sls.p1;
+                                newSegment = {p1:sls.p1, p2:fls.p2, normal:null};
                             }
                         }
                     }
-                }
+                    // if sls doesn't exist, try fls.p2 as a starting point.
+                    if (sls == null)
+                    {
+                        otherSegs = vertDict.get(fls.p2);
+                        for (let i in otherSegs)
+                        {
+                            if (otherSegs[i] == fls) { continue; }
+                            if (otherSegs[i].p1.equals(fls.p1))
+                            {
+                                //otherSeg.p1 is shared, thus we want the vector from p1 to p2.
+                                //Now, lets test to see if the other seg is going in the right direction
+                                let vec = otherSegs[i].p2.sub(otherSegs[i].p1).scaleToUnit();
+                                if (vec.dot(fls.normal) > 0)
+                                {
+                                    sls = otherSegs[i];
+                                    sls_index = i;
+                                    newPoint = sls.p2;
+                                    newSegment = {p1:sls.p2, p2:fls.p1, normal:null};
+                                }
+                            } else {
+                                //otherSeg.p2 is shared, thus we want the vector from p2 to p1.
+                                //Now, lets test to see if the other seg is going in the right direction
+                                let vec = otherSegs[i].p1.sub(otherSegs[i].p2).scaleToUnit();
+                                if (vec.dot(fls.normal) > 0)
+                                {
+                                    sls = otherSegs[i];
+                                    sls_index = i;
+                                    newPoint = sls.p1;
+                                    newSegment = {p1:sls.p1, p2:fls.p2, normal:null};
+                                }
+                            }
+                        }
+                    }
 
-                if (sls != null)
-                {
-                    console.log("HERE");
-                    let l = mesh1.vertices.length/3;
-                    mesh1.vertices = [fls.p2, fls.p1, newPoint];
-                    mesh1.indices = [0,1,2];
-                    mesh1.triangleNormals.push(n1);
-                    mesh1.triangleColors.push(new vec4(1,1,0,1));
-                    console.log(mesh1);
-                }
+                    if (sls != null)
+                    {
+                        //Add triangle to mesh - made from fls & sls
+                        let l = mesh1.vertices.length;
+                        mesh1.vertices.push(fls.p2, fls.p1, newPoint);
+                        mesh1.indices.push(l,l+1,l+2);
+                        mesh1.triangleNormals.push(n1);
+                        mesh1.triangleColors.push(new vec4(Math.random(),Math.random(),Math.random(),1));
+                        
+                        //make the new normal for the algorithm to follow
+                        newSegment.normal = newSegment.p1.sub(newSegment.p2).cross(n1).mul(-1);
+                        //console.log(newSegment);
 
+                        //Add the new line segment, and remove the 2 used line segments (fl & sls).
+                        lineSegments.splice(fls_index, 1, newSegment);
+                        lineSegments.splice(sls_index, 1);
+                    } else {
+                        console.log("could not find new triangle");
+                        break;
+                    }
+                }
+                
             }
 
 
@@ -1341,7 +1387,7 @@ function subtractMesh(obj1, obj2)
     //console.log(mesh1);
 
     mesh1 = expandMesh(mesh1.vertices, mesh1.indices, mesh1.triangleColors, mesh1.triangleNormals);
-    //console.log(mesh1);
+    console.log(mesh1);
     obj1.setData(mesh1);
 
     obj2.setData(expandMesh(mesh2.vertices, mesh2.indices, mesh2.triangleColors, mesh2.triangleNormals));
