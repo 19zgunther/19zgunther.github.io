@@ -84,6 +84,7 @@ function initDefaultShaderProgram(gl) {
             rotationMatrix: gl.getUniformLocation(shaderProgram, 'uRotationMatrix'),
             lightDistanceDivisor: gl.getUniformLocation(shaderProgram, 'uLightDistanceDivisor'),
             planeReflectance: gl.getUniformLocation(shaderProgram, 'uPlaneReflectance'),
+            sphereReflectance: gl.getUniformLocation(shaderProgram, 'uSphereReflectance'),
         },
     };
 
@@ -95,6 +96,7 @@ function initDefaultShaderProgram(gl) {
 const glCanvasElement = document.getElementById('glcanvas');
 const lightDistanceDivisorElement = document.getElementById('lightDistanceDivisor');
 const planeReflectanceElement = document.getElementById('planeReflectance');
+const sphereReflectanceElement = document.getElementById('sphereReflectance');
 const maxReflectionsElement = document.getElementById('maxReflections');
 var gl;
 var camPos = new vec4(0,0,-5);
@@ -148,13 +150,13 @@ function setup() {
 function keyPressed(event)
 {
     var keyCode = event.key;
-    pressedKeys[keyCode] = true;
+    pressedKeys[keyCode.toLowerCase()] = true;
     console.log(keyCode);
 }
 function keyReleased(event)
 {
     var keyCode = event.key;
-    pressedKeys[keyCode] = false;
+    pressedKeys[keyCode.toLowerCase()] = false;
 }
 function mouseDown(event)
 {
@@ -195,19 +197,19 @@ function updateCamera() {
     let tempRot = new vec4();
     let transSpeed = 0.1;
     let rotSpeed = 0.05;
-    if (pressedKeys['w'] || pressedKeys['W'])
+    if (pressedKeys['w'])
     {
         tempTrans.z += transSpeed;// * Math.cos(camRot.y);
     }
-    if (pressedKeys['s'] || pressedKeys['S'])
+    if (pressedKeys['s'])
     {
         tempTrans.z -= transSpeed;// * Math.cos(camRot.y);
     }
-    if (pressedKeys['d'] || pressedKeys['D'])
+    if (pressedKeys['d'])
     {
         tempTrans.x += transSpeed;// * Math.cos(camRot.y);
     }
-    if (pressedKeys['a'] || pressedKeys['A'])
+    if (pressedKeys['a'])
     {
         tempTrans.x -= transSpeed;// * Math.cos(camRot.y);
     }
@@ -215,25 +217,25 @@ function updateCamera() {
     {
         tempTrans.y += transSpeed;
     }
-    if (pressedKeys['Shift'])
+    if (pressedKeys['shift'])
     {
         tempTrans.y -= transSpeed;
     }
 
 
-    if (pressedKeys['ArrowRight'])
+    if (pressedKeys['arrowright'])
     {
         tempRot.y += rotSpeed;
     }
-    if (pressedKeys['ArrowLeft'])
+    if (pressedKeys['arrowleft'])
     {
         tempRot.y -= rotSpeed;
     }
-    if (pressedKeys['ArrowUp'] && camRot.x < 2)
+    if (pressedKeys['arrowup'] && camRot.x < 2)
     {
         tempRot.x += rotSpeed;
     }
-    if (pressedKeys['ArrowDown'] && camRot.x > 1)
+    if (pressedKeys['arrowdown'] && camRot.x > 1)
     {
         tempRot.x -= rotSpeed;
     }
@@ -277,12 +279,13 @@ function update() {
     // Set the shader uniforms
     lightDistanceDivisor = [Number(lightDistanceDivisorElement.value)];
     planeReflectance = [Number(planeReflectanceElement.value)];
+    let sphereReflectance = [Number(sphereReflectanceElement.value)];
     gl.uniform4fv(programInfo.uniformLocations.viewPosition, camPos.getFloat32Array());
     gl.uniform4fv(programInfo.uniformLocations.viewRotation, camRot.getFloat32Array());
     gl.uniformMatrix4fv( programInfo.uniformLocations.rotationMatrix, false, camRotMat.getFloat32Array() );
     gl.uniform1fv(programInfo.uniformLocations.lightDistanceDivisor, new Float32Array(lightDistanceDivisor));
     gl.uniform1fv(programInfo.uniformLocations.planeReflectance, new Float32Array(planeReflectance));
-
+    gl.uniform1fv(programInfo.uniformLocations.sphereReflectance, new Float32Array(sphereReflectance));
     
 
     const vertexCount = indices.length;
@@ -729,6 +732,7 @@ function generateShader3() {
     uniform mat4 uRotationMatrix;
     uniform float uLightDistanceDivisor;
     uniform float uPlaneReflectance;
+    uniform float uSphereReflectance;
 
     vec3 unit(vec3 r)
     {
@@ -802,44 +806,6 @@ function generateShader3() {
         sphereC[6] = vec3(2,3,0);
         sphereC[7] = vec3(2,4,1);
         sphereC[8] = vec3(2,5,2);
-
-        /*sphereC[0] = vec3(0,0,0);
-        sphereC[1] = vec3(0,0,1);
-        sphereC[2] = vec3(0,0,2);
-        sphereC[3] = vec3(1,0,0);
-        sphereC[4] = vec3(1,0,1);
-        sphereC[5] = vec3(1,0,2);
-        sphereC[6] = vec3(2,0,0);
-        sphereC[7] = vec3(2,0,1);
-        sphereC[8] = vec3(2,0,2);
-        sphereC[9] = vec3(0,3,0);
-        sphereC[10] = vec3(0,3,1);
-        sphereC[11] = vec3(0,3,2);
-        sphereC[12] = vec3(1,3,0);
-        sphereC[13] = vec3(1,3,1);
-        sphereC[14] = vec3(1,3,2);
-        sphereC[15] = vec3(2,3,0);
-        sphereC[16] = vec3(2,3,1);
-        sphereC[17] = vec3(2,3,2);
-
-        sphereC[18] = vec3(0,2,0);
-        sphereC[19] = vec3(0,2,1);
-        sphereC[20] = vec3(0,2,2);
-        sphereC[21] = vec3(1,2,0);
-        sphereC[22] = vec3(1,2,1);
-        sphereC[23] = vec3(1,2,2);
-        sphereC[24] = vec3(2,2,0);
-        sphereC[25] = vec3(2,2,1);
-        sphereC[26] = vec3(2,2,2);
-        sphereC[27] = vec3(0,4,0);
-        sphereC[28] = vec3(0,4,1);
-        sphereC[29] = vec3(0,4,2);
-        sphereC[30] = vec3(1,4,0);
-        sphereC[31] = vec3(1,4,1);
-        sphereC[32] = vec3(1,4,2);
-        sphereC[33] = vec3(2,4,0);
-        sphereC[34] = vec3(2,4,1);
-        sphereC[35] = vec3(2,4,2);*/
        
 
         float sphereR[numSpheres];
@@ -852,34 +818,17 @@ function generateShader3() {
         sphereR[6] = .5;
         sphereR[7] = .5;
         sphereR[8] = .5;
-        /*sphereR[9] = .5;
-        sphereR[10] = .5;
-        sphereR[11] = .5;
-        sphereR[12] = .5;
-        sphereR[13] = .5;
-        sphereR[14] = .5;
-        sphereR[15] = .5;
-        sphereR[16] = .5;
-        sphereR[17] = .5;
 
-        sphereR[18] = .5;
-        sphereR[19] = .5;
-        sphereR[20] = .5;
-        sphereR[21] = .5;
-        sphereR[22] = .5;
-        sphereR[23] = .5;
-        sphereR[24] = .5;
-        sphereR[25] = .5;
-        sphereR[26] = .5;
-        sphereR[27] = .5;
-        sphereR[28] = .5;
-        sphereR[29] = .5;
-        sphereR[30] = .5;
-        sphereR[31] = .5;
-        sphereR[32] = .5;
-        sphereR[33] = .5;
-        sphereR[34] = .5;
-        sphereR[35] = .5;*/
+        vec3 sphereColor[numSpheres];
+        sphereColor[0] = vec3( 1, 0.5, 0.5);
+        sphereColor[1] = vec3( 0.5, 1, 0.5);
+        sphereColor[2] = vec3( 0.5, 0.5, 1);
+        sphereColor[3] = vec3( 1, 0.5, 1);
+        sphereColor[4] = vec3( 1, 1, 0.5);
+        sphereColor[5] = vec3( 0.5, 1, 1);
+        sphereColor[6] = vec3( 1, 1, 1);
+        sphereColor[7] = vec3( 1, 0.5, 0.5);
+        sphereColor[8] = vec3( 1, 0.5, 0.5);
 
 
         const int numPlanes = 5;
@@ -931,6 +880,7 @@ function generateShader3() {
                     C = sphereC[i];
                     R = sphereR[i];
                     bestIsSphere = true;
+                    color = sphereColor[i];
                     sphereHit = i;
                 }
             }
@@ -950,17 +900,38 @@ function generateShader3() {
 
             if (bestD < 10000.0 && bestIsSphere == true)
             {
+                //Hit a sphere!!
                 leavingSphere = sphereHit;
-
+                
                 rayP = rayP + rayD*bestD;
                 rayD = reflectRay(rayD, unit( C - rayP));
 
-                //temp = (1.0-percentDone)*0.3;
-                //fragColor += temp*vec4(1,1,1,0);
-                //percentDone += temp;
+                vec3 newRayD = unit(lightSource - rayP);
+
+                float d = distToPoint(rayP, lightSource);
+                
+                for (int i=0; i<numSpheres; i++)
+                {
+
+                    //if (i == sphereHit) { continue; }
+
+                    temp = distToSphere(newRayD, rayP, sphereC[i], sphereR[i]);
+                    if (temp < d && temp > 0.01)
+                    {
+                        d = d*2.0;
+                        break;
+                    }
+                }
+                
+                d = d/uLightDistanceDivisor;
+                temp = (1.0-percentDone)*uSphereReflectance;
+                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                percentDone += temp;
+
 
             } else if (bestD < 10000.0)
             {
+                //Hit a plane!
                 leavingSphere = -1;
 
                 rayP = rayP + bestD*rayD;
