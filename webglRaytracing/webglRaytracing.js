@@ -1189,6 +1189,26 @@ function generateShader2() {
 
 
 
+/*
+
+
+
+Concrete density: 0.087 lbs per cubic inch
+Radius: 3"
+Height: 5"
+
+Volume: 141 cubit inches
+Mass: 12.2 lbs per side
+
+Circumference: 19"
+
+Cardboard dimensions: 19" x 5" (make it 6" tall)
+
+
+
+*/
+
+
 
 
 
