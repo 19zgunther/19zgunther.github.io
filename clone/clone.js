@@ -1,3 +1,8 @@
+/***********************************************************************************************
+*  Code Written by Zack Gunther
+*  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
+************************************************************************************************/
+
 
 class FPC {
     constructor(position = new vec4(), rotation = new vec4())
@@ -369,7 +374,6 @@ class Player {
     }
     createUIGraphics()
     {
-        
         let y = -1+this.inventoryRowHeight;
         let x = -this.inventoryColumnWidth*5;
         let z = 0;
@@ -388,18 +392,18 @@ class Player {
                 easyGl.deleteObject("iEQT"+i);
             }
 
-            if (el != null && !isNaN(el.type))
+            if (el != null)
             {
-                easyGl.createObject("iE"+i, new vec4(x,y,z), this.inventoryItemRotation , this.inventoryItemScale, null, null, null, blockColors[el.type], true);
+                easyGl.createObject("iE"+i, new vec4(x,y,z), this.inventoryItemRotation , this.inventoryItemScale, null, null, null, blockMap.get(el.type).color, true);
                 easyGl.createText("iEQT"+i, el.quantity, new vec4(x+this.inventoryItemTextOffset.x,y+this.inventoryItemTextOffset.y,z+this.inventoryItemTextOffset.z), new vec4(), this.inventoryItemTextScale, new vec4(0,0,0,1), true);
                 this.uiElementsIds.push("iE"+i);
                 this.uiElementsIds.push("iEQT"+i);
-            } else if (el != null && el.type == "TNT") {
-                easyGl.createObject("iE"+i, new vec4(x,y,z), this.inventoryItemRotation , this.inventoryItemScale, null, null, null, blockColors[10], true);
+            } /*else if (el != null && el.type == "TNT") {
+                easyGl.createObject("iE"+i, new vec4(x,y,z), this.inventoryItemRotation , this.inventoryItemScale, null, null, null, blockMap[10], true);
                 easyGl.createText("iEQT"+i, el.quantity, new vec4(x+this.inventoryItemTextOffset.x,y+this.inventoryItemTextOffset.y,z+this.inventoryItemTextOffset.z), new vec4(), this.inventoryItemTextScale, new vec4(0,0,0,1), true);
                 this.uiElementsIds.push("iE"+i);
                 this.uiElementsIds.push("iEQT"+i);
-            }
+            }*/
             x += this.inventoryColumnWidth;
         }
     }
@@ -460,7 +464,7 @@ class Player {
                 case "e": this.inMenu = !this.inMenu; break;
                 case "escape": this.inMenu = !this.inMenu; break;
                 case "shift": this.shiftIsDown = true; break;
-                case "i": this.collectItem("0", 40); this.collectItem("3", 80); this.collectItem("2", 40); this.collectItem("4", 80); this.collectItem("TNT", 80); break;
+                case "i": this.collectItem("test", 40); this.collectItem("grass", 80); this.collectItem("dirt", 40); this.collectItem("stone", 80); this.collectItem("tnt", 80); break;
                 case "1": this.setInventorySelect(0); break; //easyGl.setObjectPosition("itemBarSelectOverlay", -itemBarWidth + itemBarIncrement/2, null, null); itemBarSelectedNum = 1; break;
                 case "2": this.setInventorySelect(1); break; //easyGl.setObjectPosition("itemBarSelectOverlay", -itemBarWidth + itemBarIncrement*3/2, null, null); itemBarSelectedNum = 2; break;
                 case "3": this.setInventorySelect(2); break; //easyGl.setObjectPosition("itemBarSelectOverlay", -itemBarWidth + itemBarIncrement*5/2, null, null); itemBarSelectedNum = 3;break;
@@ -714,7 +718,7 @@ class Player {
                 pPos = pos.copy();
                 pos.addi(stepVec);
                 const ret = chunkManager.getBlock(pos);
-                if (ret != null && ret >= 0)
+                if (ret != null)
                 {
                     //console.log("mousedown || mousemove: found block.");
                     blockType = ret;
@@ -892,16 +896,16 @@ class Chunk
                 {
                     if (h-y < 2)
                     {
-                        this.blocks.push(1); // create grass
+                        this.blocks.push("grass"); // create grass
                     } else if (h-y<4){
-                        this.blocks.push(2); // create dirt                 
+                        this.blocks.push("dirt"); // create dirt                 
                     } else {
-                        this.blocks.push(3); //create stone
+                        this.blocks.push("stone"); //create stone
                     }
                 }
                 for (let y=h; y<maxY; y++) //add air blocks...
                 {
-                    this.blocks.push(-1);
+                    this.blocks.push(null);
                 }
             }
         }
@@ -927,20 +931,24 @@ class Chunk
                 if (t>0)
                 {
                     //this.setBlock(new vec4())
-                    this.blocks[x*this.maxY*this.maxZ+z*this.maxY+ry+t] = 5;
+                    this.blocks[x*this.maxY*this.maxZ+z*this.maxY+ry+t] = "leaves";
                     for (let i=-2; i<t; i++)
                     {
-                        if (this.blocks[x*this.maxY*this.maxZ+z*this.maxY+ry+i] < 0)
+                        const  b = this.blocks[x*this.maxY*this.maxZ+z*this.maxY+ry+i];
+                        if (b == null || b == "")
                         {
-                            this.blocks[x*this.maxY*this.maxZ+z*this.maxY+ry+i] = 4;
+                            this.blocks[x*this.maxY*this.maxZ+z*this.maxY+ry+i] = "log";
                             
                             if (i > 2)
                             {
-                                for (let a=0; a<6.28; a+=0.3)
+                                for (let r=1; r < t-i; r++)
                                 {
-                                    let sa = Math.round(Math.sin(a));
-                                    let ca = Math.round(Math.cos(a));
-                                    this.blocks[(x+sa)*this.maxY*this.maxZ+(z+ca)*this.maxY+ry+i] = 5;
+                                    for (let a=0; a<6.28; a+=0.3)
+                                    {
+                                        let sa = Math.round(r*Math.sin(a));
+                                        let ca = Math.round(r*Math.cos(a));
+                                        this.blocks[(x+sa)*this.maxY*this.maxZ+(z+ca)*this.maxY+ry+i] = "leaves";
+                                    }
                                 }
                             }
                         }
@@ -974,7 +982,7 @@ class Chunk
         if (x < 0 || x >= this.maxX || z < 0 || z >= this.maxZ)
         {
             console.error("Trying to get block out of bounds of chunk",x,y,z)
-            return -2;
+            return null;
         }
         return this.blocks[x*this.maxY*this.maxZ+z*this.maxY+y];
     }
@@ -992,7 +1000,7 @@ class Chunk
         {   
             pos = positions[i];
             block = this.blocks[pos.x*this.maxY*this.maxZ+pos.z*this.maxY+pos.y];
-            if  (!onlyReplaceAir || (onlyReplaceAir && (isNaN(block) || block < 0)))
+            if  (!onlyReplaceAir || (onlyReplaceAir && (isNaN(block) || block == null || block == "")))
             {
                 this.blocks[pos.x*this.maxY*this.maxZ+pos.z*this.maxY+pos.y] = type;
                 numBlocksPlaced++;
@@ -1007,8 +1015,8 @@ class Chunk
     breakBlock(pos, suppressGlUpdate = false)
     {
         const type =  this.blocks[pos.x*this.maxY*this.maxZ+pos.z*this.maxY+pos.y];
-        this.blocks[pos.x*this.maxY*this.maxZ+pos.z*this.maxY+pos.y] = -1;
-        if (type >= 0)
+        this.blocks[pos.x*this.maxY*this.maxZ+pos.z*this.maxY+pos.y] = null;
+        if (type != null)
         {
             const e = new FloatingBlock(new vec4(pos.x+this.position.x, pos.y + this.position.y, pos.z + this.position.z), type, this.easyGl);
             e.velocity.x = 3 - Math.random()*6;
@@ -1082,21 +1090,25 @@ class Chunk
                     const ry = y + this.position.y;
                     const rz = z + this.position.z;
 
-                    if (b < 0 || b > blockColors.length - 1 || blockOpacities[b] == 1) // continue if block is air or is opaque
+                    /*if (b < 0 || b > blockColors.length - 1 || blockOpacities[b] == 1) // continue if block is air or is opaque
+                    {
+                        continue;
+                    }*/
+                    if (b == "air" || b == "" || b == null || blockMap.get(b).transparent)
                     {
                         continue;
                     }
 
                     //onsole.log(blockColors, b);
-                    let color = blockColors[b].copy();
+                    let color = blockMap.get(b).color.copy();
                     color = this._colorFunction(color, rx, ry, rz);
 
-                    let below = -2; //don't render if out of bounds
-                    let above = -2; //don't render if out of bounds
-                    let left = -1;
-                    let right = -1;
-                    let front = -1;
-                    let back = -1;
+                    let below = null; //don't render if out of bounds
+                    let above = null; //don't render if out of bounds
+                    let left = null;
+                    let right = null;
+                    let front = null;
+                    let back = null;
 
                     if (y > 0) //check below
                     {
@@ -1122,8 +1134,7 @@ class Chunk
                     {
                         back = this.blocks[x*maxY*maxZ+(z+1)*maxY+y];
                     }
-
-                    if (below == -1 || blockOpacities[below] == 1) //if block below is air...
+                    if (below == -1 || blockMap.get(below).transparent) //if block below is air...
                     {
                         let ind = v.length/3;
                         v.push( x - 0.5, y - 0.5, z - 0.5);
@@ -1134,7 +1145,7 @@ class Chunk
                         c.push(color.x, color.y, color.z, color.a,   color.x, color.y, color.z, color.a,   color.x, color.y, color.z, color.a,   color.x, color.y, color.z, color.a  );
                         n.push(0,-1,0, 0,-1,0, 0,-1,0, 0,-1,0);
                     }
-                    if (above == -1 || blockOpacities[above] == 1) //if block above is air, add top
+                    if (above == -1 || blockMap.get(above).transparent) //if block above is air, add top
                     {
                         let ind = v.length/3;
                         v.push( x - 0.5, y + 0.5, z - 0.5);
@@ -1146,7 +1157,7 @@ class Chunk
                         n.push(0,1,0, 0,1,0, 0,1,0, 0,1,0);
                     }
                     
-                    if (left == -1 || blockOpacities[left] == 1) //if block left is air, add left
+                    if (left == -1 || blockMap.get(left).transparent) //if block left is air, add left
                     {
                         let ind = v.length/3;
                         v.push( x - 0.5, y - 0.5, z - 0.5);
@@ -1157,7 +1168,7 @@ class Chunk
                         c.push(color.x, color.y, color.z, color.a, color.x, color.y, color.z, color.a, color.x, color.y, color.z, color.a, color.x, color.y, color.z, color.a  );
                         n.push(-1,0,0, -1,0,0, -1,0,0, -1,0,0,);
                     }
-                    if (right == -1 || blockOpacities[right] == 1) //if block above is air, add top
+                    if (right == -1 || blockMap.get(right).transparent) //if block above is air, add top
                     {
                         let ind = v.length/3;
                         v.push( x + 0.5, y - 0.5, z - 0.5);
@@ -1169,7 +1180,7 @@ class Chunk
                         n.push(1,0,0, 1,0,0, 1,0,0, 1,0,0,);
                     }
 
-                    if (front == -1 || blockOpacities[front] == 1) //if block above is air, add top
+                    if (front == -1 || blockMap.get(front).transparent) //if block above is air, add top
                     {
                         let ind = v.length/3;
                         v.push( x - 0.5, y - 0.5, z - 0.5);
@@ -1180,7 +1191,7 @@ class Chunk
                         c.push(color.x, color.y, color.z, color.a, color.x, color.y, color.z, color.a, color.x, color.y, color.z, color.a, color.x, color.y, color.z, color.a  );
                         n.push(0,0,-1, 0,0,-1, 0,0,-1, 0,0,-1);
                     }
-                    if (back == -1 || blockOpacities[back] == 1) //if block above is air, add top
+                    if (back == -1 || blockMap.get(back).transparent) //if block above is air, add top
                     {
                         let ind = v.length/3;
                         v.push( x - 0.5, y - 0.5, z + 0.5);
@@ -1196,7 +1207,6 @@ class Chunk
         }
         this.easyGl.deleteObject(this.uniqueId);
         this.easyGl.createObject(this.uniqueId, this.position, null, null, v, i, n, c);
-
         //create all transparent objects as independedent gl objects
         let incrementor = 1;
         for (let x=0; x<maxX; x++)
@@ -1205,23 +1215,25 @@ class Chunk
             {
                 for (let y=0; y<maxY; y++)
                 {
+                    
                     const b = this.blocks[x*maxY*maxZ+z*maxY+y];
                     const rx = x + this.position.x; //real X
                     const ry = y + this.position.y;
                     const rz = z + this.position.z;
 
-                    if (!(b >= 0 && blockOpacities[b] == 1))
+                    if (b == null || b == "" || !blockMap.get(b).transparent)
                     {
                         continue;
                     }
+                    
 
                     //onsole.log(blockColors, b);
-                    let color = blockColors[b].copy();
+                    let color = blockMap.get(b).color.copy();
                     color = this._colorFunction(color, rx, ry, rz);
 
-                    this.easyGl.deleteObject(this.uniqueId+this.uniqueId);
+                    this.easyGl.deleteObject(this.uniqueId+incrementor);
                     this.easyGl.createObject(this.uniqueId+incrementor, new vec4(rx,ry,rz), new vec4(), new vec4(1,1,1), null, null, null, color);
-                    incrementor++;
+                    incrementor+=1;
                 }
             }
         }
@@ -1432,7 +1444,7 @@ class FloatingBlock extends Entity
         this.blockType = blockType;
         this.maxTime = 1000*30;
         this.startTime = Date.now();
-        this.easyGl.createObject(this.id, this.position, this.rotation, new vec4(0.2,0.25,0.25,0.3), null, null, null, blockColors[this.blockType]);
+        this.easyGl.createObject(this.id, this.position, this.rotation, new vec4(0.2,0.25,0.25,0.3), null, null, null, blockMap.get(this.blockType).color);
     }
     update()
     {
@@ -1498,7 +1510,7 @@ class FallingBlock extends Entity
         const blockBelow = chunkManager.getBlock(this.position.sub(0,1,0));
         if (blockBelow == null || blockBelow < 0)
         {
-            this.velocity.y -= 0.2;
+            this.velocity.y -= 0.05;
         } else {
             this.velocity.y = 0;
         }
@@ -1516,7 +1528,7 @@ class TNT extends FallingBlock
     constructor(position = new vec4(), rotation = new vec4(), easyGl)
     {
         super(position, rotation, easyGl);
-        this.color = blockColors[10].copy();
+        this.color = blockMap.get("tnt").color.copy();
         this.easyGl.createObject(this.id, this.position, null, null, null, null, null, this.color);
     }
     update()
@@ -1570,6 +1582,89 @@ class TNT extends FallingBlock
 }
 
 
+
+const blocks = [
+    {
+        type: null,
+        color: new vec4(), //test
+        transparent: true,
+        mineable: false,
+        mineTime: 0.2,
+        solid: false,
+    },
+    {
+        type: "",
+        color: new vec4(), //test
+        transparent: true,
+        mineable: false,
+        mineTime: 0.2,
+        solid: false,
+    },
+    {
+        type: "test",
+        color: new vec4(1,.5,.5,1), //test
+        transparent: false,
+        mineable: true,
+        mineTime: 0.2,
+        solid: true,
+    }, 
+    {
+        type: "grass",
+        color: new vec4(0,0.5,0,1), //green grass block
+        transparent: false,
+        mineable: true,
+        mineTime: 0.3,
+        solid: true,
+    }, 
+    {
+        type: "dirt",
+        color: new vec4(0.5, 0.4, 0.2, 1), //brown dirt
+        transparent: false,
+        mineable: true,
+        mineTime: 0.3,
+        solid: true,
+    },
+    {
+        type: "stone",
+        color: new vec4(0.4,0.4,0.4,1), //stone
+        transparent: false,
+        mineable: true,
+        mineTime: 0.5,
+        solid: true,
+    },
+    {
+        type: "log",
+        color: new vec4(0.4,0.3,0.15,1), //wood trunk
+        transparent: false,
+        mineable: true,
+        mineTime: 0.5,
+        solid: true,
+    },
+    {
+        type: "leaves",
+        color: new vec4(0.4,0.98,0.15,0.5), //leaves
+        transparent: true,
+        mineable: true,
+        mineTime: 0.2,
+        solid: true,
+    },
+    {
+        type: "tnt",
+        color: new vec4(1,0,0,0.5), //leaves
+        transparent: true,
+        mineable: true,
+        mineTime: 0.5,
+        solid: true,
+    },
+];
+
+const blockMap = new Map();
+for (let i=0; i<blocks.length; i++)
+{
+    blockMap.set(blocks[i].type, blocks[i]);
+}
+
+/*
 const blockColors = [
     new vec4(1,.5,.5,1), //test
     new vec4(0,0.5,0,1), //green grass block
@@ -1596,7 +1691,7 @@ const blockOpacities = [
     0,
     0,
     1,
-];
+];*/
 
 
 const blockMineTimes = [ 0.1,  0.15,  0.25,  0.3, .2, .2, .2, .2, .2, .2, .2, .2, .2];
@@ -1628,7 +1723,7 @@ canvasElement.height = bb.height;
 const easyGl = new EasyGL(canvasElement, backgroundColor);
 const player = new Player();
 const chunkManager = new ChunkManager(easyGl, chunkSize);
-const entities = [ new FloatingBlock(new vec4(6, 30, 6), 0, easyGl)];
+const entities = [ new FloatingBlock(new vec4(6, 30, 6), "test", easyGl)];
 
 easyGl.setSortingTimeDelayMs(100);
 easyGl.resizeListener(); //resize canvas & gl
@@ -1658,7 +1753,7 @@ function spawnEntityByName(name, position = new vec4(), rotation = new vec4())
     let e = null;
     switch(name)
     {
-        case "TNT": e = new TNT(position, rotation, easyGl); break;
+        case "tnt": e = new TNT(position, rotation, easyGl); break;
     }
     if (e != null)
     {
@@ -1690,11 +1785,12 @@ function render()
 
     
     //Update mining cube
-    if (blockMiningPos != null && blockMiningType != null)
+    if (blockMiningPos != null)
     {
         //easyGl.setObjectHide("selectOverlayCube", false);
         const miningTimeElapsed = Date.now() - blockMiningStartTime;
-        const percentMiningCompleted = miningTimeElapsed/(blockMineTimes[blockMiningType]*1000);
+        //console.log(blockMiningType);
+        const percentMiningCompleted = miningTimeElapsed/(blockMap.get(blockMiningType).mineTime*1000);
         let a = Math.max( 0.01, Math.min(percentMiningCompleted/5, 0.5)); //bound between 0.1 and 0.5, and scale so max time = 0.5
         easyGl.setObjectColor("selectOverlayCube", new vec4(1,1,1,a));
         easyGl.setObjectPosition("selectOverlayCube", blockMiningPos);
