@@ -388,9 +388,14 @@ class Player {
                 easyGl.deleteObject("iEQT"+i);
             }
 
-            if (el != null)
+            if (el != null && !isNaN(el.type))
             {
                 easyGl.createObject("iE"+i, new vec4(x,y,z), this.inventoryItemRotation , this.inventoryItemScale, null, null, null, blockColors[el.type], true);
+                easyGl.createText("iEQT"+i, el.quantity, new vec4(x+this.inventoryItemTextOffset.x,y+this.inventoryItemTextOffset.y,z+this.inventoryItemTextOffset.z), new vec4(), this.inventoryItemTextScale, new vec4(0,0,0,1), true);
+                this.uiElementsIds.push("iE"+i);
+                this.uiElementsIds.push("iEQT"+i);
+            } else if (el != null && el.type == "TNT") {
+                easyGl.createObject("iE"+i, new vec4(x,y,z), this.inventoryItemRotation , this.inventoryItemScale, null, null, null, blockColors[10], true);
                 easyGl.createText("iEQT"+i, el.quantity, new vec4(x+this.inventoryItemTextOffset.x,y+this.inventoryItemTextOffset.y,z+this.inventoryItemTextOffset.z), new vec4(), this.inventoryItemTextScale, new vec4(0,0,0,1), true);
                 this.uiElementsIds.push("iE"+i);
                 this.uiElementsIds.push("iEQT"+i);
