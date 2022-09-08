@@ -136,32 +136,32 @@ class FPC {
         }
 
         //only allow movement along x axis if no block is going to be hit.
-        if ((feetXp != null && feetXp >= 0 && posChange.x > 0) || 
-            (headXp != null && headXp >= 0 && posChange.x > 0) )
+        if ((feetXp != null && feetXp != null && posChange.x > 0) || 
+            (headXp != null && headXp != null && posChange.x > 0) )
         {
             posChange.x = 0;
             this.velocity.x = 0;
         }
-        if ((feetXm != null && feetXm >= 0 && posChange.x < 0) ||
-            (headXm != null && headXm >= 0 && posChange.x < 0) )
+        if ((feetXm != null && feetXm != null && posChange.x < 0) ||
+            (headXm != null && headXm != null && posChange.x < 0) )
         {
             posChange.x = 0;
             this.velocity.x = 0;
         }
-        if ((feetZm != null && feetZm >= 0 && posChange.z > 0) ||
-            (headZm != null && headZm >= 0 && posChange.z > 0) )
+        if ((feetZm != null && feetZm != null && posChange.z > 0) ||
+            (headZm != null && headZm != null && posChange.z > 0) )
         {
             posChange.z = 0;
             this.velocity.z = 0;
         } 
-        if ((feetZp != null && feetZp >= 0 && posChange.z < 0) || 
-        (headZp != null && headZp >= 0 && posChange.z < 0) )
+        if ((feetZp != null && feetZp != null && posChange.z < 0) || 
+        (headZp != null && headZp != null && posChange.z < 0) )
         {
             posChange.z = 0;
             this.velocity.z = 0;
         }
 
-        if (aboveHead != null && aboveHead >= 0 && (this.velocity.y > 0 || posChange.y > 0))
+        if (aboveHead != null && aboveHead != null && (this.velocity.y > 0 || posChange.y > 0))
         {
             posChange.y = 0;
             this.velocity.y = 0;
@@ -939,9 +939,12 @@ class Chunk
                         {
                             this.blocks[x*this.maxY*this.maxZ+z*this.maxY+ry+i] = "log";
                             
-                            if (i > 2)
+                            if (i > 1)
                             {
-                                for (let r=1; r < t-i; r++)
+                                let max = t;
+                                let mid = (t-i)/2 + i;
+                                const R = Math.min( 3, Math.max(t-i + 1, 0));
+                                for (let r=1; r < R; r++)
                                 {
                                     for (let a=0; a<6.28; a+=0.3)
                                     {

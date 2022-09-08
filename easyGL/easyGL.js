@@ -1,3 +1,4 @@
+
 /* This is a GL Wrapper class that makes rendering basic object easy.
 *  Basic Functions:
 *       constructor - takes htmlCanvasElement
@@ -11,7 +12,6 @@
 *       setAmbientLightLevel is setting the lowest light level for directional light (0.01 to 0.99, normal is 0.25)
 *       enableDirectionalLighting is enabling/disabling directional lighting.
 *       setDirectionalLightingDirection sets the direction the light is coming from
-*
 *
 *       TODO:
 *           - Possibly modify base shader to improve performance 
