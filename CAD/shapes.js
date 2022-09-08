@@ -588,7 +588,6 @@ const asciiWidths = [
     0.3,
     0.4,//249
     0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4,//250-259
-
 ];
 function computeAsciiWidths_ONLY_NEEDED_ONCE() {
     var widths = [];

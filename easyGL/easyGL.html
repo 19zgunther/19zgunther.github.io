@@ -10,24 +10,55 @@
     <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico" />
 </head>
 
-<body style = "background-color: rgba(0,0,0,1);">
+<body style = "background-color: rgba(0,0,0,1); position: relative; display: block;">
 
     <!-- Menu Goes Here -->
+    <style>
+        h1 {
+            font-size:xx-large;
+            width: 99vw;
+            text-align: center;
+        }
+        h2 {
+            font-size:large;
+            font-weight: normal;
+            width: 99vw;
+            text-align: center;
+        }
+    </style>
+
+
     <div>
         In dev<br>Hover to run each demo<br>
         TODO:<br>
         - Add textures<br>
         - Add object selection via clicking<br>
     </div>
-    <div class = 'flexDiv' style="display: flex; position: relative; justify-content: center;">
-        <canvas class = 'daCanvas' id='c1' style='width:24.5vw; height: 80vh;'></canvas>
-        <canvas class = 'daCanvas' id='c2' style='width:24.5vw; height: 80vh;'></canvas>
-        <canvas class = 'daCanvas' id='c3' style='width:24.5vw; height: 80vh;'></canvas>
-        <canvas class = 'daCanvas' id='c4' style='width:24.5vw; height: 80vh;'></canvas>
+    <h1>
+        EasyGL
+    </h1>
+    <h2>
+        A webgl-based library designed for rendering basic objects
+    </h2>
+    <div style="display: block; position: relative;">
+        <div class = 'flexDiv' style="display: flex; position: relative; justify-content: center;">
+            <p style="position: absolute; top: 0; left: 0; display: block; margin: 1vmin;">
+                Hover over each panel to run
+            </p>
+            <canvas class = 'daCanvas' id='c1' style='width:24.9vw; height: 80vh;'></canvas>
+            <canvas class = 'daCanvas' id='c2' style='width:24.9vw; height: 80vh;'></canvas>
+            <canvas class = 'daCanvas' id='c3' style='width:24.9vw; height: 80vh;'></canvas>
+            <canvas class = 'daCanvas' id='c4' style='width:24.9vw; height: 80vh;'></canvas>
+        </div>
+        <div class = 'flexDiv' style="display: flex; position: relative; justify-content: center;">
+            <p style="position: absolute; top: 0; left: 0; display: block; margin: 1vmin;">
+                Use WASD to move.<br>Click & Drag to rotate camera.
+            </p>
+            <canvas id='c5' style='width:99.9vw; height: 80vh;'></canvas>
+        </div>
     </div>
-    <div class = 'flexDiv' style="display: flex; position: relative; justify-content: center;">
-        <canvas id='c5' style='width:98vw; height: 80vh;'></canvas>
-    </div>
+    
+
     <!--<canvas id='c6' style='width:98vw; height: 80vh;'></canvas>-->
     <div>
         Use WASD to move the camera<br>
