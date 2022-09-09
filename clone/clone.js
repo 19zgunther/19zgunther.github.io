@@ -242,7 +242,6 @@ class FPC {
         }
     }
 
-
     setMovementSpeed(speed = 0.15)
     {
         this.movementSpeed = speed;
@@ -270,10 +269,10 @@ class FPC {
 }
 
 class Player {
-    constructor()
+    constructor(position = new vec4(), rotation = new vec4())
     {
         //first person controller
-        this.fpc = new FPC(new vec4(5,30,5), new vec4(0,2,0));
+        this.fpc = new FPC(position, rotation);
 
         this.inventory = [];
         for (let i=0; i<40; i++) { this.inventory.push(null); }
@@ -292,14 +291,30 @@ class Player {
         this.inventoryItemTextOffset = new vec4(0.02, 0.02, -0.2);
 
         this.inventorySelectIndex = 0;
-        this.inventorySelectOverlayColor = new vec4(1,1,1,0.4);
-        this.inventoryOverlayColor = new vec4(1,1,1,0.2);
+        this.inventorySelectOverlayColor = new vec4(.4,.4,.4,0.8);
+        this.inventoryOverlayColor = new vec4(.2,.2,.2,0.8);
+
+
+        this.statsBarHeight = 0.05;
+        this.statsBarColumnWidth = 0.3;
+        this.statsBarNumColumns = 2;
+        this.statsBarTextScale = new vec4(0.05, 0.05, 0.05);
+        this.statsBarTextVerticalOffset = -0.02;
+
+
+        this.health = 100;
+        this.hunger = 100;
+        this.pHealth = 100;
+        this.pHunger = 100;
 
         this.uiElementsIds = [];
 
         easyGl.createObject("inventoryBarOverlay", new vec4(-this.inventoryColumnWidth/2, -1+this.inventoryRowHeight, .99), null, new vec4(this.inventoryColumnWidth*5, this.inventoryRowHeight/2, 1), [-1,1,0, 1,1,0, 1,-1,0, -1,-1,0], [0,1,2, 0,3,2], null, this.inventoryOverlayColor, true);
         easyGl.createObject("inventoryOverlay", new vec4(-this.inventoryColumnWidth/2, -1+this.inventoryRowHeight*5/2, .99), null, new vec4(this.inventoryColumnWidth*5, this.inventoryRowHeight*2, 1), [-1,1,0, 1,1,0, 1,-1,0, -1,-1,0], [0,1,2, 0,3,2], null, this.inventoryOverlayColor, true);
-
+        
+        easyGl.createObject("statsBarOverlay", new vec4(0, 1-this.statsBarHeight*5/2, 0), null, new vec4(this.statsBarColumnWidth*this.statsBarNumColumns, this.statsBarHeight, 1), [-1,1,0, 1,1,0, 1,-1,0, -1,-1,0], [0,1,2, 0,3,2], null, this.inventoryOverlayColor, true);
+        easyGl.createText("healthText", "Health: 100%", new vec4(-this.statsBarColumnWidth*3/2, 1-this.statsBarHeight*5/2 + this.statsBarTextVerticalOffset, -0.99), null, this.statsBarTextScale, new vec4(0,0,0,1), true);
+        easyGl.createText("hungerText", "Hunger: 100%", new vec4(this.statsBarColumnWidth*3/4, 1-this.statsBarHeight*5/2 + this.statsBarTextVerticalOffset, -0.99), null, this.statsBarTextScale, new vec4(0,0,0,1), true);
 
         this.createUIGraphics();
         this.setInventorySelect();
@@ -825,15 +840,7 @@ class Player {
     {
         const scaleMatrix = new mat4().makeScale(canvasElement.height/canvasElement.width,1,1);
         const identityMatrix = new mat4().makeIdentity();
-        /*for (let i=0; i<this.uiElementsIds.length; i++)
-        {
-            const id = this.uiElementsIds[i];
-            if (id == undefined)
-            {
-                continue;
-            }
-            easyGl.renderObjectCustomView(id, scaleMatrix, identityMatrix);
-        }*/
+        
         for (let i=0; i< ((this.inMenu)? this.inventory.length: 10 ); i++)
         {
             const id = "iE"+i;
@@ -853,14 +860,45 @@ class Player {
         }
         easyGl.renderObjectCustomView("inventoryBarOverlay", scaleMatrix, identityMatrix);
         
-        //easyGl.createObject("hde2");
-        //easyGl.renderObjectCustomView("hde2", scaleMatrix, identityMatrix);
+
+        easyGl.renderObjectCustomView("statsBarOverlay", scaleMatrix, identityMatrix);
+        easyGl.renderObjectCustomView("healthText", scaleMatrix, identityMatrix);
+        easyGl.renderObjectCustomView("hungerText", scaleMatrix, identityMatrix);
+        
+        if (Math.round(this.pHealth/5) != Math.round(this.health))
+        {
+            this.pHealth = this.health;
+            const r = Math.min(1, 2-this.health/50);
+            const g = Math.min(1, this.health/50);
+            const b = 0.5;
+            easyGl.setText("healthText", "Health: " + Math.round(this.health/5)*5 + "%",new vec4(r,g,b,1));
+        }
+
+        if (Math.round(this.pHunger/5) != Math.round(this.hunger))
+        {
+            this.pHunger = this.hunger;
+            const r = Math.min(1, 2-this.hunger/50);
+            const g = Math.min(1, this.hunger/50);
+            const b = 0.5;
+            easyGl.setText("hungerText", "Hunger: " + Math.round(this.hunger/5)*5 + "%", new vec4(r,g,b,1));
+        }
+        
+        this.health-= 0.5;
+        if (this.health < 5)
+        {
+            this.health = 100;
+        }
+        this.hunger-= 0.4;
+        if (this.hunger < 5)
+        {
+            this.hunger = 100;
+        }
     }
 }
 
 class Chunk
 {
-    constructor(easyGl, position = new vec4(), chunkSize = 50, seaLevel=25)
+    constructor(easyGl, position = new vec4(), chunkSize = 50, seaLevel=50)
     {
         this.blocks = []; //index of block = x*100 + z*10 + y;
         this.heightMap = [];
@@ -873,7 +911,7 @@ class Chunk
 
         this.easyGl = easyGl;
 
-        this.maxY = Math.max(chunkSize*2, 40);
+        this.maxY = Math.max(chunkSize*4, 40);
         this.maxX = chunkSize;
         this.maxZ = chunkSize;
         this.seaLevel = seaLevel;
@@ -982,11 +1020,11 @@ class Chunk
         //y = Math.round(y - this.position.y);
         //z = Math.round(z - this.position.z);
 
-        if (x < 0 || x >= this.maxX || z < 0 || z >= this.maxZ)
+        /*if (x < 0 || x >= this.maxX || z < 0 || z >= this.maxZ)
         {
             console.error("Trying to get block out of bounds of chunk",x,y,z)
             return null;
-        }
+        }*/
         return this.blocks[x*this.maxY*this.maxZ+z*this.maxY+y];
     }
     setBlock(positions, type, suppressGlUpdate = false, onlyReplaceAir = false)
@@ -1015,17 +1053,20 @@ class Chunk
         }
         return numBlocksPlaced;
     }
-    breakBlock(pos, suppressGlUpdate = false)
+    breakBlock(pos, suppressGlUpdate = false, probabilityOfDrop=1)
     {
         const type =  this.blocks[pos.x*this.maxY*this.maxZ+pos.z*this.maxY+pos.y];
         this.blocks[pos.x*this.maxY*this.maxZ+pos.z*this.maxY+pos.y] = null;
         if (type != null)
         {
-            const e = new FloatingBlock(new vec4(pos.x+this.position.x, pos.y + this.position.y, pos.z + this.position.z), type, this.easyGl);
-            e.velocity.x = 3 - Math.random()*6;
-            e.velocity.y = 3 - Math.random()*6;
-            e.velocity.z = 3 - Math.random()*6;
-            entities.push( e );
+            if (probabilityOfDrop+0.001 > Math.random())
+            {
+                const e = new FloatingBlock(new vec4(pos.x+this.position.x, pos.y + this.position.y, pos.z + this.position.z), type, this.easyGl);
+                e.velocity.x = 3 - Math.random()*6;
+                e.velocity.y = 3 - Math.random()*6;
+                e.velocity.z = 3 - Math.random()*6;
+                entities.push( e );
+            }
         }
 
         if (!suppressGlUpdate)
@@ -1229,7 +1270,6 @@ class Chunk
                         continue;
                     }
                     
-
                     //onsole.log(blockColors, b);
                     let color = blockMap.get(b).color.copy();
                     color = this._colorFunction(color, rx, ry, rz);
@@ -1244,12 +1284,18 @@ class Chunk
     enableRender(enable = true)
     {
         this.easyGl.setObjectHide(this.uniqueId, !enable);
+        let i = 1;
+        while (this.easyGl.getObjectExists(this.uniqueId+i))
+        {
+            this.easyGl.setObjectHide(this.uniqueId+i, !enable);
+            i++;
+        }
     }
 }
 
 class ChunkManager
 {
-    constructor(easyGl, chunkSize = 40, seaLevel = 20)
+    constructor(easyGl, chunkSize = 40, seaLevel = 40)
     {
         this.easyGl = easyGl;
         this.chunkSize = chunkSize;
@@ -1308,7 +1354,7 @@ class ChunkManager
         }
         return numBlocksSet;
     }
-    breakBlock(positions = [], suppressGlUpdate = false)
+    breakBlock(positions = [], suppressGlUpdate = false, probabilityOfDrop = 1)
     {
         if (positions instanceof vec4)
         {
@@ -1319,7 +1365,7 @@ class ChunkManager
         {
             const ret = this._parsePosition(positions[i]);
             const c = this.chunkMap.get(ret.chunkX+','+ret.chunkZ);
-            c.breakBlock(ret, true);
+            c.breakBlock(ret, true, probabilityOfDrop);
             chunks.add(c);
         }
         if (!suppressGlUpdate)
@@ -1430,10 +1476,6 @@ class Entity
     }
     update()
     {
-        if (this.isDead)
-        {
-            return;
-        }
     }
 }
 
@@ -1447,11 +1489,19 @@ class FloatingBlock extends Entity
         this.blockType = blockType;
         this.maxTime = 1000*30;
         this.startTime = Date.now();
+        this.quantity = 1;
         this.easyGl.createObject(this.id, this.position, this.rotation, new vec4(0.2,0.25,0.25,0.3), null, null, null, blockMap.get(this.blockType).color);
     }
     update()
     {
-        super.update();
+        if (this.isDead)
+        {
+            if (this.easyGl.getObjectExists(this.id))
+            {
+                this.easyGl.deleteObject(this.id);
+            }
+            return;
+        }
 
         if (Date.now() -  this.startTime > this.maxTime)
         {
@@ -1467,6 +1517,7 @@ class FloatingBlock extends Entity
         this.velocity.z *= 0.9;
         this.velocity.y *= 0.9;
 
+
         const fpcPos = player.fpc.getPosition().mul(1,1,-1).subi(0,0.75,0);
         const distToFpc = distanceBetweenPoints(fpcPos, this.position); 
         if (distToFpc < this.floatDist)
@@ -1475,19 +1526,40 @@ class FloatingBlock extends Entity
             if (distToFpc < 1)
             {
                 this.easyGl.deleteObject(this.id);
-                player.collectItem(this.blockType);
+                player.collectItem(this.blockType, this.quantity);
                 this.isDead = true;
                 return;
             }
         }
 
         //Add falling
-        const blockBelow = chunkManager.getBlock(this.position.sub(0,1,0));
-        if (blockBelow == null || blockBelow < 0)
+        const bb = 0.2;
+        const blockBelow = chunkManager.getBlock(this.position.add(0,-0.5,0));
+        const blockLeft = chunkManager.getBlock(this.position.add(bb,0.1,0));
+        const blockRight = chunkManager.getBlock(this.position.add(-bb,-0.1,0));
+        const blockFront = chunkManager.getBlock(this.position.add(0,-0.1,bb));
+        const blockBack = chunkManager.getBlock(this.position.add(0,-.1,-bb));
+        if (blockBelow == null)
         {
             this.velocity.y -= 0.2;
         } else if (distToFpc > this.floatDist) {
             this.velocity.y *= 0.3;
+        }
+        if (blockLeft != null && this.velocity.x > 0)
+        {
+            this.velocity.x = 0;
+        }
+        if (blockRight != null && this.velocity.x < 0)
+        {
+            this.velocity.x = 0;
+        }
+        if (blockFront != null && this.velocity.z > 0)
+        {
+            this.velocity.z = 0;
+        }
+        if (blockBack != null && this.velocity.z < 0)
+        {
+            this.velocity.z = 0;
         }
         this.position.addi(this.velocity.mul((Date.now() - this.previousUpdateTime)/1000));
 
@@ -1510,14 +1582,36 @@ class FallingBlock extends Entity
         super.update();
         
         //Add falling
-        const blockBelow = chunkManager.getBlock(this.position.sub(0,1,0));
-        if (blockBelow == null || blockBelow < 0)
+        //Add falling
+        const bb = 0.2;
+        const blockBelow = chunkManager.getBlock(this.position.add(0,-0.5,0));
+        const blockLeft = chunkManager.getBlock(this.position.add(bb,0.1,0));
+        const blockRight = chunkManager.getBlock(this.position.add(-bb,-0.1,0));
+        const blockFront = chunkManager.getBlock(this.position.add(0,-0.1,bb));
+        const blockBack = chunkManager.getBlock(this.position.add(0,-.1,-bb));
+        if (blockBelow == null)
         {
-            this.velocity.y -= 0.05;
+            this.velocity.y -= 0.2;
         } else {
-            this.velocity.y = 0;
+            this.velocity.y= 0;
         }
-        this.velocity.muli(0.7);
+        if (blockLeft != null && this.velocity.x > 0)
+        {
+            this.velocity.x = 0;
+        }
+        if (blockRight != null && this.velocity.x < 0)
+        {
+            this.velocity.x = 0;
+        }
+        if (blockFront != null && this.velocity.z > 0)
+        {
+            this.velocity.z = 0;
+        }
+        if (blockBack != null && this.velocity.z < 0)
+        {
+            this.velocity.z = 0;
+        }
+        this.velocity.muli(0.7,0.7,0.7);
         this.position.addi(this.velocity.mul((Date.now() - this.previousUpdateTime)/1000));
 
         //Update easygl model
@@ -1532,6 +1626,8 @@ class TNT extends FallingBlock
     {
         super(position, rotation, easyGl);
         this.color = blockMap.get("tnt").color.copy();
+        this.probabilityOfDrop = 0.4;
+        this.maxTime = 3.14;
         this.easyGl.createObject(this.id, this.position, null, null, null, null, null, this.color);
     }
     update()
@@ -1547,7 +1643,7 @@ class TNT extends FallingBlock
         this.color.a = Math.sin(2*dt)/3 + 0.5;
         easyGl.setObjectColor(this.id, this.color); //this.color.x, this.color.y, this.color.z, Math.sin(dt)/3 + 0.5 );
 
-        if (dt > 3.14)
+        if (dt > this.maxTime)
         {
             const x = this.position.x;
             const y = this.position.y;
@@ -1566,18 +1662,21 @@ class TNT extends FallingBlock
                 }
             }
             
-            /*
-            for (let x = -2; x <= 2; x++)
+            chunkManager.breakBlock(positions, false, this.probabilityOfDrop);
+
+            const dist = 6;
+            for (let i=0; i<entities.length; i++)
             {
-                for (let z=-2; z<=2; z++)
+                if (entities[i] == this) { continue; }
+                const vec = entities[i].position.sub(this.position);
+                const d = vec.getLength();
+                vec.muli(1/d);
+                if (d < dist)
                 {
-                    for (let y=-2; y<=2; y++)
-                    {
-                        positions.push( new vec4(this.position.x + x, this.position.y + y, this.position.z + z));
-                    }
+                    entities[i].velocity.addi( vec.mul(dist-d) );
                 }
-            }*/
-            chunkManager.breakBlock(positions);
+            }
+
             this.easyGl.deleteObject(this.id);
             this.isDead = true;
         }
@@ -1645,15 +1744,15 @@ const blocks = [
     },
     {
         type: "leaves",
-        color: new vec4(0.4,0.98,0.15,0.5), //leaves
-        transparent: true,
+        color: new vec4(0.4,0.7,0.15,1), //leaves
+        transparent: false,
         mineable: true,
         mineTime: 0.2,
         solid: true,
     },
     {
         type: "tnt",
-        color: new vec4(1,0,0,0.5), //leaves
+        color: new vec4(1,0,0,1), //tnt
         transparent: true,
         mineable: true,
         mineTime: 0.5,
@@ -1704,9 +1803,9 @@ const selectedStepDist = 0.05;
 const selectDistance = 6;
 
 
-const menuTop = 0.3;
+/*const menuTop = 0.3;
 const menuBottom = -0.5;
-const menuWidth = 0.5;
+const menuWidth = 0.5;*/
 
 
 var mouseIsDown = false;
@@ -1715,16 +1814,18 @@ var blockMiningStartTime = null;
 var blockMiningType = -1;
 var itemBarSelectedNum = 0;
 
-
 //Get canvas & set width & height
 const canvasElement = document.getElementById("mainCanvas");
 const bb = canvasElement.getBoundingClientRect();
 canvasElement.width = bb.width;
 canvasElement.height = bb.height;
 
+const scaleMatrix = new mat4().makeScale(canvasElement.height/canvasElement.width,1,1);
+const identityMatrix = new mat4().makeIdentity();
+
 //Create easyGl, Player, chunkmanager, and entities
 const easyGl = new EasyGL(canvasElement, backgroundColor);
-const player = new Player();
+const player = new Player(new vec4(1,75,1));
 const chunkManager = new ChunkManager(easyGl, chunkSize);
 const entities = [ new FloatingBlock(new vec4(6, 30, 6), "test", easyGl)];
 
@@ -1732,7 +1833,7 @@ easyGl.setSortingTimeDelayMs(100);
 easyGl.resizeListener(); //resize canvas & gl
 sliderInput(); //set FOV, zNear, and zFar to slider defaults
 easyGl.createObject("selectOverlayCube", new vec4, new vec4, new vec4(1.1,1.1,1.1,1.1), null, null, null, new vec4(1,1,1,0.2), true); //overlay cube for mining...
-easyGl.createObject("crosshair", new vec4(0,0,0), new vec4(0,0,0,0), new vec4(.02,.02,.02), [-1,0,0, 0,1,0, 1,0,0, 0,-1,0], [0,2,1,0,3,2], null, [1,0,0,1, 0,1,0,1, 0,0,1,1, 0,0,0,1], true);
+easyGl.createObject("crosshair", new vec4(0,0,0), new vec4(0,0,0,0), new vec4(.03,.03,.03), [-1,0,0, 0,1,0, 1,0,0, 0,-1,0], [0,2,1,0,3,2], null, [1,0,0,0.7, 0,1,0,.7, 0,0,1,.7, 0,0,0,1], true);
 
 
 
@@ -1769,6 +1870,7 @@ function spawnEntityByName(name, position = new vec4(), rotation = new vec4())
 function render()
 {
     //Update entities
+    const updateClumping = ((Math.random()>0.5)? true: false);
     for (let i=0; i<entities.length; i++)
     {
         entities[i].update();
@@ -1777,9 +1879,31 @@ function render()
             entities.splice(i,1);
             i--;
         }
-    }
 
-    player.update();//fpc.update();
+        if (updateClumping) //update clumping
+        {
+            for (let j=i+1; j<entities.length; j++)
+            {
+                if (entities[i] != entities[j] && entities[i] instanceof FloatingBlock && (!entities[i].isDead) && entities[i].blockType == entities[j].blockType)
+                {
+                    const vec = entities[j].position.sub(entities[i].position);
+                    const d = vec.getLength();
+                    if (d < 0.5)
+                    {
+                        entities[i].isDead = true;
+                        easyGl.deleteObject(entities[i].id);
+                        entities[j].quantity+=entities[i].quantity;
+                    } else if (d < 5) {
+                        entities[i].velocity.addi(vec.muli(0.08));
+                        entities[j].velocity.addi(vec.muli(-0.08));
+                    }
+                }
+            }
+        }
+    }
+    
+
+    player.update();
     easyGl.setCameraPosition(player.fpc.getPosition());
     easyGl.setCameraRotation(player.fpc.getRotation());
     easyGl.enableRenderingReverseFaces(true);
@@ -1792,7 +1916,6 @@ function render()
     {
         //easyGl.setObjectHide("selectOverlayCube", false);
         const miningTimeElapsed = Date.now() - blockMiningStartTime;
-        //console.log(blockMiningType);
         const percentMiningCompleted = miningTimeElapsed/(blockMap.get(blockMiningType).mineTime*1000);
         let a = Math.max( 0.01, Math.min(percentMiningCompleted/5, 0.5)); //bound between 0.1 and 0.5, and scale so max time = 0.5
         easyGl.setObjectColor("selectOverlayCube", new vec4(1,1,1,a));
@@ -1801,16 +1924,12 @@ function render()
         if (percentMiningCompleted >= 1)
         {
             //remove block
-            //entities.push( new FloatingBlock(blockMiningPos, blockMiningType, easyGl) );
-            //entities.push( new TNT(blockMiningPos, new vec4(), easyGl) );
             chunkManager.breakBlock(blockMiningPos);
             eventListener( {type: "custommousemove"} );
         }
     }
 
     easyGl.clearDepthBuffer();
-    const scaleMatrix = new mat4().makeScale(canvasElement.height/canvasElement.width,1,1);
-    const identityMatrix = new mat4().makeIdentity();
     easyGl.renderObjectCustomView("crosshair", scaleMatrix, identityMatrix);
     easyGl.clearDepthBuffer();
     player.render();

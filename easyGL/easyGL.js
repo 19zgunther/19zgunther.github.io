@@ -54,7 +54,7 @@ class EasyGL {
         //Rendering settings
         this.renderAllObjectsInOrder = true;   //Enable/disable rendering objects from farthest from camera to nearest, or just in order of instantiation.
                                         //Useful if trying to render semi-transparent objects
-        this.renderAllObjectsInOrderDelayMs = 0; //if rendering at 60 fps, we don't need to sort every frame, but rather only update after every _ milliseconds
+        this.renderAllObjectsInOrderDelayMs = 10; //if rendering at 60 fps, we don't need to sort every frame, but rather only update after every _ milliseconds
         this.renderReverseFaces = false; //Enable/disable rendering or culling faces not facing the camera.
 
 
@@ -290,7 +290,7 @@ class EasyGL {
     renderObject(objectID = 0) //renders specific object
     {
         const objectData = this.objects.get(objectID);
-        if (objectData == null) { console.error("Object: " + objectID + " Does Not Exist. Cannot Render."); return; }
+        if (objectData == null) { return; console.error("Object: " + objectID + " Does Not Exist. Cannot Render."); return; }
 
         this.gl.useProgram(this.programInfo.program);
 
@@ -331,7 +331,7 @@ class EasyGL {
         if (viewMatrix == null) { viewMatrix = this.viewMatrix; }
 
         const objectData = this.objects.get(objectID);
-        if (objectData == null) { console.error("Object: " + objectID + " Does Not Exist. Cannot Render."); return; }
+        if (objectData == null) { return; console.error("Object: " + objectID + " Does Not Exist. Cannot Render."); return; }
 
         this.gl.useProgram(this.programInfo.program);
 
@@ -369,9 +369,8 @@ class EasyGL {
     renderAll() //renders all objects 
     {
         if (this.renderAllObjectsInOrder == true) {
-            //if (this.lastSortTimeStamp == null || (Date.now() - this.lastSortTimeStamp) > this.renderAllObjectsInOrderDelayMs)
-            //{
-            //    console.log("SORT");
+            if (this.lastSortTimeStamp == null || ((Date.now() - this.lastSortTimeStamp) > this.renderAllObjectsInOrderDelayMs))
+            {
                 //Start by putting each object into a list with it's distance to the camera.
                 this.sortedSolidObjs = [];
                 this.sortedTransObjs = []; 
@@ -384,7 +383,6 @@ class EasyGL {
                         continue;
                     }
 
-                
                     if (obj.isTransparent != true)
                     {
                         this.sortedSolidObjs.push(this.objectIDs[i])
@@ -392,12 +390,13 @@ class EasyGL {
                         let dist = distanceBetweenPoints( obj.position, camPos);
                         this.sortedTransObjs.push( {id: this.objectIDs[i], dist: dist} );
                     }
-                    
                 }
 
                 //Sort the list, from farthest obejct to closest
                 this.sortedTransObjs.sort((a,b) => (a.dist < b.dist) ? 1 : -1);
-            //}
+                this.lastSortTimeStamp = Date.now();
+                console.log(this.sortedSolidObjs.length, this.sortedTransObjs.length);
+            }
             //Now, render each object in the new order
             for (let i=0; i<this.sortedSolidObjs.length; i++)
             {
@@ -407,7 +406,6 @@ class EasyGL {
             {
                 this.renderObject( this.sortedTransObjs[i].id );
             }
-            this.lastSortTimeStamp = Date.now();
         } else {
             for (let i=0; i<this.objectIDs.length; i++)
             {
@@ -775,11 +773,9 @@ class EasyGL {
 
         text = String(text);
 
-        //let startVertexNum = 0;
         let xOffset = 0;
         for (let i=0; i<text.length; i++)
         {
-            //startVertexNum = vertices.length/3;
             const charCode = text.charCodeAt(i);
             const inds = asciiIndices[charCode];
             if (inds == null)
@@ -788,9 +784,6 @@ class EasyGL {
                 continue;
             }
 
-            //console.log(inds);
-
-            //let x,y,z = 0;
             for (let j=0; j<inds.length; j+=3)
             {
                 const i1 = inds[j];
@@ -800,21 +793,9 @@ class EasyGL {
                 let v2 = new vec4(asciiVertices[i2*3], asciiVertices[i2*3 + 1], asciiVertices[i2*3 + 2]);
                 let v3 = new vec4(asciiVertices[i3*3], asciiVertices[i3*3 + 1], asciiVertices[i3*3 + 2]);
 
-                /*let a1 = Math.atan2(v2.y - v1.y, v2.x - v1.x);
-                let a2 = Math.atan2(v3.y - v1.y, v3.x - v1.x);
-                while (a1 < 0) { a1 += Math.PI*2; }
-                while (a2 < 0) { a2 += Math.PI*2; }
-                if (a1 > a2)
-                {
-                    let temp = v3;
-                    v3 = v2;
-                    v2 = temp;
-                }*/
-
                 let indOn = vertices.length/3;
                 indices.push(indOn, indOn+1, indOn+2);
                 
-                //vertices.push( asciiVertices[ind*3] + xOffset, asciiVertices[ind*3 + 1], asciiVertices[ind*3 + 2] );
                 vertices.push(v1.x+xOffset,v1.y,v1.z,  v2.x+xOffset,v2.y,v2.z, v3.x+xOffset,v3.y,v3.z);
             }
 
@@ -1070,6 +1051,51 @@ class EasyGL {
         if (objectData == null) { console.log("Object: "+objectID+" does not exist. Cannot set color."); return;}
 
         objectData.hide = shouldHideFromRenderAll;
+    }
+    setText(objectID, text, color = new vec4(0,0,0,1), padding=0.1)
+    {
+        //const objectData = this.objects.get(objectID);
+        //if (objectData == null) { console.log("Object: "+objectID+" does not exist. Cannot set color."); return;}
+
+        let vertices = [];
+        let indices = [];
+        let normals = [];
+        let colors = [];
+
+        text = String(text);
+
+        let xOffset = 0;
+        for (let i=0; i<text.length; i++)
+        {
+            const charCode = text.charCodeAt(i);
+            const inds = asciiIndices[charCode];
+            if (inds == null)
+            {
+                console.error("character " + text[i] + " does not have associeated indices.");
+                continue;
+            }
+
+            for (let j=0; j<inds.length; j+=3)
+            {
+                const i1 = inds[j];
+                const i2 = inds[j+1];
+                const i3 = inds[j+2];
+                let v1 = new vec4(asciiVertices[i1*3], asciiVertices[i1*3 + 1], asciiVertices[i1*3 + 2]);
+                let v2 = new vec4(asciiVertices[i2*3], asciiVertices[i2*3 + 1], asciiVertices[i2*3 + 2]);
+                let v3 = new vec4(asciiVertices[i3*3], asciiVertices[i3*3 + 1], asciiVertices[i3*3 + 2]);
+
+                let indOn = vertices.length/3;
+                indices.push(indOn, indOn+1, indOn+2);
+                
+                vertices.push(v1.x+xOffset,v1.y,v1.z,  v2.x+xOffset,v2.y,v2.z, v3.x+xOffset,v3.y,v3.z);
+                normals.push(0,0,1, 0,0,1, 0,0,1);
+                colors.push(color.x, color.y, color.z, color.a,   color.x, color.y, color.z, color.a,   color.x, color.y, color.z, color.a);
+            }
+
+            xOffset += asciiWidths[charCode] + padding;
+        }
+
+        this.setObjectShape(objectID, vertices, indices, normals, colors);
     }
 
 
