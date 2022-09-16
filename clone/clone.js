@@ -12,12 +12,13 @@ class FPC {
 
         this.velocity = new vec4();
         this.isFalling = true;
+        this.isFlying = false;
 
         //Constants
-        this.movementSpeed = 4;
+        this.movementSpeed = 3;
         this.rotationSpeed = 2;
-        this.jumpSpeed = 15;
-        this.fallSpeed = -2;
+        this.jumpSpeed = 10;
+        this.fallSpeed = -1;
         this.mouseSensitivityMultiplier = 4;
 
         //Variables remembering which keys are down
@@ -32,13 +33,13 @@ class FPC {
         this.pUpdateTime = new Date().getTime();
     }
 
-    update() {
+    update_OLD() {
         const currentTime = new Date().getTime();
         const dTime = (currentTime - this.pUpdateTime)/1000;
         this.pUpdateTime = currentTime;
         let mspeed = this.movementSpeed * dTime * (this.isFalling ? 0.2 : 1); //half speed if falling/is in air
         const rspeed = this.rotationSpeed * dTime;
-        const jspeed = this.jumpSpeed * dTime;
+        const jspeed = (this.isFlying) ?  mspeed*2 : this.jumpSpeed * dTime;
         const fspeed = this.fallSpeed * dTime;
 
         let posChange = new vec4();
@@ -49,7 +50,7 @@ class FPC {
         const headYOffset = -0.1;
         const belowFeetYOffset = -1.9;
         const aboveHeadYOffset = 0.5;
-        const pos = this.getPosition().muli(1,1,-1);
+        const pos = this.getPosition().muli(1,1,1);
         const belowFeet = chunkManager.getBlock(pos.add(0,belowFeetYOffset));
         const feet = chunkManager.getBlock(pos.add(0,feetYOffset));
         const head = chunkManager.getBlock(pos);
@@ -65,24 +66,24 @@ class FPC {
         const headZp = chunkManager.getBlock(pos.add(0, headYOffset, bb));
         const headZm = chunkManager.getBlock(pos.add(0, headYOffset, -bb));
 
-
-        //determine if falling or not, and adjust velocity.
-        if ((belowFeet == null || belowFeet < 0) && pos.y > 0) // falling = true
+        if (belowFeet == null && pos.y > 1) // falling = true
         {
             this.isFalling = true;
-            this.velocity.addi(0,fspeed,0);
-        } else {
-            this.velocity.y = 0; //falling = false;
-            this.isFalling = false;
+            this.posChange += fspeed;
         }
+
 
         //Keyboard input
         if (this.pressedKeys.get('shift') == true)
         {
-            this.viewMatNeedsUpdate = true;
-            mspeed *= 1.5
-            //posChange.y -= mspeed;
-        } 
+            if (this.isFlying)
+            {
+                posChange.y -= mspeed;
+            } else {
+                this.viewMatNeedsUpdate = true;
+                mspeed *= 1.5
+            }
+        }
         if (this.pressedKeys.get('w') == true)
         {
             this.viewMatNeedsUpdate = true;
@@ -107,7 +108,7 @@ class FPC {
             posChange.x += Math.cos(this.rotation.y)*mspeed; 
             posChange.z -= Math.sin(this.rotation.y)*mspeed;
         }
-        if (this.pressedKeys.get(' ') == true && this.isFalling == false)
+        if (this.pressedKeys.get(' ') == true && (this.isFalling == false || this.isFlying))
         {
             this.viewMatNeedsUpdate = true;
             posChange.y += jspeed;
@@ -133,6 +134,18 @@ class FPC {
         {
             this.viewMatNeedsUpdate = true;
             this.rotation.z += rspeed;
+        }
+
+
+
+        /*
+        //determine if falling or not, and adjust velocity.
+        if (belowFeet != null) // falling = true
+        {
+            //posChange.y = 0;
+            this.velocity.y = 0;
+            this.isFalling = false;
+            this.position.y = Math.round(this.position.y +  belowFeetYOffset) + 0.49 - belowFeetYOffset;
         }
 
         //only allow movement along x axis if no block is going to be hit.
@@ -161,24 +174,282 @@ class FPC {
             this.velocity.z = 0;
         }
 
-        if (aboveHead != null && aboveHead != null && (this.velocity.y > 0 || posChange.y > 0))
+        if (aboveHead != null && (this.velocity.y > 0 || posChange.y > 0))
         {
             posChange.y = 0;
             this.velocity.y = 0;
+            //console.log("y: "+this.position.y +"  new y: " + (Math.round(this.position.y +  aboveHeadYOffset) - 0.49 - aboveHeadYOffset));
+            this.position.y = Math.round(this.position.y +  aboveHeadYOffset) - 0.49 - aboveHeadYOffset;
         }
         //console.log(aboveHead, posChange.y);
         this.velocity.addi(posChange);
-
-        
-
         this.position.addi(this.velocity);
 
-        if (this.isFalling)
+        if (this.isFalling && !this.isFlying)
         {
             this.velocity.muli(0.9, 0.9, 0.9);
-        } else {
+        } else if (!this.isFlying) {
             this.velocity.muli(0.2, 0.9, 0.2);
+        } else {
+            this.velocity.muli(0.9, 0.9, 0.9);
+        }*/
+
+    }
+    update() {
+        const currentTime = new Date().getTime();
+        const dTime = (currentTime - this.pUpdateTime)/1000;
+        this.pUpdateTime = currentTime;
+        let mspeed = this.movementSpeed * dTime * (this.isFalling ? 0.2 : 1); //half speed if falling/is in air
+        const rspeed = this.rotationSpeed * dTime;
+        const jspeed = (this.isFlying) ?  mspeed*2 : this.jumpSpeed * dTime;
+        const fspeed = this.fallSpeed * dTime;
+
+        let posChange = new vec4();
+
+        const bb = 0.4;
+        const feetYOffset = -1.1;
+        const headYOffset = -0.1;
+        const belowFeetYOffset = -1.9;
+        const aboveHeadYOffset = 0.5;
+        const pos = this.getPosition().muli(1,1,1);
+
+        let belowFeet = chunkManager.getBlock(pos.add(0,belowFeetYOffset));
+
+        if (belowFeet == null && pos.y > 1) // falling = true
+        {
+            this.isFalling = true;
+            posChange.y += fspeed;
+        } else {
+            this.isFalling = false;
+            this.velocity.y = 0;
         }
+
+        
+        //Keyboard input
+        if (this.pressedKeys.get('shift') == true)
+        {
+            if (this.isFlying)
+            {
+                posChange.y -= mspeed;
+            } else {
+                this.viewMatNeedsUpdate = true;
+                mspeed *= 1.5
+            }
+        }
+        if (this.pressedKeys.get('w') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            posChange.x += Math.sin(this.rotation.y)*mspeed; 
+            posChange.z -= Math.cos(this.rotation.y)*mspeed;
+        }
+        if (this.pressedKeys.get('s') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            posChange.x -= Math.sin(this.rotation.y)*mspeed; 
+            posChange.z += Math.cos(this.rotation.y)*mspeed;
+        }
+        if (this.pressedKeys.get('a') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            posChange.x -= Math.cos(this.rotation.y)*mspeed; 
+            posChange.z -= Math.sin(this.rotation.y)*mspeed;
+        }
+        if (this.pressedKeys.get('d') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            posChange.x += Math.cos(this.rotation.y)*mspeed; 
+            posChange.z += Math.sin(this.rotation.y)*mspeed;
+        }
+        if ((this.pressedKeys.get(' ') == true || this.pressedKeys.get('space')) && (this.isFalling == false || this.isFlying))
+        {
+            this.viewMatNeedsUpdate = true;
+            posChange.y += jspeed;
+        }
+
+        //rotation input
+        if (this.pressedKeys.get('arrowright') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            this.rotation.y += rspeed;
+        }
+        if (this.pressedKeys.get('arrowleft') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            this.rotation.y -= rspeed;
+        }
+        if (this.pressedKeys.get('arrowup') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            this.rotation.z -= rspeed;
+        }
+        if (this.pressedKeys.get('arrowdown') == true)
+        {
+            this.viewMatNeedsUpdate = true;
+            this.rotation.z += rspeed;
+        }
+
+        belowFeet = chunkManager.getBlock(pos.add(0,belowFeetYOffset));
+        //let feet = chunkManager.getBlock(pos.add(0,feetYOffset));
+        //let head = chunkManager.getBlock(pos);
+        //let aboveHead = chunkManager.getBlock(pos.add(0,aboveHeadYOffset));
+
+        //used below keyboard input.
+        //const feetXp = chunkManager.getBlock(pos.add(bb, feetYOffset+posChange.y, 0));
+        //const feetXm = chunkManager.getBlock(pos.add(-bb, feetYOffset+posChange.y, 0));
+        //const feetZp = chunkManager.getBlock(pos.add(0, feetYOffset+posChange.y, bb));
+        //const feetZm = chunkManager.getBlock(pos.add(0, feetYOffset+posChange.y, -bb));
+        //const headXp = chunkManager.getBlock(pos.add(bb, headYOffset, 0));
+        //const headXm = chunkManager.getBlock(pos.add(-bb, headYOffset, 0));
+        //const headZp = chunkManager.getBlock(pos.add(0, headYOffset, bb))
+        //const headZm = chunkManager.getBlock(pos.add(0, headYOffset, -bb));
+
+        /*
+        let xBB = bb;
+        if (posChange.x < 0)
+        {
+            xBB = -xBB;
+        }
+        let zBB = bb;
+        if (posChange.z > 0)
+        {
+            zBB = -zBB;
+        }
+        const block = chunkManager.getBlock(pos.add(posChange.x+xBB, feetYOffset, posChange.z+zBB));
+
+        if (block != null)
+        {
+            posChange.x = 0;
+            posChange.z = 0;
+        }*/
+
+        const dPos = this.velocity.add(posChange.x, posChange.y, -posChange.z);
+        const nextPos = pos.add(dPos.x*1.2, 0, dPos.z*1.2);
+        const nextFeet = nextPos.add(0,feetYOffset,0);
+        const nextHead = nextPos.add(0,headYOffset,0);
+        let block = chunkManager.getBlock(nextFeet);
+        if (block == null)
+        {
+            block = chunkManager.getBlock(nextHead);
+        }
+        //let nextXp = pos.add();
+        //const rPos = 
+
+        if (block != null)
+        {
+            this.velocity.x = 0;
+            this.velocity.z = 0;
+            posChange.x = 0;
+            posChange.z = 0;
+        }
+
+        /*
+        
+        if (posChange.x > 0)
+        {
+            const feetXp = chunkManager.getBlock(pos.add(bb+posChange.x+this.velocity.x, feetYOffset, 0));
+            const headXp = chunkManager.getBlock(pos.add(bb+posChange.x+this.velocity.x, headYOffset, 0));
+            if (feetXp != null || headXp != null)
+            {
+                this.velocity.x = 0;
+                posChange.x = 0;
+            }
+        } else if (posChange.x < 0)
+        {
+            const feetXm = chunkManager.getBlock(pos.add(-bb+posChange.x+this.velocity.x, feetYOffset, 0));
+            const headXm = chunkManager.getBlock(pos.add(-bb+posChange.x+this.velocity.x, headYOffset, 0));
+            if (feetXm != null || headXm != null)
+            {
+                posChange.x = 0;
+                this.velocity.x = 0;
+            }
+        }
+
+
+        if (posChange.z < 0)
+        {
+            const feetZp = chunkManager.getBlock(pos.add(0, feetYOffset, bb+posChange.z-this.velocity.z));
+            const headZp = chunkManager.getBlock(pos.add(0, headYOffset, bb+posChange.z-this.velocity.z));
+            if (feetZp != null || headZp != null)
+            {
+                this.velocity.z = 0;
+                posChange.z = 0;
+            }
+        } else if (posChange.z > 0)
+        {
+            const feetZm = chunkManager.getBlock(pos.add(0, feetYOffset, -bb+posChange.z-this.velocity.z));
+            const headZm = chunkManager.getBlock(pos.add(0, headYOffset, -bb+posChange.z-this.velocity.z));
+            if (feetZm != null || headZm != null)
+            {
+                posChange.z = 0;
+                this.velocity.z = 0;
+            }
+        }
+        */
+
+        this.velocity.addi(posChange);
+        this.position.addi(this.velocity);
+        if (this.isFalling)
+        {
+            this.velocity.muli(0.95, 0.9, 0.95);
+        } else {
+            this.velocity.muli(0.3, 0.9, 0.3);
+        }
+
+        /*
+        //determine if falling or not, and adjust velocity.
+        if (belowFeet != null) // falling = true
+        {
+            //posChange.y = 0;
+            this.velocity.y = 0;
+            this.isFalling = false;
+            this.position.y = Math.round(this.position.y +  belowFeetYOffset) + 0.49 - belowFeetYOffset;
+        }
+
+        //only allow movement along x axis if no block is going to be hit.
+        if ((feetXp != null && feetXp != null && posChange.x > 0) || 
+            (headXp != null && headXp != null && posChange.x > 0) )
+        {
+            posChange.x = 0;
+            this.velocity.x = 0;
+        }
+        if ((feetXm != null && feetXm != null && posChange.x < 0) ||
+            (headXm != null && headXm != null && posChange.x < 0) )
+        {
+            posChange.x = 0;
+            this.velocity.x = 0;
+        }
+        if ((feetZm != null && feetZm != null && posChange.z > 0) ||
+            (headZm != null && headZm != null && posChange.z > 0) )
+        {
+            posChange.z = 0;
+            this.velocity.z = 0;
+        } 
+        if ((feetZp != null && feetZp != null && posChange.z < 0) || 
+        (headZp != null && headZp != null && posChange.z < 0) )
+        {
+            posChange.z = 0;
+            this.velocity.z = 0;
+        }
+
+        if (aboveHead != null && (this.velocity.y > 0 || posChange.y > 0))
+        {
+            posChange.y = 0;
+            this.velocity.y = 0;
+            //console.log("y: "+this.position.y +"  new y: " + (Math.round(this.position.y +  aboveHeadYOffset) - 0.49 - aboveHeadYOffset));
+            this.position.y = Math.round(this.position.y +  aboveHeadYOffset) - 0.49 - aboveHeadYOffset;
+        }
+        //console.log(aboveHead, posChange.y);
+        this.velocity.addi(posChange);
+        this.position.addi(this.velocity);
+
+        if (this.isFalling && !this.isFlying)
+        {
+            this.velocity.muli(0.9, 0.9, 0.9);
+        } else if (!this.isFlying) {
+            this.velocity.muli(0.2, 0.9, 0.2);
+        } else {
+            this.velocity.muli(0.9, 0.9, 0.9);
+        }*/
 
     }
     setPosition(pos=new vec4(), y=0,z=0)
@@ -315,6 +586,8 @@ class Player {
         easyGl.createObject("statsBarOverlay", new vec4(0, 1-this.statsBarHeight*5/2, 0), null, new vec4(this.statsBarColumnWidth*this.statsBarNumColumns, this.statsBarHeight, 1), [-1,1,0, 1,1,0, 1,-1,0, -1,-1,0], [0,1,2, 0,3,2], null, this.inventoryOverlayColor, true);
         easyGl.createText("healthText", "Health: 100%", new vec4(-this.statsBarColumnWidth*3/2, 1-this.statsBarHeight*5/2 + this.statsBarTextVerticalOffset, -0.99), null, this.statsBarTextScale, new vec4(0,0,0,1), true);
         easyGl.createText("hungerText", "Hunger: 100%", new vec4(this.statsBarColumnWidth*3/4, 1-this.statsBarHeight*5/2 + this.statsBarTextVerticalOffset, -0.99), null, this.statsBarTextScale, new vec4(0,0,0,1), true);
+
+        easyGl.createText("inventoryItemNameText", "item:", new vec4(), null, this.statsBarTextScale, new vec4(1,1,1,1), true);
 
         this.createUIGraphics();
         this.setInventorySelect();
@@ -454,7 +727,7 @@ class Player {
                 break;
             }
         }
-        console.log(index);
+        //console.log(index);
         return {
             index: index,
             mouseX: mx,
@@ -479,7 +752,13 @@ class Player {
                 case "e": this.inMenu = !this.inMenu; break;
                 case "escape": this.inMenu = !this.inMenu; break;
                 case "shift": this.shiftIsDown = true; break;
-                case "i": this.collectItem("test", 40); this.collectItem("grass", 80); this.collectItem("dirt", 40); this.collectItem("stone", 80); this.collectItem("tnt", 80); break;
+                case "f": this.fpc.isFlying = !this.fpc.isFlying; break;
+                case "i": //this.collectItem("test", 40); this.collectItem("grass", 80); this.collectItem("dirt", 40); this.collectItem("stone", 80); this.collectItem("tnt", 80); break;
+                    for (let i=0; i<blocks.length; i++)
+                    {
+                        this.collectItem(blocks[i].type, 50);
+                    }
+                    break;
                 case "1": this.setInventorySelect(0); break; //easyGl.setObjectPosition("itemBarSelectOverlay", -itemBarWidth + itemBarIncrement/2, null, null); itemBarSelectedNum = 1; break;
                 case "2": this.setInventorySelect(1); break; //easyGl.setObjectPosition("itemBarSelectOverlay", -itemBarWidth + itemBarIncrement*3/2, null, null); itemBarSelectedNum = 2; break;
                 case "3": this.setInventorySelect(2); break; //easyGl.setObjectPosition("itemBarSelectOverlay", -itemBarWidth + itemBarIncrement*5/2, null, null); itemBarSelectedNum = 3;break;
@@ -524,6 +803,21 @@ class Player {
                         this.menuState="draggingItem";
                         this.indexDraggingFrom = ret.index;
                         return;
+                    }
+                }
+                if (event.type == "mousemove")
+                {
+                    let ret = this._getInventoryUIIndexFromMouseEvent(event);
+                    //console.log(ret, this.inventory[ret.index]);
+                    if (ret.index != null && this.inventory[ret.index] != null)
+                    {
+                        easyGl.setObjectPosition("inventoryItemNameText", new vec4(ret.mouseX, ret.mouseY,-0.99));
+                        if (easyGl.getText("inventoryItemNameText") != String(this.inventory[ret.index].type))
+                        {
+                            easyGl.setText("inventoryItemNameText", this.inventory[ret.index].type, new vec4(1,1,1,1));
+                        }
+                    } else {
+                        easyGl.setObjectPosition("inventoryItemNameText", new vec4(10, 10, -0.99));
                     }
                 }
             }
@@ -726,7 +1020,7 @@ class Player {
             //if (ret == null) { return; }
 
             let pPos;
-            let pos = this.fpc.getPosition().copy().mul(1,1,-1);
+            let pos = this.fpc.getPosition().copy().mul(1,1,1);
             const stepVec = new mat4().makeRotation(this.fpc.rotation.x, Math.PI - this.fpc.rotation.y, this.fpc.rotation.z).mul( new vec4(0,0,selectedStepDist) );
             for (let i=0; i<selectDistance; i+=selectedStepDist)
             {
@@ -857,6 +1151,10 @@ class Player {
         if (this.inMenu)
         {
             easyGl.renderObjectCustomView("inventoryOverlay", scaleMatrix, identityMatrix);
+            if (this.menuState == "idle")
+            {
+                easyGl.renderObjectCustomView("inventoryItemNameText", scaleMatrix, identityMatrix);
+            }
         }
         easyGl.renderObjectCustomView("inventoryBarOverlay", scaleMatrix, identityMatrix);
         
@@ -1002,6 +1300,41 @@ class Chunk
             }
         }
 
+        //generate iron ore
+        for (let x=2; x<maxX-2; x++)
+        {
+            for (let z=2; z<maxZ-2; z++)
+            {
+                const rx = x + this.position.x; //real X
+                const rz = z + this.position.z;
+                let ry = seaLevel;
+                if (x >= 0 && x < maxX && z >= 0 && z < maxZ)
+                {
+                    ry = this.heightMap[x*maxZ + z];
+                } else {
+                    ry = this._heightFunction(rx, rz);
+                }
+
+                const t = this._ironFunction(rx,ry,rz);
+                if (t > 0)
+                {
+                    this.blocks[x*this.maxY*this.maxZ+z*this.maxY+t] = "ironOre";
+                    this.blocks[(x-1)*this.maxY*this.maxZ+z*this.maxY+t] = "ironOre";
+                    this.blocks[(x+1)*this.maxY*this.maxZ+z*this.maxY+t] = "ironOre";
+                    this.blocks[(x+1)*this.maxY*this.maxZ+(z+1)*this.maxY+t] = "ironOre";
+                    this.blocks[(x+1)*this.maxY*this.maxZ+(z-1)*this.maxY+t] = "ironOre";
+                    this.blocks[(x-1)*this.maxY*this.maxZ+(z+1)*this.maxY+t] = "ironOre";
+                    this.blocks[(x-1)*this.maxY*this.maxZ+(z-1)*this.maxY+t] = "ironOre";
+                    this.blocks[(x-2)*this.maxY*this.maxZ+z*this.maxY+t] = "ironOre";
+                    this.blocks[(x+2)*this.maxY*this.maxZ+z*this.maxY+t] = "ironOre";
+                    this.blocks[x*this.maxY*this.maxZ+(z+1)*this.maxY+t] = "ironOre";
+                    this.blocks[x*this.maxY*this.maxZ+(z-1)*this.maxY+t] = "ironOre";
+                    this.blocks[x*this.maxY*this.maxZ+z*this.maxY+t-1] = "ironOre";
+                    console.log("iron!" + t);
+                }
+            }
+        }
+
         this.createGlObject();
     }
     getBlock(pos, y, z)
@@ -1061,11 +1394,22 @@ class Chunk
         {
             if (probabilityOfDrop+0.001 > Math.random())
             {
-                const e = new FloatingBlock(new vec4(pos.x+this.position.x, pos.y + this.position.y, pos.z + this.position.z), type, this.easyGl);
-                e.velocity.x = 3 - Math.random()*6;
-                e.velocity.y = 3 - Math.random()*6;
-                e.velocity.z = 3 - Math.random()*6;
-                entities.push( e );
+                let e = null;
+                const drop = blockMap.get(type).drops;
+                if (drop == null)
+                {
+                    e = new FloatingBlock(new vec4(pos.x+this.position.x, pos.y + this.position.y, pos.z + this.position.z), type, this.easyGl);
+                    e.velocity.x = 3 - Math.random()*6;
+                    e.velocity.y = 3 - Math.random()*6;
+                    e.velocity.z = 3 - Math.random()*6;
+                    entities.push( e );
+                } else {
+                    console.error("spawn new thingy: " + drop);
+                    e = spawnEntityByName(drop, new vec4(pos.x+this.position.x, pos.y + this.position.y, pos.z + this.position.z));
+                    e.velocity.x = 3 - Math.random()*6;
+                    e.velocity.y = 3 - Math.random()*6;
+                    e.velocity.z = 3 - Math.random()*6;
+                }
             }
         }
 
@@ -1111,6 +1455,24 @@ class Chunk
             return 0;
         }
     }
+    _ironFunction(rx,ry,rz)
+    {
+        const hash = Math.sin(rx/1.4) + Math.sin(rz/2.98) + Math.sin(rx/2.66) + Math.sin(rz/3.33) + Math.sin(rx+rz/5.2);
+        if (Math.abs(rx)%4 < 3)
+        {
+            return 0;
+        }
+        if (Math.abs(rz)%5 < 4)
+        {
+            return 0;
+        }
+        if (hash > 2)
+        {
+            return Math.round( Math.abs(113*Math.sin(rx) + 37*Math.cos(rx))%(ry-10) + 4 );
+        } else {
+            return 0;
+        }
+    }
     createGlObject()
     {
         const maxY = this.maxY;
@@ -1138,7 +1500,7 @@ class Chunk
                     {
                         continue;
                     }*/
-                    if (b == "air" || b == "" || b == null || blockMap.get(b).transparent)
+                    if (b == "air" || b == "" || b == null || blockMap.get(b).transparent )//    || b == "grass" || b =="stone" || b == "dirt")
                     {
                         continue;
                     }
@@ -1178,6 +1540,18 @@ class Chunk
                     {
                         back = this.blocks[x*maxY*maxZ+(z+1)*maxY+y];
                     }
+
+                    /*if (b == "ironOre")
+                    {
+                        console.log(b);
+                        above = -1;
+                        below = -1;
+                        left = -1;
+                        right = -1;
+                        front = -1;
+                        back = -1;
+                    }*/
+
                     if (below == -1 || blockMap.get(below).transparent) //if block below is air...
                     {
                         let ind = v.length/3;
@@ -1455,10 +1829,11 @@ class ChunkManager
 
 class Entity 
 {
-    constructor(position = new vec4(), rotation = new vec4(), easyGl)
+    constructor(position = new vec4(), rotation = new vec4(), scale = new vec4(), easyGl)
     {
         this.position = position;
         this.rotation = rotation;
+        this.scale = scale;
         if (!(this.position instanceof vec4))
         {
             this.position = new vec4();
@@ -1466,6 +1841,10 @@ class Entity
         if (!(this.rotation instanceof vec4))
         {
             this.rotation = new vec4();
+        }
+        if (!(this.scale instanceof vec4))
+        {
+            this.scale = new vec4();
         }
         
         this.velocity = new vec4();
@@ -1483,14 +1862,14 @@ class FloatingBlock extends Entity
 {
     constructor(position = new vec4(), blockType, easyGl)
     {
-        super(position, new vec4(), easyGl);
+        super(position, new vec4(), new vec4(0.2, 0.2, 0.2, 0.2), easyGl);
         this.floatSpeed = 1;
         this.floatDist = 3;
         this.blockType = blockType;
         this.maxTime = 1000*30;
         this.startTime = Date.now();
         this.quantity = 1;
-        this.easyGl.createObject(this.id, this.position, this.rotation, new vec4(0.2,0.25,0.25,0.3), null, null, null, blockMap.get(this.blockType).color);
+        this.easyGl.createObject(this.id, this.position, this.rotation, this.scale, null, null, null, blockMap.get(this.blockType).color);
     }
     update()
     {
@@ -1518,7 +1897,7 @@ class FloatingBlock extends Entity
         this.velocity.y *= 0.9;
 
 
-        const fpcPos = player.fpc.getPosition().mul(1,1,-1).subi(0,0.75,0);
+        const fpcPos = player.fpc.getPosition().mul(1,1,1).subi(0,0.75,0);
         const distToFpc = distanceBetweenPoints(fpcPos, this.position); 
         if (distToFpc < this.floatDist)
         {
@@ -1575,7 +1954,7 @@ class FallingBlock extends Entity
 {
     constructor(position = new vec4(), rotation = new vec4(), easyGl)
     {
-        super(position, rotation, easyGl);
+        super(position, rotation, new vec4(1,1,1,1), easyGl);
     }
     update()
     {
@@ -1684,6 +2063,34 @@ class TNT extends FallingBlock
 }
 
 
+class IronChunk extends FloatingBlock
+{
+    constructor(position = new vec4(), blockType, easyGl)
+    {
+        super(position, blockType, easyGl);
+        //this.easyGl.setObjectShape(this.id, this.position, this.rotation, new vec4(0.2,0.25,0.25,0.3), null, null, null, blockMap.get(this.blockType).color);
+        /*this.easyGl.setObjectShape(this.id, 
+            [0,-1,0,  1,0,1, 1,0,-1, -1,0,-1, -1,0,1,  0,1,0],
+            [0,1,2, 0,2,3, 0,3,4, 0,4,1,   5,1,2, 5,2,3, 5,3,4, 5,4,1],
+            [0.7,-0.7,0,  0,-0.7,-0.7, -0.7,-0.7,0,  0,-0.7,-0.7,     0.7,0.7,0,  0,0.7,-0.7,  -0.7,0.7,0,  0,0.7,-0.7, ],
+            [1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,],
+            );*/
+        //let v = [0,-1,0,  1,0,1, 1,0,-1, -1,0,-1, -1,0,1,  0,1,0];
+        //let i = [0,1,2, 0,2,3, 0,3,4, 0,4,1,   5,1,2, 5,2,3, 5,3,4, 5,4,1];
+        //let n = [0.7,-0.7,0,  0,-0.7,-0.7, -0.7,-0.7,0,  0,-0.7,-0.7,     0.7,0.7,0,  0,0.7,-0.7,  -0.7,0.7,0,  0,0.7,-0.7, ];
+        //let c = [1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,  1,.5,.5,1,];
+
+        let v = [0,-1,0, 1,0,1, 1,0,-1,    0,-1,0, 1,0,-1, -1,0,-1,   0,-1,0, -1,0,-1, -1,0,1,   0,-1,0, -1,0,1, 1,0,1,
+            0,1,0, 1,0,1, 1,0,-1,    0,1,0, 1,0,-1, -1,0,-1,   0,1,0, -1,0,-1, -1,0,1,   0,1,0, -1,0,1, 1,0,1,  ];
+        let i = [0,1,2, 3,4,5, 6,7,8, 9,10,11,    12,13,14, 15,16,17, 18,19,20, 21,22,23];
+        let n = [0.7,-0.7,0, 0.7,-0.7,0, 0.7,-0.7,0,   0,-0.7,-0.7,0,-0.7,-0.7,0,-0.7,-0.7,   -0.7,-0.7,0,-0.7,-0.7,0,-0.7,-0.7,0,  0,-0.7,-0.7,0,-0.7,-0.7,0,-0.7,-0.7,
+            0.7,0.7,0, 0.7,0.7,0, 0.7,0.7,0,   0,0.7,-0.7,0,0.7,-0.7,0,0.7,-0.7,   -0.7,0.7,0,-0.7,0.7,0,-0.7,0.7,0,  0,0.7,-0.7,0,0.7,-0.7,0,0.7,-0.7,];
+        let c = new vec4(1,.5,.5,1);
+
+        this.easyGl.createObject(this.id, position, this.rotation, this.scale, v, i, n, c, false); 
+    }
+}
+
 
 const blocks = [
     {
@@ -1693,6 +2100,7 @@ const blocks = [
         mineable: false,
         mineTime: 0.2,
         solid: false,
+        drops: null,
     },
     {
         type: "",
@@ -1701,6 +2109,7 @@ const blocks = [
         mineable: false,
         mineTime: 0.2,
         solid: false,
+        drops: null,
     },
     {
         type: "test",
@@ -1709,6 +2118,7 @@ const blocks = [
         mineable: true,
         mineTime: 0.2,
         solid: true,
+        drops: null,
     }, 
     {
         type: "grass",
@@ -1717,6 +2127,7 @@ const blocks = [
         mineable: true,
         mineTime: 0.3,
         solid: true,
+        drops: null,
     }, 
     {
         type: "dirt",
@@ -1725,6 +2136,7 @@ const blocks = [
         mineable: true,
         mineTime: 0.3,
         solid: true,
+        drops: null,
     },
     {
         type: "stone",
@@ -1733,6 +2145,16 @@ const blocks = [
         mineable: true,
         mineTime: 0.5,
         solid: true,
+        drops: null,
+    },
+    {
+        type: "ironOre",
+        color: new vec4(1,.5,.5,1), //ironOre
+        transparent: false,
+        mineable: true,
+        mineTime: 0.6,
+        solid: true,
+        drops: "ironChunk",
     },
     {
         type: "log",
@@ -1741,6 +2163,7 @@ const blocks = [
         mineable: true,
         mineTime: 0.5,
         solid: true,
+        drops: null,
     },
     {
         type: "leaves",
@@ -1749,6 +2172,7 @@ const blocks = [
         mineable: true,
         mineTime: 0.2,
         solid: true,
+        drops: null,
     },
     {
         type: "tnt",
@@ -1757,6 +2181,7 @@ const blocks = [
         mineable: true,
         mineTime: 0.5,
         solid: true,
+        drops: null,
     },
 ];
 
@@ -1766,47 +2191,11 @@ for (let i=0; i<blocks.length; i++)
     blockMap.set(blocks[i].type, blocks[i]);
 }
 
-/*
-const blockColors = [
-    new vec4(1,.5,.5,1), //test
-    new vec4(0,0.5,0,1), //green grass block
-    new vec4(0.5, 0.4, 0.2, 1), //brown dirt
-    new vec4(0.4,0.4,0.4,1), //stone
-    new vec4(0.4,0.3,0.15,1), //wood trunk
-    new vec4(0.4,0.98,0.15,0.5), //leaves
-    new vec4(Math.random(),Math.random(),Math.random(),1),
-    new vec4(Math.random(),Math.random(),Math.random(),1),
-    new vec4(Math.random(),Math.random(),Math.random(),1),
-    new vec4(Math.random(),Math.random(),Math.random(),1),
-    new vec4(1,0,0,0.8) //tnt
-];
-
-const blockOpacities = [
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-];*/
-
-
-const blockMineTimes = [ 0.1,  0.15,  0.25,  0.3, .2, .2, .2, .2, .2, .2, .2, .2, .2];
+//const blockMineTimes = [ 0.1,  0.15,  0.25,  0.3, .2, .2, .2, .2, .2, .2, .2, .2, .2];
 const backgroundColor = new vec4(0.3,0,0.3,1);
 const chunkSize = 20;
 const selectedStepDist = 0.05;
 const selectDistance = 6;
-
-
-/*const menuTop = 0.3;
-const menuBottom = -0.5;
-const menuWidth = 0.5;*/
-
 
 var mouseIsDown = false;
 var blockMiningPos = null;
@@ -1835,7 +2224,8 @@ sliderInput(); //set FOV, zNear, and zFar to slider defaults
 easyGl.createObject("selectOverlayCube", new vec4, new vec4, new vec4(1.1,1.1,1.1,1.1), null, null, null, new vec4(1,1,1,0.2), true); //overlay cube for mining...
 easyGl.createObject("crosshair", new vec4(0,0,0), new vec4(0,0,0,0), new vec4(.03,.03,.03), [-1,0,0, 0,1,0, 1,0,0, 0,-1,0], [0,2,1,0,3,2], null, [1,0,0,0.7, 0,1,0,.7, 0,0,1,.7, 0,0,0,1], true);
 
-
+easyGl.createText("testTextX", "X+", new vec4(20,50,0), new vec4(0,Math.PI/2), new vec4(1,1,1), new vec4(1,1,1,1));
+easyGl.createText("testTextZ", "Z+", new vec4(0,50,20), new vec4(), new vec4(1,1,1), new vec4(1,1,1,1));
 
 canvasElement.addEventListener("mousedown", eventListener);
 document.addEventListener("mouseup", eventListener);
@@ -1858,6 +2248,7 @@ function spawnEntityByName(name, position = new vec4(), rotation = new vec4())
     switch(name)
     {
         case "tnt": e = new TNT(position, rotation, easyGl); break;
+        case "ironChunk": e = new IronChunk(position, null, easyGl); break;
     }
     if (e != null)
     {
@@ -1910,6 +2301,10 @@ function render()
     easyGl.clear();
     easyGl.renderAll();
 
+    easyGl.renderObject("testTextX");
+    easyGl.renderObject("testTextZ");
+    //console.log(easyGl.getCameraPosition().toString(1));
+
     
     //Update mining cube
     if (blockMiningPos != null)
@@ -1937,7 +2332,7 @@ function render()
 
 function chunkManagerUpdate()
 {
-    chunkManager.update(player.fpc.getPosition().mul(1,1,-1));
+    chunkManager.update(player.fpc.getPosition().mul(1,1,1));
 }
 
 //Handle FOV, zNear, and zFar changes
@@ -1957,8 +2352,7 @@ function sliderInput()
 
 
 
-
-
+//test();
 
 function test()
 {
@@ -1967,16 +2361,168 @@ function test()
     const speed = 5;
     let s = "";
     let numIns = 0;
+    let px,py,pz=0;
     for (let x=0; x<size; x+=step)
     {
         for (let z=0; z<size; z+=step)
         {
             const y = 200*Math.sin( Math.PI * 2 * x/size + z/size);
             s += speed + " " + Math.round(x) + " " + Math.round(y) + " " + Math.round(z) + " ";
-            //s += "1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 ";
+            px = Math.round(x);
+            py = Math.round(y);
+            pz = Math.round(z);
             numIns += 1;
         }
+        s += 1 + " " + px + " " + (py-500) + " " + pz + " ";
+        s += 1 + " " + px + " " + (py-500) + " " + "0" + " ";
     }
     console.log(numIns);
     console.log(s);
+    /*
+    let possibilities = ["exe", "e#e", "exe", "e#e"];
+    let desiredOutput = "exe#exe";
+    let maxLength = 6;
+
+    let mySet = new Set();
+
+    for (let i=0; i<1000; i++)
+    {
+        
+        let string = "e";
+        let tree = " " + string;
+        let numLoops = 0;
+        while (string.length < maxLength && numLoops < 100)
+        {
+            let newString = findEAndReplace(string, possibilities);
+            tree += ", " + newString;
+            string = newString;
+            numLoops += 1;
+        }
+        if (numLoops > 90)
+        {
+            console.error("TOO MANY");
+        }
+        //console.log("Tree: ",tree, "   string; " + string);
+        if (string == desiredOutput)
+        {
+            mySet.add(tree);
+        }
+    }
+
+    console.log(mySet);
+    mySet.forEach((tree) => { console.log(tree)});
+    */
+
+    /*
+    let possibilities = ["exe", "e#e", "exe", "e#e"];
+    let desiredOutput = "exe#exe#exe";
+    let char = "e";
+    let maxLength = desiredOutput.length;
+    let treeSet = new Set();
+
+    let data = [{
+        tree: "e",
+        string: "e"
+    }];
+
+    let loopNum = 0;
+    while (data.length != 0 && loopNum < 100000)
+    {
+        d = data.pop(); //get new data obj
+        if (d == undefined)
+        {
+            console.error("d is undefined ");
+            break;
+        }
+
+        if (d.string.length > maxLength || d.string == desiredOutput) //if the string is long enough, STOP
+        {
+            if (d.string == desiredOutput) //if string == desiredOutput, add the tree to the output set
+            {
+                treeSet.add(d.tree);
+            }
+            continue;
+        }
+
+        let newStrings = findEAndReplace2(d.string, char, possibilities); //get all possible new trees given current tree
+        for (let i=0; i<newStrings.length; i++)
+        {
+            data.push({
+                string:newStrings[i],
+                tree:(d.tree+", "+newStrings[i])
+            });
+        }
+    }
+    if (loopNum > 90000)
+    {
+        console.error("TOO MANY LOOPS");
+    }
+
+    treeSet.forEach((tree) => {
+        console.log(tree);
+    });
+    console.log(treeSet.size)
+    */
+
+}
+
+function findEAndReplace(string = "", possibilities = [])
+{
+    let l = string.length;
+    let startIndex = Math.floor(Math.random()*l);
+    let numLoops = 0;
+    while (numLoops < 100)
+    {
+        if (string[l] == "e")
+        {
+            let firstPart = "";
+            let secondPart = "";
+            let k = Math.floor(Math.random()*possibilities.length);
+            //console.log(k);
+            let poss = possibilities[k];
+            for (let i=0; i<l;i++)
+            {
+                firstPart += string[i];
+            }
+            for (let i=l+1; i<string.length; i++)
+            {
+                secondPart += string[i];
+            }
+            //console.log("find and replace: ", string, l, firstPart, poss, secondPart);
+            return firstPart + poss + secondPart;
+        }
+        l+=1;
+        if (l >= string.length)
+        {
+            l = 0;
+        }
+        numLoops += 1;
+    }
+    console.error("BAD");
+}
+
+function findEAndReplace2(string = "", char='', possibilities = [])
+{
+    let outputs = [];
+    for (let p=0; p<string.length; p++)
+    {
+        if (string[p] == char)
+        {
+            let start = "";
+            let end = "";
+            for (let i=0; i<p; i++)
+            {
+                start += string[i];
+            }
+            for (let i=p+1; i<string.length; i++)
+            {
+                end += string[i];
+            }
+            for (let i=0; i<possibilities.length; i++)
+            {
+                outputs.push(start + possibilities[i] + end);
+            }
+        }
+    }
+    return outputs;
 }

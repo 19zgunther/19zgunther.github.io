@@ -55,7 +55,7 @@ function resize(event)
     const easygl = new EasyGL( canvasElement );
     easyglInstances.push(easygl);
     easygl.setClearColor(c1Color);
-    easygl.setCameraPosition( 0, 0, -2 );
+    easygl.setCameraPosition( 0, 0, 2 );
     easygl.setPerspective();
     easygl.createObject( 'myObject1' );
     
@@ -91,7 +91,7 @@ function resize(event)
     const easygl = new EasyGL( canvasElement );
     easyglInstances.push(easygl);
     easygl.setClearColor(c2Color);
-    easygl.setCameraPosition( 0, 0, -3 );
+    easygl.setCameraPosition( 0, 0, 3 );
     easygl.setPerspective();
 
     let sphere = generateSphereMesh(1,0.7,0);
@@ -156,7 +156,7 @@ function resize(event)
     function update() {
         t += 0.03;
         easygl.setObjectRotation( 'myObject2', t,t,t);
-        easygl.setCameraPosition( 4*Math.cos(t), 0, 4*Math.sin(t) );
+        easygl.setCameraPosition( 4*Math.cos(t), 0, -4*Math.sin(t) );
         easygl.setCameraRotation( 0, -t -Math.PI/2, 0);
         easygl.clear();
         easygl.renderAll();
@@ -207,7 +207,7 @@ function resize(event)
 
         easygl.setObjectColor( 'myObject3', new vec4(0,0,1,Math.sin(t*3)/2+0.5));
 
-        easygl.setCameraPosition( 4*Math.cos(t/2),0, 4*Math.sin(t/2) );
+        easygl.setCameraPosition( 4*Math.cos(t/2),0, -4*Math.sin(t/2) );
         easygl.setCameraRotation( 0, -t/2 -Math.PI/2, 0, 0);
 
 
@@ -276,7 +276,7 @@ function resize(event)
 
     gl.setObjectColor('bigCube', newColors);
 
-    fpc.setPosition(0, 2, -4);
+    fpc.setPosition(0, 2, 4);
 
     //RUN////////////////////////////////////////////////////////////////////////////////////
     //The update loop runs every frame

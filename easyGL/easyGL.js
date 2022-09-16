@@ -395,7 +395,7 @@ class EasyGL {
                 //Sort the list, from farthest obejct to closest
                 this.sortedTransObjs.sort((a,b) => (a.dist < b.dist) ? 1 : -1);
                 this.lastSortTimeStamp = Date.now();
-                console.log(this.sortedSolidObjs.length, this.sortedTransObjs.length);
+                //console.log(this.sortedSolidObjs.length, this.sortedTransObjs.length);
             }
             //Now, render each object in the new order
             for (let i=0; i<this.sortedSolidObjs.length; i++)
@@ -447,7 +447,7 @@ class EasyGL {
     }
     _updateViewMatrix()
     {
-        this.cameraTranslationMatrix.makeTranslation(this.cameraPosition.mul(-1,-1,1,1));
+        this.cameraTranslationMatrix.makeTranslation(this.cameraPosition.mul(-1,-1,-1,1));
         this.cameraRotationMatrix.makeRotation(this.cameraRotation);
         this.viewMatrix = this.cameraRotationMatrix.mul(this.cameraTranslationMatrix);
     }
@@ -808,6 +808,7 @@ class EasyGL {
         }
 
         this.createObject(objectID, position, rotation, scale, vertices, indices, null, color, shouldHideFromRenderAll);
+        this.objects.get(objectID).text = text;
     }
     deleteObject(objectID)
     {
@@ -1056,7 +1057,6 @@ class EasyGL {
     {
         //const objectData = this.objects.get(objectID);
         //if (objectData == null) { console.log("Object: "+objectID+" does not exist. Cannot set color."); return;}
-
         let vertices = [];
         let indices = [];
         let normals = [];
@@ -1091,11 +1091,11 @@ class EasyGL {
                 normals.push(0,0,1, 0,0,1, 0,0,1);
                 colors.push(color.x, color.y, color.z, color.a,   color.x, color.y, color.z, color.a,   color.x, color.y, color.z, color.a);
             }
-
             xOffset += asciiWidths[charCode] + padding;
         }
 
         this.setObjectShape(objectID, vertices, indices, normals, colors);
+        this.objects.get(objectID).text = text;
     }
 
 
@@ -1131,6 +1131,12 @@ class EasyGL {
             return true;
         }
         return false;
+    }
+    getText(objectID)
+    {
+        const objectData = this.objects.get(objectID);
+        if (objectData == null) { console.error("Object: "+objectID+" does not exist. Cannot get text."); return;}
+        return objectData.text;
     }
 
 
