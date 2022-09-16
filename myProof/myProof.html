@@ -17,8 +17,9 @@
     <div style="display: block; margin-top: 10vh; position: relative; width: 99.9vw; height: 60vh; align-items: center; align-content: center; background-color: peachpuff; color: black">
         Speed:<input id="speedInput" oninput=input() type=range min=0 max=1000 step=1 style="width:20vw; display: block; position: relative; margin:auto;" ></input>
         <div id = "value" style="display: block; position: relative; padding: 5vmax; font-size:4vw; font-family: 'Comic Sans MS', 'Comic Sans','Chalkboard SE', 'Comic Neue', 'sans-serif', cursive; text-align: center; background-color: darkmagenta; color:olive;">
-            This is my proof! If you let it run long enough, it will display ALL of the multiples of 3!
+
         </div>
+        <canvas id = "myCanvas" style=" display: block; position:relative; z-index: 1000; width:100%; height: 5vh;"></canvas>
         <div style="display: block; position: relative; padding: 5vmax; font-size:3vw; font-family: 'Comic Sans MS', 'Comic Sans','Chalkboard SE', 'Comic Neue', 'sans-serif', cursive; text-align: center; background-color: coral; color:darkblue">
             This is my proof! If you let it run long enough, it will display ALL of the multiples of 3!
             FYI - move the slider to increase speed.
@@ -35,6 +36,16 @@
 
     const timeEl = document.getElementById("time");
     const valueEl = document.getElementById("value");
+    const canvEl = document.getElementById("myCanvas");
+    let bb = canvEl.getBoundingClientRect();
+    canvEl.width = Math.round(bb.width);
+    canvEl.height = Math.round(bb.height);
+    const ctx = canvEl.getContext('2d');
+
+    ctx.fillStyle = "red";
+    ctx.strokeStyle = "green";
+    ctx.fillRect(0,0,canvEl.width, canvEl.height);
+    var scalar = 1;
 
     const map = new Map();
     map.set("C", ["C0", "A1", "0"]);
@@ -74,7 +85,23 @@
         if (poss == null)
         {
             let int = parseInt(startString.string,2);
+
+            if (int*scalar < canvEl.width)
+            {
+                //const cnvs = document.getElementById("myCanvas");
+                //const ctx = cnvs.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(Math.round(int*scalar), 0);
+                ctx.lineTo(Math.round(int*scalar), canvEl.height);
+                ctx.stroke();
+                ctx.closePath();
+            } else {
+                ctx.fillRect(0,0,canvEl.width, canvEl.height);
+                scalar *= 0.07;
+            }
+
             valueEl.innerText = "Tree: \n"+startString.tree + "\nValue: " + String(int) + "\n  % 3 == 0 ?? :" + ((int%3==0)? "true": "false");
+            
             return;
         }
         for (let i=0; i<poss.length; i++)
