@@ -280,7 +280,7 @@ function resize(event)
 
     //RUN////////////////////////////////////////////////////////////////////////////////////
     //The update loop runs every frame
-    let updateInterval = setInterval(update, 20); //set update interval for 10ms, this determines frame rate
+    let updateInterval = setInterval(update, 1000); //set update interval for 10ms, this determines frame rate
     let t=0;
 
     //Update function, which runs once every frame. 1000/10 = 100FPS
@@ -308,7 +308,7 @@ function resize(event)
     });
     canvasElement.addEventListener('mouseleave', function() {
         clearInterval(updateInterval);
-        updateInterval = setInterval(update, 100);
+        //updateInterval = setInterval(update, 100);
     });
 
 }

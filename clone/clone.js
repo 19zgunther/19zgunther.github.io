@@ -2244,6 +2244,11 @@ document.addEventListener("keyup", eventListener);
 
 let renderInterval = setInterval(render, 50);
 let slowUpdate = setInterval(chunkManagerUpdate, 1000);
+
+for (let i=2; i<blocks.length; i++)
+{
+    player.collectItem(blocks[i].type, 20);
+}
  
 
 function eventListener(event)
