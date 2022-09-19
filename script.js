@@ -38,10 +38,10 @@
                     Snake Game Neural Network
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("easygl")'>
-                    EasyGL Demo <br> (in dev)
+                    EasyGL Library Demo
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("web_experiments")'>
-                    Web Dev Experiments <br> (in dev)
+                    Web Dev Experiments <br> <div style="font-size:x-small">(perpetually in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
                     Ray Tracing Project <br> (in dev)
