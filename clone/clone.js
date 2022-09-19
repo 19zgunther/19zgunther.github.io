@@ -4,7 +4,7 @@
 ************************************************************************************************/
 
 
-class FPC {
+class FPC2 {
     constructor(position = new vec4(), rotation = new vec4())
     {
         this.position = position;
@@ -543,7 +543,7 @@ class Player {
     constructor(position = new vec4(), rotation = new vec4())
     {
         //first person controller
-        this.fpc = new FPC(position, rotation);
+        this.fpc = new FPC2(position, rotation);
 
         this.inventory = [];
         for (let i=0; i<40; i++) { this.inventory.push(null); }
@@ -754,7 +754,7 @@ class Player {
                 case "shift": this.shiftIsDown = true; break;
                 case "f": this.fpc.isFlying = !this.fpc.isFlying; break;
                 case "i": //this.collectItem("test", 40); this.collectItem("grass", 80); this.collectItem("dirt", 40); this.collectItem("stone", 80); this.collectItem("tnt", 80); break;
-                    for (let i=0; i<blocks.length; i++)
+                    for (let i=2; i<blocks.length; i++)
                     {
                         this.collectItem(blocks[i].type, 50);
                     }
@@ -1181,12 +1181,12 @@ class Player {
             easyGl.setText("hungerText", "Hunger: " + Math.round(this.hunger/5)*5 + "%", new vec4(r,g,b,1));
         }
         
-        this.health-= 0.5;
+        //this.health-= 0.5;
         if (this.health < 5)
         {
             this.health = 100;
         }
-        this.hunger-= 0.4;
+        this.hunger-= 0.01;
         if (this.hunger < 5)
         {
             this.hunger = 100;
@@ -1330,7 +1330,7 @@ class Chunk
                     this.blocks[x*this.maxY*this.maxZ+(z+1)*this.maxY+t] = "ironOre";
                     this.blocks[x*this.maxY*this.maxZ+(z-1)*this.maxY+t] = "ironOre";
                     this.blocks[x*this.maxY*this.maxZ+z*this.maxY+t-1] = "ironOre";
-                    console.log("iron!" + t);
+                    //console.log("iron!" + t);
                 }
             }
         }
@@ -1702,16 +1702,20 @@ class ChunkManager
     }
     setBlock(positions = [], type, suppressGlUpdate = false, onlyReplaceAir = false)
     {
-        const e = spawnEntityByName(type, positions);
-        if (e != null)
-        {
-            return;
-        }
-
         if (positions instanceof vec4)
         {
             positions = [positions];
         }
+
+        if (spawnEntityByName(type, positions[0]) != null)
+        {
+            for (let i=1; i<positions.length; i++)
+            {
+                spawnEntityByName(type, positions[i]);
+            }
+            return;
+        }
+
         let chunks = new Set();
         let numBlocksSet = 0;
         for(let i=0; i<positions.length; i++)
@@ -2056,6 +2060,11 @@ class TNT extends FallingBlock
                 }
             }
 
+            const vec = player.fpc.position.sub(this.position);
+            const d = vec.getLength();
+            player.fpc.velocity.y += 1/d * 3;
+            player.fpc.isFalling = true;
+
             this.easyGl.deleteObject(this.id);
             this.isDead = true;
         }
@@ -2085,7 +2094,7 @@ class IronChunk extends FloatingBlock
         let i = [0,1,2, 3,4,5, 6,7,8, 9,10,11,    12,13,14, 15,16,17, 18,19,20, 21,22,23];
         let n = [0.7,-0.7,0, 0.7,-0.7,0, 0.7,-0.7,0,   0,-0.7,-0.7,0,-0.7,-0.7,0,-0.7,-0.7,   -0.7,-0.7,0,-0.7,-0.7,0,-0.7,-0.7,0,  0,-0.7,-0.7,0,-0.7,-0.7,0,-0.7,-0.7,
             0.7,0.7,0, 0.7,0.7,0, 0.7,0.7,0,   0,0.7,-0.7,0,0.7,-0.7,0,0.7,-0.7,   -0.7,0.7,0,-0.7,0.7,0,-0.7,0.7,0,  0,0.7,-0.7,0,0.7,-0.7,0,0.7,-0.7,];
-        let c = new vec4(1,.5,.5,1);
+        let c = blockMap.get("ironOre").color;
 
         this.easyGl.createObject(this.id, position, this.rotation, this.scale, v, i, n, c, false); 
     }
@@ -2149,7 +2158,7 @@ const blocks = [
     },
     {
         type: "ironOre",
-        color: new vec4(1,.5,.5,1), //ironOre
+        color: new vec4(0.5,.1,.1,1), //ironOre
         transparent: false,
         mineable: true,
         mineTime: 0.6,
@@ -2253,6 +2262,7 @@ function spawnEntityByName(name, position = new vec4(), rotation = new vec4())
     if (e != null)
     {
         entities.push(e);
+        console.log(e);
     }
     return e;
 }
@@ -2352,17 +2362,20 @@ function sliderInput()
 
 
 
-//test();
+
+
+test();
 
 function test()
 {
+    
     const step = 10;
-    const size = 200;
+    const size = 300;
     const speed = 5;
     let s = "";
     let numIns = 0;
     let px,py,pz=0;
-    for (let x=0; x<size; x+=step)
+    /*for (let x=0; x<size; x+=step)
     {
         for (let z=0; z<size; z+=step)
         {
@@ -2377,152 +2390,27 @@ function test()
         s += 1 + " " + px + " " + (py-500) + " " + "0" + " ";
     }
     console.log(numIns);
+    console.log(s);*/
+
+    easyGl.createText("myText", "Z", new vec4(), new vec4(), new vec4(1,1,1), new vec4(1,1,1,1));
+    const data = easyGl.getObjectData("myText");
+    const ind = data.indices;
+    const vert = data.vertices;
+    const scale = 500;
+    for (let i=0; i<ind.length; i+=3)
+    {
+        const v1 = new vec4(vert[ind[i  ]*3], vert[ind[i  ]*3+1]);
+        const v2 = new vec4(vert[ind[i+1]*3], vert[ind[i+1]*3+1]);
+        const v3 = new vec4(vert[ind[i+2]*3], vert[ind[i+2]*3+1]);
+
+        console.log(v1, v2, v3);
+
+        s += speed + " " + Math.round(v1.x*scale) + " " + 0 + " " + Math.round(v1.y*scale) + " "; //move to start
+        s += speed + " " + Math.round(v1.x*scale) + " " + 200 + " " + Math.round(v1.y*scale) + " ";
+        s += speed + " " + Math.round(v2.x*scale) + " " + 200 + " " + Math.round(v2.y*scale) + " ";
+        s += speed + " " + Math.round(v3.x*scale) + " " + 200 + " " + Math.round(v3.y*scale) + " ";
+        s += speed + " " + Math.round(v1.x*scale) + " " + 200 + " " + Math.round(v1.y*scale) + " ";
+        s += speed + " " + Math.round(v1.x*scale) + " " + 0 + " " + Math.round(v1.y*scale) + " "; //move up
+    }
     console.log(s);
-    /*
-    let possibilities = ["exe", "e#e", "exe", "e#e"];
-    let desiredOutput = "exe#exe";
-    let maxLength = 6;
-
-    let mySet = new Set();
-
-    for (let i=0; i<1000; i++)
-    {
-        
-        let string = "e";
-        let tree = " " + string;
-        let numLoops = 0;
-        while (string.length < maxLength && numLoops < 100)
-        {
-            let newString = findEAndReplace(string, possibilities);
-            tree += ", " + newString;
-            string = newString;
-            numLoops += 1;
-        }
-        if (numLoops > 90)
-        {
-            console.error("TOO MANY");
-        }
-        //console.log("Tree: ",tree, "   string; " + string);
-        if (string == desiredOutput)
-        {
-            mySet.add(tree);
-        }
-    }
-
-    console.log(mySet);
-    mySet.forEach((tree) => { console.log(tree)});
-    */
-
-    /*
-    let possibilities = ["exe", "e#e", "exe", "e#e"];
-    let desiredOutput = "exe#exe#exe";
-    let char = "e";
-    let maxLength = desiredOutput.length;
-    let treeSet = new Set();
-
-    let data = [{
-        tree: "e",
-        string: "e"
-    }];
-
-    let loopNum = 0;
-    while (data.length != 0 && loopNum < 100000)
-    {
-        d = data.pop(); //get new data obj
-        if (d == undefined)
-        {
-            console.error("d is undefined ");
-            break;
-        }
-
-        if (d.string.length > maxLength || d.string == desiredOutput) //if the string is long enough, STOP
-        {
-            if (d.string == desiredOutput) //if string == desiredOutput, add the tree to the output set
-            {
-                treeSet.add(d.tree);
-            }
-            continue;
-        }
-
-        let newStrings = findEAndReplace2(d.string, char, possibilities); //get all possible new trees given current tree
-        for (let i=0; i<newStrings.length; i++)
-        {
-            data.push({
-                string:newStrings[i],
-                tree:(d.tree+", "+newStrings[i])
-            });
-        }
-    }
-    if (loopNum > 90000)
-    {
-        console.error("TOO MANY LOOPS");
-    }
-
-    treeSet.forEach((tree) => {
-        console.log(tree);
-    });
-    console.log(treeSet.size)
-    */
-
-}
-
-function findEAndReplace(string = "", possibilities = [])
-{
-    let l = string.length;
-    let startIndex = Math.floor(Math.random()*l);
-    let numLoops = 0;
-    while (numLoops < 100)
-    {
-        if (string[l] == "e")
-        {
-            let firstPart = "";
-            let secondPart = "";
-            let k = Math.floor(Math.random()*possibilities.length);
-            //console.log(k);
-            let poss = possibilities[k];
-            for (let i=0; i<l;i++)
-            {
-                firstPart += string[i];
-            }
-            for (let i=l+1; i<string.length; i++)
-            {
-                secondPart += string[i];
-            }
-            //console.log("find and replace: ", string, l, firstPart, poss, secondPart);
-            return firstPart + poss + secondPart;
-        }
-        l+=1;
-        if (l >= string.length)
-        {
-            l = 0;
-        }
-        numLoops += 1;
-    }
-    console.error("BAD");
-}
-
-function findEAndReplace2(string = "", char='', possibilities = [])
-{
-    let outputs = [];
-    for (let p=0; p<string.length; p++)
-    {
-        if (string[p] == char)
-        {
-            let start = "";
-            let end = "";
-            for (let i=0; i<p; i++)
-            {
-                start += string[i];
-            }
-            for (let i=p+1; i<string.length; i++)
-            {
-                end += string[i];
-            }
-            for (let i=0; i<possibilities.length; i++)
-            {
-                outputs.push(start + possibilities[i] + end);
-            }
-        }
-    }
-    return outputs;
 }

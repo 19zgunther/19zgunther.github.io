@@ -276,11 +276,11 @@ function resize(event)
 
     gl.setObjectColor('bigCube', newColors);
 
-    fpc.setPosition(0, 2, 4);
+    fpc.setPosition(0, 2, -4);
 
     //RUN////////////////////////////////////////////////////////////////////////////////////
     //The update loop runs every frame
-    let interval = setInterval(update, 20); //set update interval for 10ms, this determines frame rate
+    let updateInterval = setInterval(update, 20); //set update interval for 10ms, this determines frame rate
     let t=0;
 
     //Update function, which runs once every frame. 1000/10 = 100FPS
@@ -289,7 +289,7 @@ function resize(event)
         t += 0.03;
         //Update FPC, and send data (rotation & position) to EasyGL
         fpc.update();
-        gl.setCameraPosition(fpc.getPosition());
+        gl.setCameraPosition(fpc.getPosition().mul(1,1,-1));
         gl.setCameraRotation(fpc.getRotation());
 
         //Randomly modify rotation and position so people know it's live...
@@ -301,7 +301,7 @@ function resize(event)
         gl.clear(); //clear the screen
         gl.renderAll(); //can also use gl.renderObject(objID) to render only specific objects instead of all objects
     }
-    /*
+    
     canvasElement.addEventListener('mouseenter', function() {
         clearInterval(updateInterval);
         updateInterval = setInterval(update, 20);
@@ -309,7 +309,7 @@ function resize(event)
     canvasElement.addEventListener('mouseleave', function() {
         clearInterval(updateInterval);
         updateInterval = setInterval(update, 100);
-    });*/
+    });
 
 }
 
