@@ -261,6 +261,75 @@ class mat4 {
         this.f32a[15] = 1;
         return this;
     }
+    makeRotationX(r)
+    {
+        this.f32a[0] = 1;
+        this.f32a[4] = 0;
+        this.f32a[8] = 0;
+        this.f32a[12] = 0;
+
+        this.f32a[1] = 0;
+        this.f32a[5] = Math.cos(r);
+        this.f32a[9] = -Math.sin(r);
+        this.f32a[13] = 0;
+
+        this.f32a[2] = 0;
+        this.f32a[6] = Math.sin(r);
+        this.f32a[10] = Math.cos(r);
+        this.f32a[14] = 0;
+
+        this.f32a[3] = 0;
+        this.f32a[7] = 0;
+        this.f32a[11] = 0;
+        this.f32a[15] = 1;
+        return this;
+    }
+    makeRotationY(r)
+    {
+        this.f32a[0] = Math.cos(r);
+        this.f32a[4] = 0;
+        this.f32a[8] = Math.sin(r);
+        this.f32a[12] = 0;
+
+        this.f32a[1] = 0;
+        this.f32a[5] = 1;
+        this.f32a[9] = 0;
+        this.f32a[13] = 0;
+
+        this.f32a[2] = -Math.sin(r);
+        this.f32a[6] = 0;
+        this.f32a[10] = Math.cos(r);
+        this.f32a[14] = 0;
+
+        this.f32a[3] = 0;
+        this.f32a[7] = 0;
+        this.f32a[11] = 0;
+        this.f32a[15] = 1;
+        return this;
+    }
+    makeRotationZ(r)
+    {
+        this.f32a[0] = Math.cos(r);
+        this.f32a[4] = -Math.sin(r);
+        this.f32a[8] = 0;
+        this.f32a[12] = 0;
+
+        this.f32a[1] = Math.sin(r);
+        this.f32a[5] = Math.cos(r);
+        this.f32a[9] = 0;
+        this.f32a[13] = 0;
+
+        this.f32a[2] = 0;
+        this.f32a[6] = 0;
+        this.f32a[10] = 1;
+        this.f32a[14] = 0;
+
+        this.f32a[3] = 0;
+        this.f32a[7] = 0;
+        this.f32a[11] = 0;
+        this.f32a[15] = 1;
+        return this;
+    }
     makeTranslationRotationScale(pos=new vec4(), rotation=new vec4(), scale=new vec4(1,1,1)) {
         const f1 = [1,0,0,0, 0,1,0,0, 0,0,1,0, pos.x,pos.y,pos.z,1,]; //f1 is trans matrix 
         const sca = [scale.x,0,0,0, 0,scale.y,0,0, 0,0,scale.z,0, 0,0,0,1]; //sca is scale matrix
@@ -478,14 +547,14 @@ class mat4 {
     {
         return this.f32a;
     }
-    toString()
+    toString(fixed = 4)
     {
         //return this.print();
         var s = "";
         var vals = [];
         for (var i=0; i<16; i++)
         {
-            vals.push(this.f32a[i].toPrecision(3));
+            vals.push(this.f32a[i].toFixed(fixed));
         }
         s += vals[0] + " " + vals[4] + " " + vals[8] + " " + vals[12] + "\n";
         s += vals[1] + " " + vals[5] + " " + vals[9] + " " + vals[13] + "\n";

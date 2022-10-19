@@ -148,8 +148,6 @@ class ML
 
 
 
-
-
 //Snake Game
 {
     const canvasElement = document.getElementById("snakeCanvas");

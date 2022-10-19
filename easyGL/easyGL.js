@@ -136,6 +136,7 @@ class EasyGL {
         const fsSource = `
         precision mediump float;
         varying vec4 color;
+         
         void main() {
             gl_FragColor = color;
         }
@@ -532,11 +533,11 @@ class EasyGL {
             if (vertices[0] instanceof vec4)
             {
                 //array of vec4s
-                let vs = vertices;
+                const vs = vertices;
                 vertices = [];
-                for (let i=0; i<v.length; v++)
+                for (let i=0; i<vs.length; i++)
                 {
-                    vertices.push(vs.x, vs.y, vs.z);
+                    vertices.push(vs[i].x, vs[i].y, vs[i].z);
                 }
             } else {
                 //assuming vertices are correctly formatted.
@@ -555,9 +556,9 @@ class EasyGL {
                 //array of vec4s
                 const vs = normals;
                 normals = [];
-                for (let i=0; i<v.length; v++)
+                for (let i=0; i<vs.length; i++)
                 {
-                    normals.push(vs.x, vs.y, vs.z);
+                    normals.push(vs[i].x, vs[i].y, vs[i].z);
                 }
             } else {
                 //assuming vertices are correctly formatted.
@@ -585,11 +586,11 @@ class EasyGL {
         } else if (colors[0] instanceof vec4)
         {
             //case 2: colors = [ vec4, vec4, vec4...]
-            let cs = colors;
+            const cs = colors;
             colors = [];
             for (let i=0; i<cs.length; i++)
             {
-                colors.push(cs.x, cs.y, cs.z, cs.a);
+                colors.push(cs[i].x, cs[i].y, cs[i].z, cs[i].a);
                 if (cs[i].a < 0.98) { isTransparent = true;}
             }
         } else {
@@ -840,11 +841,11 @@ class EasyGL {
             if (vertices[0] instanceof vec4)
             {
                 //array of vec4s
-                let vs = vertices;
+                const vs = vertices;
                 vertices = [];
-                for (let i=0; i<v.length; v++)
+                for (let i=0; i<vs.length; i++)
                 {
-                    vertices.push(vs.x, vs.y, vs.z);
+                    vertices.push(vs[i].x, vs[i].y, vs[i].z);
                 }
             } else {
                 //assuming vertices are correctly formatted.
@@ -860,9 +861,9 @@ class EasyGL {
                 //array of vec4s
                 const vs = normals;
                 normals = [];
-                for (let i=0; i<v.length; v++)
+                for (let i=0; i<vs.length; i++)
                 {
-                    normals.push(vs.x, vs.y, vs.z);
+                    normals.push(vs[i].x, vs[i].y, vs[i].z);
                 }
             } else {
                 //assuming vertices are correctly formatted.
