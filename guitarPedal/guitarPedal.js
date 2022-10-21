@@ -4,10 +4,11 @@
 
 class ObjRenderer
 {
-    constructor(canvasElement, objText, camPos = new vec4(0,0,25), clearColor = new vec4(.1,.1,.1,0.5) )
+    constructor(canvasElement, objText, camPos = new vec4(0,0,25), clearColor = new vec4(.1,.1,.1,0.5), reflectivity = 0.5)
     {
         this.canvasElement = canvasElement;
         this.objText = objText;
+        this.reflectivity = reflectivity;
 
         let bb = this.canvasElement.getBoundingClientRect();
         this.canvasElement.width = Math.round(bb.width);
@@ -114,7 +115,7 @@ class ObjRenderer
 
         for (let i=0; i<vs.length; i++)
         {
-            this.easyGl.createObject(this.id+i, new vec4(), new vec4(), new vec4(1,1,1), vs[i], is[i], ns[i], cs[i]);
+            this.easyGl.createObject(this.id+i, new vec4(), new vec4(), new vec4(1,1,1), vs[i], is[i], ns[i], cs[i], false, this.reflectivity);
         }
         this.vertices = vs;
         this.indices = is;

@@ -108,13 +108,25 @@ class EasyGL {
         uniform mat4 uObjectRotationMatrix;
         uniform vec4 uLightDirectionVector;
         varying highp vec4 color;
+        varying highp vec4 pos;
+        varying highp vec3 surfaceNormal;
         void main() {
             vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
-            gl_Position = uProjectionMatrix * uViewMatrix * uObjectMatrix * vPos;
+            pos = uObjectMatrix * vPos;
+            gl_Position = uProjectionMatrix * uViewMatrix * pos;
             
-            float scalar = dot((uObjectRotationMatrix * aNormalVector).xyz, uLightDirectionVector.xyz)*0.3 + 0.7;
-            color = aColor * scalar;
-            color.w = aColor.w;
+            surfaceNormal = (uObjectRotationMatrix * aNormalVector).xyz;
+            float d = dot(surfaceNormal, uLightDirectionVector.xyz);
+            float scalar = d*0.3 + 0.7;
+            if (d > 0.0)
+            {
+                //float d2 = d*d*d*d;
+                color = aColor * scalar;// + d2*d2*vec4(0.5,0.5,0.5,1.0);
+                color.w = aColor.w;
+            } else {
+                color = aColor * scalar;
+                color.w = aColor.w;
+            }
         }`;
         /*if(this.directionalLighting==true) {
             const difference = 1 - this.ambientLightLevel; //max brightness vs min brightness for directional ambient light
@@ -136,9 +148,21 @@ class EasyGL {
         const fsSource = `
         precision mediump float;
         varying vec4 color;
-         
+        varying vec4 pos;
+        varying vec3 surfaceNormal;
+        uniform highp vec4 uLightDirectionVector;
+        uniform vec4 uCameraPositionVector;
+        uniform float uObjectReflectivity;
+        
         void main() {
-            gl_FragColor = color;
+            vec3 ray = reflect( normalize(pos.xyz - uCameraPositionVector.xyz), surfaceNormal);
+            float d = dot(uLightDirectionVector.xyz, ray);
+            if (d < 0.0) { 
+                gl_FragColor = color;
+            } else { 
+                d = (d*d*d*d)*uObjectReflectivity; 
+                gl_FragColor = color + d*vec4(0.9,0.9,0.9,0.9);
+            }
         }
         `;
         const vertexShader = this.__loadShader(this.gl.VERTEX_SHADER, vsSource);
@@ -156,7 +180,6 @@ class EasyGL {
             return null;
         }
 
-
         const programInfo = {
             program: shaderProgram,
             attribLocations: {
@@ -170,6 +193,8 @@ class EasyGL {
                 objectMatrix: this.gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
                 objectRotationMatrix: this.gl.getUniformLocation(shaderProgram, 'uObjectRotationMatrix'),
                 lightDirectionVector: this.gl.getUniformLocation(shaderProgram, 'uLightDirectionVector'),
+                cameraPositionVector: this.gl.getUniformLocation(shaderProgram, 'uCameraPositionVector'),
+                objectReflectivity: this.gl.getUniformLocation(shaderProgram, 'uObjectReflectivity'),
             },
         };
 
@@ -322,6 +347,8 @@ class EasyGL {
         this.gl.uniformMatrix4fv(this.programInfo.uniformLocations.objectMatrix, false, objectData.objectMatrix.getFloat32Array());
         this.gl.uniformMatrix4fv(this.programInfo.uniformLocations.objectRotationMatrix, false, objectData.objectRotationMatrix.getFloat32Array());
         this.gl.uniform4fv(this.programInfo.uniformLocations.lightDirectionVector, this.directionalLightingDirection.getFloat32Array());
+        this.gl.uniform4fv(this.programInfo.uniformLocations.cameraPositionVector, this.cameraPosition.getFloat32Array());
+        this.gl.uniform1f(this.programInfo.uniformLocations.objectReflectivity, objectData.reflectivity);
 
         //RENDER////////////////////////////////////////////////
         this.gl.drawElements(this.gl.TRIANGLES, objectData.indices.length, this.gl.UNSIGNED_SHORT, 0);
@@ -363,6 +390,8 @@ class EasyGL {
         this.gl.uniformMatrix4fv(this.programInfo.uniformLocations.objectMatrix, false, objectData.objectMatrix.getFloat32Array());
         this.gl.uniformMatrix4fv(this.programInfo.uniformLocations.objectRotationMatrix, false, objectData.objectRotationMatrix.getFloat32Array());
         this.gl.uniform4fv(this.programInfo.uniformLocations.lightDirectionVector, this.directionalLightingDirection.getFloat32Array());
+        this.gl.uniform4fv(this.programInfo.uniformLocations.cameraPositionVector, this.cameraPosition.getFloat32Array());
+        this.gl.uniform1f(this.programInfo.uniformLocations.objectReflectivity, objectData.reflectivity);
 
         //RENDER////////////////////////////////////////////////
         this.gl.drawElements(this.gl.TRIANGLES, objectData.indices.length, this.gl.UNSIGNED_SHORT, 0);
@@ -487,7 +516,7 @@ class EasyGL {
         position: vec4
         rotation: vec4
     */
-    createObject(objectID, position=new vec4(), rotation=new vec4(), scale=new vec4(1,1,1), vertices=cubeVertices, indices=cubeIndices, normals=cubeNormals, colors=cubeColors, shouldHideFromRenderAll = false) 
+    createObject(objectID, position=new vec4(), rotation=new vec4(), scale=new vec4(1,1,1), vertices=cubeVertices, indices=cubeIndices, normals=cubeNormals, colors=cubeColors, shouldHideFromRenderAll = false, reflectivity=0.1) 
     {
         //Case statements to allow for passing null and undefined values
         if (objectID == null || objectID == undefined)
@@ -637,6 +666,7 @@ class EasyGL {
             colors: colors,
             isTransparent: isTransparent,
             hide: shouldHideFromRenderAll,
+            reflectivity,reflectivity,
 
             position: position.copy(),
             rotation: rotation.copy(),
@@ -1098,6 +1128,13 @@ class EasyGL {
         this.setObjectShape(objectID, vertices, indices, normals, colors);
         this.objects.get(objectID).text = text;
     }
+    setObjectReflectivity(objectID, reflectivity = 0.1)
+    {
+        const objectData = this.objects.get(objectID);
+        if (objectData == null) { console.log("Object: "+objectID+" does not exist. Cannot set reflectivity."); return;}
+
+        objectData.reflectivity = reflectivity;
+    }
 
 
     //Object Accessors
@@ -1138,6 +1175,12 @@ class EasyGL {
         const objectData = this.objects.get(objectID);
         if (objectData == null) { console.error("Object: "+objectID+" does not exist. Cannot get text."); return;}
         return objectData.text;
+    }
+    getObjectReflectivity(objectID)
+    {
+        const objectData = this.objects.get(objectID);
+        if (objectData == null) { console.error("Object: "+objectID+" does not exist. Cannot get reflectivity."); return;}
+        return objectData.reflectivity;
     }
 
 
