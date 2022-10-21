@@ -592,6 +592,11 @@ function generateSphere(steps = 5, radius = 1, color = new vec4(0,0,1,1), colorM
             var nz = a.x*b.y - a.y*b.x;
             let newN = new vec4(nx,ny,nz).scaleToUnit();
             n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+            /*
+            var n1 = vertices[indices[i]].copy().scaleToUnit();
+            var n2 = vertices[indices[i+1]].copy().scaleToUnit();
+            var n3 = vertices[indices[i+2]].copy().scaleToUnit();
+            n.push( n1.x, n1.y, n1.z,  n2.x, n2.y, n2.z, n3.x, n3.y, n3.z);*/
         }
 
 

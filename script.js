@@ -44,13 +44,13 @@
                     Web Dev Experiments <br> <div style="font-size:x-small">(perpetually in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
-                    Ray Tracing Project <br> (in dev)
+                    Ray Tracing Project <br> <div style="font-size:x-small">(in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("webgl_raytracing")'>
-                    Webgl Ray Tracing Project <br> (in dev)
+                    Webgl Ray Tracing Project <br> <div style="font-size:x-small">(in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("cad")'>
-                    CAD <br>(in dev)
+                    CAD <br><div style="font-size:x-small">(in dev)</div>
                 </div>
             </div>
         </div>

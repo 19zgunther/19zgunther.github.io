@@ -1,206 +1,84 @@
 
 
-
-
-
-
-class Element
-{
-    constructor(ctx, string, exponent = "", subsript = "")
-    {
-        this.ctx = ctx;
-        this.string = string;
-        this.measure = this.ctx.measureText(this.string);
-        this.width = this.measure.width;
-        this.height = this.measure.fontBoundingBoxAscent + this.measure.fontBoundingBoxDescent;
-        
-        this.exponent = exponent;
-        this.exponentMeasure = this.ctx.measureText(this.exponent);
-        this.exponentWidth = this.exponentMeasure.width;
-        this.exponentHeight = this.exponentMeasure.fontBoundingBoxAscent + this.exponentMeasure.fontBoundingBoxDescent;
-
-        this.subsript = subsript;
-        this.subsriptMeasure = this.ctx.measureText(this.subsript);
-        this.subsriptWidth = this.subsriptMeasure.width;
-        this.subsriptHeight = this.subsriptMeasure.fontBoundingBoxAscent + this.subsriptMeasure.fontBoundingBoxDescent;
-        
-        if (isNaN(this.subscriptWidth))
-        {
-            this.subscriptWidth = 0;
-        }
-        if (isNaN(this.exponentWidth))
-        {
-            this.exponentWidth = 0;
-        }
-
-        //this.height = this.measure.actualBoundingBoxAscent + this.measure.actualBoundingBoxDescent;
-        //console.log(this.measure);
-    }
-    getString()
-    {
-        return this.string;
-    }
-    render(ctx, x, y)
-    {
-        /*ctx.strokeStyle = "red";
-        ctx.moveTo(x-5,y);
-        ctx.lineTo(x+5,y);
-        ctx.moveTo(x,y-5);
-        ctx.lineTo(x,y+5);
-        ctx.stroke();*/
-        ctx.font = fontSize + fontType;
-        ctx.fillText(this.string, x, y+this.height/2);
-        ctx.font = smallerFontSize + fontType;
-        ctx.fillText(this.exponent,x+this.width, y-this.measure.actualBoundingBoxAscent*3/4);
-        ctx.fillText(this.subsript,x+this.width, y+this.height/2+this.subsriptMeasure.actualBoundingBoxAscent);
-        //console.log(Math.max(this.exponentWidth + this.subscriptWidth))
-        return this.width + Math.max(this.exponentWidth + this.subscriptWidth);
-    }
-    renderCentered(ctx, x, y)
-    {
-        ctx.fillText(this.string, x-this.width/2, y+this.height/2);
-        return this.width;
-    }
-    addExponent(exponent)
-    {
-        this.exponent = exponent;
-        this.exponentMeasure = this.ctx.measureText(this.exponent);
-        this.exponentWidth = this.exponentMeasure.width;
-        this.exponentHeight = this.exponentMeasure.fontBoundingBoxAscent + this.exponentMeasure.fontBoundingBoxDescent;
-        if (isNaN(this.exponentWidth))
-        {
-            this.exponentWidth = 0;
-        }
-    }
-    addSubscript(subsript)
-    {
-        this.subsript = subsript;
-        this.subsriptMeasure = this.ctx.measureText(this.subsript);
-        this.subsriptWidth = this.subsriptMeasure.width;
-        this.subsriptHeight = this.subsriptMeasure.fontBoundingBoxAscent + this.subsriptMeasure.fontBoundingBoxDescent;
-        if (isNaN(this.subscriptWidth))
-        {
-            this.subscriptWidth = 0;
-        }
-    }
-}
-
-class SubSuperScript
-{
-    constructor(ctx, string)
-    {
-        
-    }
-}
-
-class Matrix_OLD
-{
-    constructor(ctx, string = "")
-    {
-        this.ctx = ctx;
-        this.string = string;
-        this.rows = [];
-        //this.columnPadding = 3;
-        //this.rowPadding = 3;
-        this.padding = 5;
-        for (let i=0; i<string.length;i++)
-        {
-            let c = string[i];
-
-            let row = ",";
-            row = getEnclosedString(string, i);
-            
-            if (row == null)
-            {
-                continue;
-            }
-            i += row.length+1;
-            row = row.split(",");
-            for (let j=0; j<row.length; j++)
-            {
-                row[j] = new Element(this.ctx, row[j]);
-            }
-            this.rows.push(row);
-        }
-
-
-    }
-    render(ctx, xOffset, yMiddle)
-    {
-        let columnWidths = [];
-        let rowHeights = [];
-        let maxHeight = 0;
-        const padding = this.padding;
-        for (let i=0; i<this.rows.length; i++)
-        {
-            let rH = 2;
-            for (let j=0; j<this.rows[i].length; j++)
-            {
-                rH = Math.max(rH, Math.ceil(this.rows[i][j].height));
-                if (columnWidths.length > j)
-                {
-                    columnWidths[j] = Math.max(columnWidths[j], Math.ceil(this.rows[i][j].width));
-                } else {
-                    columnWidths.push(Math.max(2, Math.ceil(this.rows[i][j].width)));
-                }
-            }
-            rowHeights.push(rH);
-            maxHeight += rH;
-        }
-
-        let maxWidth = 0;
-        for (let i=0; i<columnWidths.length; i++)
-        {
-            maxWidth += columnWidths[i];
-        }
-
-        //let yStart = yMiddle + rowHeights[0]/2- maxHeight/2;
-        //let startX = 0;
-
-        let y = padding;
-        for (let r=0; r<this.rows.length; r++)
-        {
-            let x = padding*2;
-            for(let c=0; c<this.rows[r].length;c++)
-            {
-                this.rows[r][c].renderCentered(ctx, xOffset+x+columnWidths[c]/2, yMiddle+y-maxHeight/2);
-                x += columnWidths[c] + padding;
-            }
-            y += rowHeights[r] + padding;
-        }
-
-        const totalHeight = maxHeight + rowHeights.length*padding;
-        ctx.beginPath();
-        ctx.moveTo(xOffset + padding*2, yMiddle - totalHeight/2 - padding*2);
-        ctx.lineTo(xOffset, yMiddle - totalHeight/2 - padding*2);
-        ctx.lineTo(xOffset, yMiddle + totalHeight/2 + padding*2);
-        ctx.lineTo(xOffset + padding*2, yMiddle + totalHeight/2 + padding*2);
-        const xOff = maxWidth + padding*(columnWidths.length+2);
-        ctx.moveTo(xOff + xOffset - padding*2, yMiddle - totalHeight/2 - padding*2);
-        ctx.lineTo(xOff + xOffset, yMiddle - totalHeight/2 - padding*2);
-        ctx.lineTo(xOff + xOffset, yMiddle + totalHeight/2 + padding*2);
-        ctx.lineTo(xOff + xOffset - padding*2, yMiddle + totalHeight/2 + padding*2);
-        ctx.stroke();
-
-        return xOff;
-    }
-}
-
-
-
 class Container
 {
-    constructor(ctx, rawString="")
+    constructor(ctx, rawString="", globalData,  isNumber = false)
     {
+        this.globalData = globalData;
+        if (this.globalData == null)
+        {
+            this.globalData = {
+                containerMap: new Map(),
+                subContainerOn: 1,
+            };
+        }
         this.ctx = ctx;
         this.rawString = rawString;
+        this.isNumber = isNumber;
 
         console.log("initial string: " + rawString);
 
         let string = this.rawString;
 
+        if (!this.isNumber)
+        {
+            string = this._findAndReplaceNumbers(string);
+            string = this._findAndReplaceGreekLetters(string);
+            string = this._findAndReplaceMatrices(string);
+            string = this._findAndReplaceParenthesis(string);
+            string = this._findAndReplaceSubSuperscripts(string);
+        }
 
-        //Search for greek letters
+        this.string = string;
+        console.log("final string: " + this.string);
+        return;
+        //now, let's check for declarations.
+        for (let i=0; i<string.length; i++)
+        {
+            if (match(string, "let", i))
+            {
+                const startIndex = i+3;
+                let middleIndex = null;
+                let endIndex = null;
+                for (let j=i+3; j<string.length; j++)
+                {
+                    if (string[j] == "=" && middleIndex == null)
+                    {
+                        middleIndex = j;
+                    }
+                    if (string[j] == ";")
+                    {
+                        endIndex = j;
+                        break;
+                    }
+                }
+                if (endIndex == null || middleIndex == null) { console.log("Failed");continue; }
+                const variableSubstring = string.substring(startIndex, middleIndex).replace(" ", "");
+                let valueSubstring = string.substring(middleIndex+1, endIndex).replace(" ","");
+
+                console.log("var: " + variableSubstring+"\nval: " + valueSubstring);
+                let run = true;
+                while (run)
+                {
+                    if (valueSubstring.includes("+"))
+                    {
+                        for (let j=0; j<valueSubstring.length; j++)
+                        {
+                            
+                        }
+                    }
+                    run = false;
+                }
+                for (let j=0; j<valueSubstring.length; j++)
+                {
+
+                }
+                definitionMap.set(variableSubstring, valueSubstring);
+            }
+        }
+    }
+    _findAndReplaceGreekLetters(string)
+    {
         for (let i=0; i<string.length; i++)
         {
             if (string[i] == "\\")
@@ -211,10 +89,10 @@ class Container
                     if (match(string, greekLetters[j].code, i))
                     {
                         //console.error("MATCH", greekLetters[j].code);
-                        const sc = new SpecialCharacter(ctx, greekLetters[j].value);
-                        const ID = String.fromCharCode(subContainerOn);
-                        containerMap.set(ID, sc); //update map
-                        subContainerOn++;
+                        const sc = new SpecialCharacter(ctx, greekLetters[j].value, this.globalData);
+                        const ID = String.fromCharCode(this.globalData.subContainerOn);
+                        this.globalData.containerMap.set(ID, sc); //update map
+                        this.globalData.subContainerOn++;
                         string = string.substring(0, i-1) + ID + string.substring(i+greekLetters[j].code.length, string.length);
                         i = -1;
                         break;
@@ -222,18 +100,21 @@ class Container
                 }
             }
         }
-        
+        return string;
+    }
+    _findAndReplaceMatrices(string)
+    {
         //search for matrices
         for (let i=0; i<string.length; i++)
         {
             if (match(string, "mat", i))
             {
                 const substring = getEnclosedString(string, i+3);
-                const subContainer = new Matrix(this.ctx, substring);                    //create new Container
-                const subContainerIDChar= String.fromCharCode(subContainerOn); //Create container char ID (to be put into string)
+                const subContainer = new Matrix(this.ctx, substring, this.globalData);                    //create new Container
+                const subContainerIDChar= String.fromCharCode(this.globalData.subContainerOn); //Create container char ID (to be put into string)
                 //console.log("Matrix substring: ", substring);
-                containerMap.set(subContainerIDChar, subContainer); //update map
-                subContainerOn++;  //increment subContainerOn
+                this.globalData.containerMap.set(subContainerIDChar, subContainer); //update map
+                this.globalData.subContainerOn++;  //increment this.globalData.subContainerOn
                 //string = (string.substring(0,openPIndex) + subContainerIDChar + string.substring(closePIndex+1, string.length));
                 string = (string.substring(0,i)+subContainerIDChar  +string.substring(i+5+substring.length, string.length));
                 //console.log("replaced matrix. new string: " + string);
@@ -241,35 +122,108 @@ class Container
                 continue;
             }
         }
-
-        //replace all parenthesis with
+        return string;
+    }
+    _findAndReplaceParenthesis(string)
+    {
         let openPIndex = null;
         let closePIndex = null;
+        //et openPIndices = [-1];
         for(let i=0; i<string.length; i++)
         {
             const c = string[i];
             if (c == "(")
             {
                 openPIndex = i;
+                //openPIndices.push(i);
             }
             if (c == ")" && openPIndex != null)
             {
+                if (openPIndex == 0 && i >= string.length-1) {  console.log("() is full lenght");break; }
                 closePIndex = i;
-                const substring = string.substring(openPIndex+1, closePIndex); //get text between parenthesis
-                const subContainer = new Container(this.ctx, substring);                    //create new Container
-                const subContainerIDChar= String.fromCharCode(subContainerOn); //Create container char ID (to be put into string)
-                containerMap.set(subContainerIDChar, subContainer); //update map
-                subContainerOn++;  //increment subContainerOn
+                const substring = string.substring(openPIndex, closePIndex+1); //get text between parenthesis
+                const subContainer = new Container(this.ctx, substring, this.globalData);                    //create new Container
+                const subContainerIDChar= String.fromCharCode(this.globalData.subContainerOn); //Create container char ID (to be put into string)
+                this.globalData.containerMap.set(subContainerIDChar, subContainer); //update map
+                this.globalData.subContainerOn++;  //increment this.globalData.subContainerOn
                 string = (string.substring(0,openPIndex) + subContainerIDChar + string.substring(closePIndex+1, string.length));
                 //console.log("replaced parenthesis. new string: " + string);
+                //console.log("openP: " + openPIndex+ "  closeP: " + closePIndex);
                 openPIndex = null;
                 closePIndex = null;
                 i=-1;
                 continue;
             }
         }
-
-        //Next, replace all []_[]
+        return string;
+    }
+    _findAndReplaceNumbers(string)
+    {
+        /*for (let i=0; i<string.length; i++)
+        {
+            let startIndex = null;
+            let charCode = string.charCodeAt(i);
+            while(((charCode >= 48 && charCode <= 57) || string[i] == ".") && i < string.length)
+            {
+                if (startIndex == null)
+                {
+                    startIndex = i;
+                }
+                i+=1;
+            }
+            if (startIndex != null)
+            {
+                const substring = string.substring(startIndex, i);
+                const num = Number(substring);
+                if (!isNaN(num))
+                {
+                    this.globalData.containerMap.set(String.fromCharCode(this.globalData.subContainerOn), new NumberContainer(ctx, num, this.globalData));
+                    const newString = string.substring(0,startIndex) + String.fromCharCode(this.globalData.subContainerOn) + string.substring(i, string.length);
+                    console.log("number found. string: " +string + " num: " + num + " substring: " + substring + "  newString:"+newString);
+                    string = newString;
+                    this.globalData.subContainerOn++;
+                    i = -1;
+                    continue;
+                }
+            }
+        }*/
+        let number = "";
+        for (let i=0; i<string.length; i++)
+        {
+            const charCode = string.charCodeAt(i);
+            if ((charCode >=48 && charCode <= 57) || string[i] == ".")
+            {
+                number += string[i];
+                //console.log(charCode + ", " +string[i]);
+            } else if (number.length > 0)
+            {
+                const num = Number(number);
+                if (isNaN(num)) { console.log("not a number: " + number);continue; }
+                const id = String.fromCharCode(this.globalData.subContainerOn);
+                this.globalData.subContainerOn++;
+                const con = new NumberContainer(this.ctx, number, this.globalData);
+                //console.log("creating number: " + number);
+                this.globalData.containerMap.set(id, con);
+                string = string.substring(0, i-number.length) + id + string.substring(i, string.length);
+                number = "";
+                i = 0;
+            }
+        }
+        if (number.length > 0)
+        {
+            const num = Number(number);
+            if (isNaN(num)) { console.log("not a number: " + number);return string; }
+            const id = String.fromCharCode(this.globalData.subContainerOn);
+            this.globalData.subContainerOn++;
+            const con = new NumberContainer(this.ctx, number, this.globalData);
+            //console.log("creating number: " + number);
+            this.globalData.containerMap.set(id, con);
+            string = string.substring(0, string.length-number.length) + id;   
+        }
+        return string;
+    }
+    _findAndReplaceSubSuperscripts(string)
+    {
         for (let i=0; i<string.length; i++)
         {
             const c = string[i];
@@ -277,37 +231,62 @@ class Container
             {
                 let preString = string[i-1];
                 let postString = string[i+1];
-                let preContainer = containerMap.get(preString);
-                let postContainer = containerMap.get(postString); 
-                //console.log("preString: " + preString + "  posString: " + postString);
+                let preContainer = this.globalData.containerMap.get(preString);
+                let postContainer = this.globalData.containerMap.get(postString); 
                 if (preContainer == null)
                 {
-                    preContainer = new Container(this.ctx, preString);
-                    const preContainerIdChar= String.fromCharCode(subContainerOn); //Create container char ID (to be put into string)
-                    containerMap.set(preContainerIdChar, preContainer); //update map
-                    subContainerOn++;  //increment subContainerOn
-                    //string[i-1] = preContainerIdChar;
+                    preContainer = new Container(this.ctx, preString, this.globalData);
+                    const preContainerIdChar= String.fromCharCode(this.globalData.subContainerOn); //Create container char ID (to be put into string)
+                    this.globalData.containerMap.set(preContainerIdChar, preContainer); //update map
+                    this.globalData.subContainerOn++;  //increment this.globalData.subContainerOn
                     string = (string.substring(0,i-1) + preContainerIdChar + string.substring(i, string.length));
                 }
 
                 if (postContainer == null)
                 {
-                    postContainer = new Container(this.ctx, postString);
-                    const postContainerIdChar= String.fromCharCode(subContainerOn); //Create container char ID (to be put into string)
-                    containerMap.set(postContainerIdChar, postContainer); //update map
-                    subContainerOn++;  //increment subContainerOn
-                    //string[i+1] = postContainerIdChar;
+                    postContainer = new Container(this.ctx, postString, this.globalData);
+                    const postContainerIdChar= String.fromCharCode(this.globalData.subContainerOn); //Create container char ID (to be put into string)
+                    this.globalData.containerMap.set(postContainerIdChar, postContainer); //update map
+                    this.globalData.subContainerOn++;  //increment this.globalData.subContainerOn
                     string = (string.substring(0,i+1) + postContainerIdChar + string.substring(i+2, string.length));
                 }
 
                 preContainer.addSubscript(postContainer);
                 string = (string.substring(0,i) + string.substring(i+2, string.length));
                 i = -1;
-                //console.log("replaced subscript. new string: " + string);
+                continue;
+            }
+            if (c == "^" && i > 0 && i < string.length-1)
+            {
+                let preString = string[i-1];
+                let postString = string[i+1];
+                let preContainer = this.globalData.containerMap.get(preString);
+                let postContainer = this.globalData.containerMap.get(postString); 
+                if (preContainer == null)
+                {
+                    preContainer = new Container(this.ctx, preString, this.globalData);
+                    const preContainerIdChar= String.fromCharCode(this.globalData.subContainerOn); //Create container char ID (to be put into string)
+                    this.globalData.containerMap.set(preContainerIdChar, preContainer); //update map
+                    this.globalData.subContainerOn++;  //increment this.globalData.subContainerOn
+                    string = (string.substring(0,i-1) + preContainerIdChar + string.substring(i, string.length));
+                }
+
+                if (postContainer == null)
+                {
+                    postContainer = new Container(this.ctx, postString, this.globalData);
+                    const postContainerIdChar= String.fromCharCode(this.globalData.subContainerOn); //Create container char ID (to be put into string)
+                    this.globalData.containerMap.set(postContainerIdChar, postContainer); //update map
+                    this.globalData.subContainerOn++;  //increment this.globalData.subContainerOn
+                    string = (string.substring(0,i+1) + postContainerIdChar + string.substring(i+2, string.length));
+                }
+
+                preContainer.addSuperscript(postContainer);
+                string = (string.substring(0,i) + string.substring(i+2, string.length));
+                i = -1;
+                continue;
             }
         }
-        this.string = string;
-        console.log("final string: " + this.string);
+        return string;
     }
     addSubscript(subscriptContainer)
     {
@@ -319,13 +298,23 @@ class Container
         }
         this.dimensions = null;
     }
+    addSuperscript(superscriptContainer)
+    {
+        if (this.superscriptContainer != null)
+        {
+            this.superscriptContainer.addSubscript(superscriptContainer);
+        } else {
+            this.superscriptContainer = superscriptContainer;
+        }
+        this.dimensions = null;
+    }
     toString()
     {
         let s = "";
         for (let i=0; i<this.string.length; i++)
         {
             const c = this.string[i];
-            const container = containerMap.get(c);
+            const container = this.globalData.containerMap.get(c);
             if (container != null)
             {
                 s += container.toString();
@@ -347,10 +336,11 @@ class Container
             let width = 1;
             let ascent = 1;
             let descent = 1;
+            //const string = String(this.string);
             for (let i=0; i<this.string.length; i++)
             {
                 const c = this.string[i];
-                const con = containerMap.get(c);
+                const con = this.globalData.containerMap.get(c);
                 if (con != null)
                 {
                     let ret = con.getDimensions();
@@ -373,29 +363,44 @@ class Container
                 descent = Math.max(descent, ret.descent+5);
             }
 
+            if (this.superscriptContainer != null)
+            {
+                let ret = this.superscriptContainer.getDimensions();
+                width += ret.width;
+                ascent = Math.max(ascent, ret.ascent+5);
+            }
+
             this.dimensions = {
                 width: width,
                 ascent: ascent,
                 descent: descent,
             };
         }
+        if (this.isNumber)
+        {
+            console.log("Number dimensions: ",this.string, this.dimensions);
+        }
         return this.dimensions;
     }
-    render(startX, startY)
+    render(ctx, startX, startY)
     {
+        this.ctx = ctx;
         const initialFontSize = parseFontSize(this.ctx.font);
+        const updateTheseDimensions = this.getDimensions();
         let xOffset = 0;
         let descent = 1;
+        let ascent = 1;
         for (let i=0; i<this.string.length; i++)
         {
             const c = this.string[i];
-            const con = containerMap.get(c);
+            const con = this.globalData.containerMap.get(c);
             if (con != null)
             {
-                let ret = con.render(startX+xOffset, startY);
-                console.log(ret);
+                let ret = con.render(this.ctx, startX+xOffset, startY);
+                //console.log(con);
                 xOffset += ret.width;
-                descent = Math.max(ret.descent);
+                descent = Math.max(descent, ret.descent);
+                ascent = Math.max(ascent, ret.ascent);
             } else {
                 let m = this.ctx.measureText(c);
                 this.ctx.fillText(c, startX + xOffset, startY);
@@ -406,17 +411,24 @@ class Container
         if (this.subscriptContainer != null)
         {
             this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
-            this.subscriptContainer.render(startX+xOffset, startY+5+descent);
+            this.subscriptContainer.render(this.ctx, startX+xOffset, startY+5+descent);
             this.ctx.font = initialFontSize + "px" + fontType;
         }
-        return this.dimensions;
+        if (this.superscriptContainer != null)
+        {
+            this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
+            this.superscriptContainer.render(this.ctx, startX+xOffset, startY-5-ascent);
+            this.ctx.font = initialFontSize + "px" + fontType;
+        }
+        return this.getDimensions();
     }
 }
 
 class Matrix
 {
-    constructor(ctx, rawString="")
+    constructor(ctx, rawString="", globalData)
     {
+        this.globalData = globalData;
         this.ctx = ctx;
         this.rawString = rawString;
         let string = rawString;
@@ -447,11 +459,17 @@ class Matrix
                 let row = substring.split(",");
                 for(let j=0; j<row.length; j++)
                 {
+                    const n = this.globalData.containerMap.get(row[j][0]);
+                    if (n instanceof Number)
+                    {
+                        console.log("fond n: " + n);
+                        continue;
+                    }
                     if (row[j][0] == "\\")
                     {
-                        row[j] = new SpecialCharacter(this.ctx, row[j]);
+                        row[j] = new SpecialCharacter(this.ctx, row[j], this.globalData);
                     } else {
-                        row[j] = new Container(this.ctx, row[j]);
+                        row[j] = new Container(this.ctx, row[j], this.globalData);
                     }
                 }
                 this.rows.push(row);
@@ -477,6 +495,16 @@ class Matrix
         }
         this.dimensions = null;
     }
+    addSuperscript(superscriptContainer)
+    {
+        if (this.superscriptContainer != null)
+        {
+            this.superscriptContainer.addSubscript(superscriptContainer);
+        } else {
+            this.superscriptContainer = superscriptContainer;
+        }
+        this.dimensions = null;
+    }
     toString()
     {
         return "MATRIX";
@@ -494,6 +522,7 @@ class Matrix
             let maxCellDescent = 0;
             let rowAscents = [];
             let rowDescents = [];
+            let columnWidths = [];
             for (let r=0; r<this.rows.length; r++)
             {
                 const row = this.rows[r];
@@ -511,63 +540,93 @@ class Matrix
                     maxCellDescent = Math.max(maxCellDescent, ret.descent);
                     rowAscent = Math.max(rowAscent, ret.ascent);
                     rowDescent = Math.max(rowDescent, ret.descent);
+
+                    if (c >= columnWidths.length)
+                    {
+                        columnWidths.push( ret.width );
+                    }
+                    columnWidths[c] = Math.max(columnWidths[c], ret.width);
                 }
                 maxRowWidth = Math.max(maxRowWidth, rowWidth);
                 rowDescents.push(rowDescent);
                 rowAscents.push(rowAscent);
             }
 
+            let matrixWidth = this.columnPadding*(2+columnWidths.length);
+            for (let i=0; i<columnWidths.length; i++)
+            {
+                matrixWidth += columnWidths[i];
+            }
+
+            let subscriptWidth = 1;
+            let superscriptWidth = 1;
+            if (this.subscriptContainer != null)
+            {
+                subscriptWidth = this.subscriptContainer.getDimensions().width;
+            }
+            if (this.superscriptContainer != null)
+            {
+                superscriptWidth = this.superscriptContainer.getDimensions().width;
+            }
+
             let totalHeight = (maxCellAscent+maxCellDescent)*this.rows.length + rowPadding*(this.rows.length-1);
             let ascent = totalHeight/2;
             let descent = totalHeight/2;
-            let width = maxCellWidth*maxNumInRow + columnPadding*maxNumInRow;
+            //let width = maxCellWidth*maxNumInRow + columnPadding*maxNumInRow;
+            //let width = this.columnPadding*(2+columnWidths.length) + maxRowWidth;
             this.dimensions = {
                 maxCellWidth: maxCellWidth,
                 maxCellAscent: maxCellAscent,
                 maxCellDescent: maxCellDescent,
                 maxCellHeight: maxCellAscent+maxCellDescent,
-                width: width,
+                columnWidths: columnWidths,
+                width: matrixWidth + Math.max(subscriptWidth, superscriptWidth),
+                matrixWidth: matrixWidth,
                 ascent: ascent,
                 descent: descent,
                 height: totalHeight,
             };
+            console.log(this.dimensions);
         }
         return this.dimensions;
     }
-    render(startX, startY)
+    render(ctx, startX, startY)
     {
+        this.ctx = ctx;
         const initialFontSize = parseFontSize(this.ctx.font);
         const updateTheseDimensions = this.getDimensions();
-        let maxYOffset = 1;
-        let maxXOffset = 1;
-        ctx.strokeRect(startX-this.dimensions.maxCellWidth, startY-this.dimensions.height/2, this.dimensions.width+this.columnPadding, this.dimensions.height);
+        //let maxYOffset = 1;
+        //let maxXOffset = 1;
+        ctx.strokeRect(startX+this.columnPadding/2, startY-this.dimensions.height/2, this.dimensions.matrixWidth-this.columnPadding, this.dimensions.height);
         ctx.fillStyle = "white";
-        ctx.fillRect(startX-this.dimensions.maxCellWidth+this.columnPadding, startY-this.dimensions.height/2 - 3, this.dimensions.width-this.columnPadding, this.dimensions.height+6);
+        ctx.fillRect(startX+this.columnPadding*3/2, startY-this.dimensions.height/2-5, this.dimensions.matrixWidth-this.columnPadding*3, this.dimensions.height+10);
         ctx.fillStyle = "black";
         for (let r=0; r<this.rows.length; r++)
         {
             const row = this.rows[r];
             const yOffset = - this.dimensions.ascent + this.dimensions.maxCellHeight*(r+1);
+            let xOffset = this.columnPadding;
             for (let c=0; c<row.length; c++)
             {
-                const xOffset = this.dimensions.maxCellWidth*(c) + this.columnPadding*(c-1);
+                xOffset += this.dimensions.columnWidths[c]/2;
                 const cell = row[c];
                 const dim = cell.getDimensions();
-                cell.render(startX+xOffset-dim.width/2, startY+yOffset);
-                maxYOffset = Math.max(maxYOffset, yOffset);
-                maxXOffset = Math.max(maxXOffset, xOffset);
+                cell.render(this.ctx, startX+xOffset-dim.width/2, startY+yOffset);
+                //maxYOffset = Math.max(maxYOffset, yOffset);
+                //maxXOffset = Math.max(maxXOffset, xOffset);
+                xOffset += this.dimensions.columnWidths[c]/2 + this.columnPadding;
             }
         }
         if (this.subscriptContainer != null)
         {
             this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
-            this.subscriptContainer.render(startX+maxXOffset+this.columnPadding*2, startY+maxYOffset+5);
+            this.subscriptContainer.render(this.ctx, startX+this.dimensions.matrixWidth, startY+this.dimensions.height/2);
             this.ctx.font = initialFontSize + "px" + fontType;
         }
         if (this.superscriptContainer != null)
         {
             this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
-            this.superscriptContainer.render(startX+maxYOffset, startY-5);
+            this.superscriptContainer.render(this.ctx, startX+this.dimensions.matrixWidth, startY-this.dimensions.height/2);
             this.ctx.font = initialFontSize + "px" + fontType;
         }
         return updateTheseDimensions;
@@ -576,10 +635,10 @@ class Matrix
 
 class SpecialCharacter extends Container
 {
-    constructor(ctx, rawString)
+    constructor(ctx, rawString, globalData)
     {
         rawString = rawString.replace("\\","");
-        super(ctx, rawString);
+        super(ctx, rawString, globalData);
         //console.log("NEW SPECIALCHARACTER: " + rawString);
     }
     getDimensions()
@@ -600,45 +659,147 @@ class SpecialCharacter extends Container
         }
         return this.dimensions;
     }
-    render(startX, startY)
+    render(ctx, startX, startY)
     {
+        this.ctx = ctx;
         const initialFontSize = parseFontSize(this.ctx.font);
-        //let xOffset = 0;
-        //let descent = 1;
-        /*for (let i=0; i<this.string.length; i++)
-        {
-            const c = this.string[i];
-            const con = containerMap.get(c);
-            if (con != null)
-            {
-                let ret = con.render(startX+xOffset, startY);
-                console.log(ret);
-                xOffset += ret.width;
-                descent = Math.max(ret.descent);
-            } else {
-                let m = this.ctx.measureText(c);
-                this.ctx.fillText(c, startX + xOffset, startY);
-                xOffset += m.width;
-            }
-        }*/
-        //console.log("Rendering: rawString", this.rawString);
+        const updateTheseDimensions = this.getDimensions();
         this.ctx.fillText(this.rawString, startX, startY);
 
-        if (this.subscriptContainer != null)
+        /*if (this.subscriptContainer != null)
         {
             this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
             this.subscriptContainer.render(startX+this.dimensions.characterWidth, startY+5+this.dimensions.descent);
+            this.ctx.font = initialFontSize + "px" + fontType;
+        }*/
+        if (this.subscriptContainer != null)
+        {
+            this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
+            this.subscriptContainer.render(this.ctx, startX+this.dimensions.characterWidth, startY+5+this.dimensions.descent);
+            this.ctx.font = initialFontSize + "px" + fontType;
+        }
+        if (this.superscriptContainer != null)
+        {
+            this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
+            this.superscriptContainer.render(this.ctx, startX+this.dimensions.characterWidth, startY-5-this.dimensions.ascent);
             this.ctx.font = initialFontSize + "px" + fontType;
         }
         return this.dimensions;
     }
 }
 
+class NumberContainer extends Container
+{
+    constructor(ctx, rawString="", globalData)
+    {
+        console.log("creating number: " + rawString);
+        super(ctx, rawString, globalData, true);
+        //console.log(rawString);
+    }
+    getDimensions()
+    {
+        if (this.dimensions == null)
+        {
+            let width = 1;
+            let ascent = 1;
+            let descent = 1;
+            //const string = String(this.string);
+            /*for (let i=0; i<this.string.length; i++)
+            {
+                const c = this.string[i];
+                const con = this.globalData.containerMap.get(c);
+                if (con != null)
+                {
+                    let ret = con.getDimensions();
+                    width += ret.width;
+                    ascent = Math.max(ascent, ret.ascent);
+                    descent = Math.max(descent, ret.descent);
+                } else {
+                    let m = this.ctx.measureText(c);
+                    width += m.width;
+                    ascent = Math.max(ascent, m.fontBoundingBoxAscent);
+                    descent = Math.max(descent, m.fontBoundingBoxDescent);
+                }
+            }*/
+
+            let ret = this.ctx.measureText(String(this.string));
+            width = ret.width;
+            ascent = ret.fontBoundingBoxAscent;
+            descent = ret.fontBoundingBoxDescent;
+
+            if (this.subscriptContainer != null)
+            {
+                let ret = this.subscriptContainer.getDimensions();
+                width += ret.width;
+                //ascent = Math.max(ascent, ret.ascent);
+                descent = Math.max(descent, ret.descent+5);
+            }
+
+            if (this.superscriptContainer != null)
+            {
+                let ret = this.superscriptContainer.getDimensions();
+                width += ret.width;
+                ascent = Math.max(ascent, ret.ascent+5);
+            }
+
+            this.dimensions = {
+                width: width,
+                ascent: ascent,
+                descent: descent,
+            };
+        }
+        return this.dimensions;
+    }
+    render(ctx, startX, startY)
+    {
+        this.ctx = ctx;
+        const initialFontSize = parseFontSize(this.ctx.font);
+        const updateTheseDimensions = this.getDimensions();
+        let xOffset = 0;
+        let descent = 1;
+        let ascent = 1;
+
+        let ret = this.ctx.measureText(String(this.string));
+        this.ctx.fillText(String(this.string), startX, startY);
+        xOffset+=ret.width;
+        descent+=ret.fontBoundingBoxDescent;
+        ascent+=ret.fontBoundingBoxAscent;
+        /*for (let i=0; i<this.string.length; i++)
+        {
+            const c = this.string[i];
+            const con = this.globalData.containerMap.get(c);
+            if (con != null)
+            {
+                let ret = con.render(this.ctx, startX+xOffset, startY);
+                //console.log(con);
+                xOffset += ret.width;
+                descent = Math.max(descent, ret.descent);
+                ascent = Math.max(ascent, ret.ascent);
+            } else {
+                let m = this.ctx.measureText(c);
+                this.ctx.fillText(c, startX + xOffset, startY);
+                xOffset += m.width;
+            }
+        }*/
+
+        if (this.subscriptContainer != null)
+        {
+            this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
+            this.subscriptContainer.render(this.ctx, startX+xOffset, startY+5+descent);
+            this.ctx.font = initialFontSize + "px" + fontType;
+        }
+        if (this.superscriptContainer != null)
+        {
+            this.ctx.font = Math.round(initialFontSize*fontSizeSubscriptMultiplier) + "px" + fontType;
+            this.superscriptContainer.render(this.ctx, startX+xOffset, startY-5-ascent);
+            this.ctx.font = initialFontSize + "px" + fontType;
+        }
+        return this.getDimensions();
+    }
+}
+
 //Parenthesis, Exponents, Subscripts, Multiply, Divide, Add, Subtract
 // ()             ^           _         
-
-
-
 const greekLetters = [
     { code: "Alpha", value: "\u0391" },
     { code: "alpha", value: "\u03b1" },
@@ -685,6 +846,8 @@ const greekLetters = [
 ];
 
 
+
+
 const textInputElement = document.getElementById("textInput");
 const canvasElement = document.getElementById("mainCanvas");
 let bb = canvasElement.getBoundingClientRect();
@@ -698,30 +861,28 @@ const fontSizeSubscriptMultiplier = 0.8;
 const fontType = " serif";
 
 //both are reset in onTextINputChange
-var containerMap = new Map();
-var subContainerOn = 1;
+//var containerMap = new Map();
+//var subContainerOn = 1;
+//var definitionMap = new Map();
 
 
 function onTextInputChange()
 {
-    containerMap = new Map();
-    subContainerOn = 1;
+    //containerMap = new Map();
+    //subContainerOn = 1;
 
     ctx.fillStyle = "white";
     ctx.fillRect(0,0,Math.round(canvasElement.width), Math.round(canvasElement.height));
     ctx.fillStyle = "black";
     ctx.strokeStyle = "black";
-    //ctx.moveTo(0,100);
-    //ctx.lineTo(1000,100);
-    //ctx.stroke();
     ctx.font = fontSize + "px" + fontType;
 
     let string = textInputElement.value;
-
     let con= new Container(ctx, string);
-    console.log(con.toString());
-    console.log(con.getDimensions());
-    con.render(100,100);
+    let dim = con.getDimensions();
+    let ret = con.render(ctx, 2,dim.ascent+2);
+    console.log(ret);
+
     /*
     elements = [];
 
@@ -788,7 +949,6 @@ function onTextInputChange()
         x += elements[i].render(ctx, x, y);
     }*/
 }
-
 
 function match(string, substring, startIndex)
 {
@@ -883,7 +1043,7 @@ function parseFontSize(fontString)
 }
 
 
-test();
+//test();
 
 function test()
 {
