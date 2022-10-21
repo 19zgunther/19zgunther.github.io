@@ -58,6 +58,7 @@ function resize(event)
     easygl.setCameraPosition( 0, 0, 2 );
     easygl.setPerspective();
     easygl.createObject( 'myObject1' );
+    easygl.setObjectReflectivity('myObject1', 0.6);
     
     let t=0;
 
@@ -97,14 +98,17 @@ function resize(event)
     let sphere = generateSphereMesh(1,0.7,0);
     easygl.createObject( 's1' , null, null, null, sphere.vertices, sphere.indices, sphere.normals, sphere.colors);
     easygl.setObjectPosition( 's1' , 0,2,0);
+    easygl.setObjectReflectivity('s1', 0.6);
 
     sphere = generateSphereMesh(2,0.7,0);
     easygl.createObject( 's2' , null, null, null, sphere.vertices, sphere.indices, sphere.normals, sphere.colors);
     easygl.setObjectPosition( 's2' , 0,0,0);
+    easygl.setObjectReflectivity('s2', 0.6);
 
     sphere = generateSphereMesh(3,0.7,0);
     easygl.createObject( 's3' , null, null, null, sphere.vertices, sphere.indices, sphere.normals, sphere.colors);
     easygl.setObjectPosition( 's3' , 0,-2,0);
+    easygl.setObjectReflectivity('s3', 0.6);
     
     //easygl.setObjectRotation( 'myObject1', 0.8, .1, 1);
 
@@ -151,6 +155,10 @@ function resize(event)
     easygl.setObjectColor( 'myObject2', new vec4(0,1,0,1));
     easygl.setObjectColor( 'myObject3', new vec4(0,0,1,1));
 
+    easygl.setObjectReflectivity('myObject1', 0.2);
+    easygl.setObjectReflectivity('myObject2', 0.5);
+    easygl.setObjectReflectivity('myObject3', 0.7);
+
     let t=0;
     let updateInterval = setInterval( update, 100 );
     function update() {
@@ -191,6 +199,10 @@ function resize(event)
     easygl.setObjectPosition( 'myObject1', -1, 0, 0,);
     easygl.setObjectPosition( 'myObject2', 1, 0, 0,);
     easygl.setObjectPosition( 'myObject3', 0, 0, 0,);
+
+    easygl.setObjectReflectivity('myObject1', 0.6);
+    easygl.setObjectReflectivity('myObject2', 0.6);
+    easygl.setObjectReflectivity('myObject3', 0.6);
 
     easygl.setObjectColor( 'myObject1', new vec4(1,0,0,1));
     easygl.setObjectColor( 'myObject2', new vec4(0,1,0,1));
@@ -267,6 +279,10 @@ function resize(event)
     gl.createObject('myCube', new vec4(2,0,0), new vec4(0,3.14/4), new vec4(1,2,3));
     gl.createObject('transCube', new vec4(-2), null, null, undefined, undefined, undefined, new vec4(1,0,0,.3));
     gl.createObject('bigCube', new vec4(0,2,0), null, null, undefined, undefined, undefined, new vec4(0,1,0,1));
+
+    gl.setObjectReflectivity('bigCube', 0.6);
+    gl.setObjectReflectivity('transCube', 0.6);
+    
 
     let newColors = [];
     for (let i=0; i<24; i++)
