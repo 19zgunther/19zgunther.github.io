@@ -85,6 +85,8 @@ function initDefaultShaderProgram(gl) {
             lightDistanceDivisor: gl.getUniformLocation(shaderProgram, 'uLightDistanceDivisor'),
             planeReflectance: gl.getUniformLocation(shaderProgram, 'uPlaneReflectance'),
             sphereReflectance: gl.getUniformLocation(shaderProgram, 'uSphereReflectance'),
+            sphereDeformationFrequency: gl.getUniformLocation(shaderProgram, 'uSphereDeformationFrequency'),
+            sphereDeformationMultiplier: gl.getUniformLocation(shaderProgram, 'uSphereDeformationMultiplier')
         },
     };
 
@@ -98,6 +100,8 @@ const lightDistanceDivisorElement = document.getElementById('lightDistanceDiviso
 const planeReflectanceElement = document.getElementById('planeReflectance');
 const sphereReflectanceElement = document.getElementById('sphereReflectance');
 const maxReflectionsElement = document.getElementById('maxReflections');
+const sphereDeformationFrequencyElement = document.getElementById('sphereDeformationFrequency');
+const sphereDeformationMultiplierElement = document.getElementById('sphereDeformationMultiplier');
 var gl;
 var camPos = new vec4(0,0,-5);
 var camRot = new vec4(Math.PI/2,0,0);
@@ -280,14 +284,17 @@ function update() {
     lightDistanceDivisor = [Number(lightDistanceDivisorElement.value)];
     planeReflectance = [Number(planeReflectanceElement.value)];
     let sphereReflectance = [Number(sphereReflectanceElement.value)];
+    let sphereDeformationMultiplier = [Number(sphereDeformationMultiplierElement.value)];
+    let sphereDeformationFrequency = [Number(sphereDeformationFrequencyElement.value)];
     gl.uniform4fv(programInfo.uniformLocations.viewPosition, camPos.getFloat32Array());
     gl.uniform4fv(programInfo.uniformLocations.viewRotation, camRot.getFloat32Array());
     gl.uniformMatrix4fv( programInfo.uniformLocations.rotationMatrix, false, camRotMat.getFloat32Array() );
     gl.uniform1fv(programInfo.uniformLocations.lightDistanceDivisor, new Float32Array(lightDistanceDivisor));
     gl.uniform1fv(programInfo.uniformLocations.planeReflectance, new Float32Array(planeReflectance));
     gl.uniform1fv(programInfo.uniformLocations.sphereReflectance, new Float32Array(sphereReflectance));
+    gl.uniform1fv(programInfo.uniformLocations.sphereDeformationMultiplier, new Float32Array(sphereDeformationMultiplier));
+    gl.uniform1fv(programInfo.uniformLocations.sphereDeformationFrequency, new Float32Array(sphereDeformationFrequency));
     
-
     const vertexCount = indices.length;
     gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
 }
@@ -722,7 +729,7 @@ float distToPoint(vec3 rayP, vec3 P)
 }
 
 
-
+///THIS IS THE ONE USED
 function generateShader3() {
     const defaultCode = `
     precision highp float;
@@ -733,6 +740,8 @@ function generateShader3() {
     uniform float uLightDistanceDivisor;
     uniform float uPlaneReflectance;
     uniform float uSphereReflectance;
+    uniform float uSphereDeformationMultiplier;
+    uniform float uSphereDeformationFrequency;
 
     vec3 unit(vec3 r)
     {
@@ -904,8 +913,15 @@ function generateShader3() {
                 leavingSphere = sphereHit;
                 
                 rayP = rayP + rayD*bestD;
-                rayD = reflectRay(rayD, unit( C - rayP));
+                rayD = reflectRay(rayD, unit( C - rayP)) + vec3(sin(uSphereDeformationFrequency*rayP.x), sin(uSphereDeformationFrequency*rayP.y), sin(uSphereDeformationFrequency*rayP.z))*uSphereDeformationMultiplier;
+                rayD = normalize(rayD);
 
+                if (sphereHit > 2 && sphereHit < 6)
+                {
+                    rayD = -rayD;
+                    continue;
+                }
+                
                 vec3 newRayD = unit(lightSource - rayP);
 
                 float d = distToPoint(rayP, lightSource);
@@ -952,7 +968,14 @@ function generateShader3() {
                 
                 d = d/uLightDistanceDivisor;
                 temp = (1.0-percentDone)*uPlaneReflectance;
+                /*if (sin(rayP.x*5.) > 0. && sin(rayP.y*5.) > 0.)
+                {
+                    fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                } else {
+                    fragColor += temp*vec4(color.y/d, color.z/d, color.x/d, 0);
+                }*/
                 fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+
                 percentDone += temp;
             } else {
                 return fragColor;
@@ -979,20 +1002,8 @@ function generateShader3() {
     }
     `;
 
-
-
-
-
-
     return defaultCode;
 }
-
-
-
-
-
-
-
 
 
 function generateShader2() {
@@ -1171,11 +1182,6 @@ function generateShader2() {
         gl_FragColor = fireRay(rayD, rayP);
     }
     `;
-
-
-
-
-
 
     return defaultCode;
 }
