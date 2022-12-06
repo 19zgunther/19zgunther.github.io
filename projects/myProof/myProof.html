@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-type" content="text/html; charset=UTF8">
+    <title>Zack Gunther</title>
+    <link rel="stylesheet" href="../menu.css">
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico" />
+</head>
+
+<body style = "background-color: rgba(0,0,0,1); position: relative; display: block;" oncontextmenu="return false;">
+
+    <!-- Menu Goes Here -->
+    <div style="display: block; margin-top: 10vh; position: relative; width: 99.9vw; height: 60vh; align-items: center; align-content: center; background-color: peachpuff; color: black">
+        Speed:<input id="speedInput" oninput=input() type=range min=0 max=1000 step=1 style="width:20vw; display: block; position: relative; margin:auto;" ></input>
+        <div id = "value" style="display: block; position: relative; padding: 5vmax; font-size:4vw; font-family: 'Comic Sans MS', 'Comic Sans','Chalkboard SE', 'Comic Neue', 'sans-serif', cursive; text-align: center; background-color: darkmagenta; color:olive;">
+
+        </div>
+        <canvas id = "myCanvas" style=" display: block; position:relative; z-index: 1000; width:100%; height: 5vh;"></canvas>
+        <div style="display: block; position: relative; padding: 5vmax; font-size:3vw; font-family: 'Comic Sans MS', 'Comic Sans','Chalkboard SE', 'Comic Neue', 'sans-serif', cursive; text-align: center; background-color: coral; color:darkblue">
+            This is my proof! If you let it run long enough, it will display ALL of the multiples of 3!
+            FYI - move the slider to increase speed.
+        </div>
+        <div id="time" style="display: block; position: relative; padding: 3vmax; font-size:5vw; font-family: 'Comic Sans MS', 'Comic Sans','Chalkboard SE', 'Comic Neue', 'sans-serif', cursive; text-align: center; background-color: aqua;">
+            1.3
+        </div>
+    </div>
+</body>
+
+<script src="../script.js"></script>
+
+<script>
+
+    const timeEl = document.getElementById("time");
+    const valueEl = document.getElementById("value");
+    const canvEl = document.getElementById("myCanvas");
+    let bb = canvEl.getBoundingClientRect();
+    canvEl.width = Math.round(bb.width);
+    canvEl.height = Math.round(bb.height);
+    const ctx = canvEl.getContext('2d');
+
+    ctx.fillStyle = "red";
+    ctx.strokeStyle = "green";
+    ctx.fillRect(0,0,canvEl.width, canvEl.height);
+    var scalar = 1;
+
+    const map = new Map();
+    map.set("C", ["C0", "A1", "0"]);
+    map.set("A", ["B0", "C1", "1"]);
+    map.set("B", ["A0", "B1"]);
+
+    let s = [{string:"C",tree:"C"}];
+
+
+    
+    var updateInterval = setInterval(run, 500);
+
+    //var timerUpdate = setInterval(timerUpdate, 50);
+    var timeRemaining = 3.154*Math.pow(10,17);
+    timerUpdate();
+
+
+    input();
+    function input()
+    {
+        const el = document.getElementById("speedInput");
+        const delay = 1000 - Number(el.value);
+        //console.log(delay);
+        //window.clearInterval(updateInterval);
+        setInterval(run, delay);
+    }
+
+    function timerUpdate()
+    {
+        document.getElementById("time").innerHTML = "~Time Remaining: " + String(timeRemaining) + "s";
+    }
+    
+    function run()
+    {
+        const startString = s.shift();
+        const poss = map.get(startString.string[0]);
+        if (poss == null)
+        {
+            let int = parseInt(startString.string,2);
+
+            if (int*scalar < canvEl.width)
+            {
+                //const cnvs = document.getElementById("myCanvas");
+                //const ctx = cnvs.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(Math.round(int*scalar), 0);
+                ctx.lineTo(Math.round(int*scalar), canvEl.height);
+                ctx.stroke();
+                ctx.closePath();
+            } else {
+                ctx.fillRect(0,0,canvEl.width, canvEl.height);
+                scalar *= 0.07;
+            }
+
+            valueEl.innerText = "Tree: \n"+startString.tree + "\nValue: " + String(int) + "\n  % 3 == 0 ?? :" + ((int%3==0)? "true": "false");
+            
+            return;
+        }
+        for (let i=0; i<poss.length; i++)
+        {
+            let newS = poss[i]+startString.string.substring(1,startString.string.length);
+            s.push( {
+                string: newS,
+                tree: startString.tree + "\n"+newS,
+            } );
+        }
+    }
+
+</script>
+</html>

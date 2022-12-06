@@ -79,24 +79,32 @@
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     function buttonClick(buttonName) {
         var pageString = '';
+
+        //Add ../ until we're at base folder. (Count "/" after projects in URL)
+        const currentURL = window.location.href;
+        let s = currentURL.split("projects/");
+        if (s.length > 1)
+        {
+            s = s.pop().split("/");
+            for (let i=0; i<s.length; i++)
+            {
+                pageString += "../";
+            }
+        }
+
         switch(buttonName)
         {
-            case 'home': pageString = 'index.html'; break;
-            case 'resume': pageString = 'resume.html'; break;
-            case 'charged_particle_simulator': pageString = 'chargeSimulator/chargeSimulator.html'; break;
-            case 'circuit_simulator': pageString = 'circuitSimulator/circuitSimulator.html'; break;
-            case 'cad': pageString = 'CAD/cad.html'; break;
-            case 'raytracing': pageString = 'raytracing/raytracing.html'; break;
-            case 'planet_generator': pageString = 'planetGenerator/planetGenerator.html'; break;
-            case 'web_experiments': pageString = 'webExperiments/webExperiments.html'; break;
-            case 'webgl_raytracing': pageString = 'webglRaytracing/webglRaytracing.html'; break;
-            case 'snake_game_neural_network': pageString = 'snake/snake.html'; break;
-            case 'easygl': pageString = 'easyGL/easyGL.html'; break;
-        }
-        if (String(document.location).includes('index.html') || String(document.location).includes('resume.html'))
-        {
-        } else {
-            pageString = "../"+pageString;
+            case 'home':                        pageString += 'index.html'; break;
+            case 'resume':                      pageString += 'resume.html'; break;
+            case 'charged_particle_simulator':  pageString += 'projects/chargeSimulator/chargeSimulator.html'; break;
+            case 'circuit_simulator':           pageString += 'projects/circuitSimulator/circuitSimulator.html'; break;
+            case 'cad':                         pageString += 'projects/CAD/cad.html'; break;
+            case 'raytracing':                  pageString += 'projects/raytracing/raytracing.html'; break;
+            case 'planet_generator':            pageString += 'projects/planetGenerator/planetGenerator.html'; break;
+            case 'web_experiments':             pageString += 'projects/webExperiments/webExperiments.html'; break;
+            case 'webgl_raytracing':            pageString += 'projects/webglRaytracing/webglRaytracing.html'; break;
+            case 'snake_game_neural_network':   pageString += 'projects/snake/snake.html'; break;
+            case 'easygl':                      pageString += 'projects/easyGL/easyGL.html'; break;
         }
         document.location = pageString;    
     }

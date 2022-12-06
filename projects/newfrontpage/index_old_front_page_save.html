@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zack Gunther</title>
+    <link rel="stylesheet" href="menu.css">
+    <link rel="stylesheet" href="titlepage.css">
+</head>
+
+<body style='background-color: rgba(30,30,30); z-index:-100;'>
+
+    <!--
+    <canvas id = 'backgroundCanvas' style='display:block; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index:-99.9;' width=100% height=100%></canvas>
+    
+    <script>
+        var e = document.getElementById('backgroundCanvas');
+        e.width = window.innerWidth;
+        e.height = window.innerHeight;
+        var ctx = e.getContext('2d');
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.lineTo(1000,1000);
+        ctx.stroke();
+        ctx.fillStyle = '#FFFFFF';
+
+        e.onmousemove = function (e) {
+            console.log("HERE");
+            ctx.clearRect(0,0, e.width, e.height);
+            ctx.beginPath();
+            ctx.moveTo(0,0);
+            ctx.lineTo(e.clientX,e.clientY);
+            ctx.stroke();
+        }
+    </script> -->
+
+
+    <!-- Menu -->
+    <div class='menu'>
+        <div style='position: absolute; left:0; justify-self:left;'>
+            <div class='logo' onclick='buttonClick("home")'>
+                ZG
+            </div>
+        </div>
+        <div class='menu_item' onclick='buttonClick("resume")'> 
+            Resume
+        </div>
+        <div class='menu_item'>
+            Projects
+            <div class='menu_dropdown'>
+                <div id="INSERT_MENU_PROJECTS">
+                    null
+                </div>
+            </div>
+        </div>
+        <!--Scroll Progress Bar-->
+        <div id='scrollIndicatorBackground' class='scrollIndicatorBackground'>
+            <div id='scrollIndicator' class='scrollIndicator'>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Section -->
+    <div id = 'welcome_section' class='dualSection'>
+        <div class='dualSectionA'>
+            <div id= 'welcome_titleA' class='titleA'>
+                Welcome!
+            </div>
+
+            <div class='subtitleA subtitle_delay1'>
+                Hi, I'm Zack Gunther
+            </div>
+            
+            <div class='subtitleA subtitle_delay2'>
+                <br>
+                I am a Computer Science and Electrical Engineering Dual Major, studying at RPI.
+            </div>
+            <div class='subtitleA subtitle_delay3'>
+                <br>
+                Welcome to my website, where I showcase some of the projects I have worked on!
+            </div>
+        </div>
+
+        <div class='dualSectionB'>
+            <img class='image_me' src='me3.jpeg'>
+        </div>
+    </div>
+
+    <!--<div style="width:100%; height:100%; display:flex;">
+        <img class="image_downarrow" src='LakeWaterSquare.jpg'>
+    </div>-->
+
+    <br><br><br><br><br>
+
+
+    <!--Project List-->
+    <div class="content_column"id="cps_content_column">
+        <!-- charged particle simulator -->
+        <div class="project_container">
+            <div id = 'left_trapezoid' style="background-image: url(chargedParticleSimulatorIMG.png)" onclick='buttonClick("charged_particle_simulator")'>
+                Charged<br>Particle<br>Simulator
+            </div>
+            <div id="left_text"> 
+                While taking Physics II, I realized all of the simulators my school used were created and hosted by other colleges. 
+                I felt and still feel that RPI, being a technical institution, should have it's own suite of simulators available for students and the general public. 
+                This was the motivation behind working on this project, with the long-run goal being gifting the simulator to the RPI physics department.
+                Please go to the "Charge Simulator" page to check it out!
+            </div>
+        </div>
+
+        <br><br><br><br><br><br><br><br>
+        <!-- circuit simulator -->
+        <div class="project_container">
+            <div id = 'right_trapezoid'style="background-image: url(circuitSimulatorIMG.png)" onclick='buttonClick("circuit_simulator")'>
+                Circuit<br>Simulator
+            </div>
+            <div id="right_text"> 
+                In RPI's Circuits class, students are tasked with solving basic circuits over and over again. Quickly, I became frustrated with the number of circuits 
+                we had to solve and how similar each circuit was. To aid in checking my homework and practice problems, I decided to create my own basic circuit simulator. 
+                I worked on this project in my free time for a few weeks, and am satisfied with the functionality of the project at this point. In the future I plan to 
+                add more components and improve the functionality of the program.
+            </div>
+        </div>
+
+        <br><br><br><br><br><br><br><br>
+
+        <div class="project_container">
+            <div id = 'left_trapezoid' style="background-image: url(rayTracingIMG.png)" onclick='buttonClick("raytracing")'>
+                Ray<br>Tracing<br>Project
+            </div>
+            <div id="left_text"> 
+                
+            </div>
+        </div>
+
+    </div>
+
+
+    <!--
+    <div style="width:100%; height:100%; display:flex;">
+        <svg width="100" height="100" viewbox="0 0 20 20" preserveAspectRatio="none" style="margin:auto; justify-content:center; justify-self:center; background-image:url('me3.jpeg');">
+            <polygon id = 'downarrow' points="5,0  10,0, 10,10 15,10 7.5,20 0,10 5,10"  fill='white'/>
+        </svg>
+    </div>-->
+
+
+
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+
+    <!--
+    <div style = "position:fixed; top:0px; z-index: 500; width: 100%;">
+        <div id="Header" class = "header">
+            <div id="homeButton" class = "HeaderButton" onclick= "ChangePage('index.html')">Home</div>
+            <div id="resumeButton" class = "HeaderButton" onclick= "ChangePage('resume.html')" >Resume</div>
+            <div id="chargeSimulatorButton" class = "HeaderButton" onclick= "ChangePage('chargeSimulator/chargeSimulator.html')">Charge Simulator</div>
+            <div id="circuitSimulatorButton" class = "HeaderButton" onclick= "ChangePage('circuitSimulator/circuitSimulator.html')">Circuit Simulator</div>
+            <div id="cadButton" class = "HeaderButton" onclick= "ChangePage('CAD/cad.html')">CAD</div>
+        </div>
+    </div>-->
+
+    <!--
+
+    <div class = "parallax" style = "height:fit-content; background-image: url('emberBackgroundIMG.jpg');">
+        <div style = "max-width: 1000px;">
+            <div class = "Title1">
+                Welcome!
+            </div>
+            <div class = "Paragraph">
+                Hello and welcome to my website! This is a webpage I am working on to learn more about HTML, CSS, JavaScript, and websites as a whole.
+            </div>
+        </div>
+    </div>
+
+
+    <div class = "banner" >
+        <div>
+            <div class = "Title2">
+                About Me
+            </div>
+            <div class = "Paragraph"> I am a junior studying Computer Systems Engineering and Computer Science at Rensselaer Polytechnic Institute.
+                Since I was four or five I have been interested in the engineering field. 
+                Since then, my interests have matured from steam locomotives to analog and digital circuit design... 
+                I have to go to class now and will finish this later!
+            </div>
+        </div>
+        <div style = "justify-content: center;">
+            <img id = "myIMG" style = "max-width:100px; max-height:100px;" src="me3.jpeg" alt="Zack Gunther (...Me!)" class = "image">
+        </div>
+    </div>
+
+
+    <div class = "parallax" style = "background-image: url('ChargeSimIMG.JPG');">
+    </div>
+
+    <div class = "banner">
+        <div class = "Title2">
+            Charged Particle Simulator
+        </div>
+        <div class = "Paragraph" > 
+            While taking Physics II, I realized all of the simulators my school used
+            were created and hosted by other colleges. I felt and still feel that RPI, being a 
+            technical institution, should have it's own suite of simulators available for students and the general public.
+            This was the motivation behind working on this project, with the long-run goal
+            being gifting the simulator to the RPI physics department.
+            <br><br>
+            Please go to the "Charge Simulator" page to check it out!
+        </div>
+    </div>
+
+    <div class = "parallax" style = "background-image: url('CircuitSimIMG.JPG');">
+    </div>
+
+    <div class = "banner">
+        <div class = "Title2">
+            Circuit Simulator
+        </div>
+        <div class = "Paragraph" > 
+            In RPI's Circuits class, students are tasked with solving basic circuits over and over again.
+            Quickly, I became frustrated with the number of circuits we had to solve and how similar each circuit was.
+            To aid in checking my homework and practice problems, I decided to create my own basic circuit simulator.
+            I worked on this project in my free time for a few weeks, and am satisfied with the functionality of the project at this point.
+            In the future I plan to add more components and improve the functionality of the program.
+            <br><br>
+            Please go to the "Circuit Simulator" page to check it out!
+        </div>
+    </div>
+
+
+    <div class = "parallax" style = "background-image: url('cadIMG.jpg');">
+    </div>
+
+    <div class = "banner">
+        <div class = "Title2">
+            CAD Program
+        </div>
+        <div class = "Paragraph" > 
+            I recently transitioned to from using Windows 10 to Ubuntu. I have enjoyed linux so far, although I ran into an issue: I couldn't find a 
+            decent 3d CAD modeler. There are a few free programs available for linux, although I did not like how the programs functioned. This prompted me to
+            research how 3d graphics are rendered, and more specifically how I could render 3d objects within a webpage. As of writing, I have a program 
+            capable of rendering sketches, bodies, text, planes, etc. all in webGL. WASD and the arrow keys allow for me to manuever in this 3d environment, 
+            with a few mouse gestures programmed to adjust settings like zoom and FOV. This is likely the most mathematically complex project I've tackled,
+            with constraints currently being the bane of my existence.
+            I plan to add basic CAD modeling functionality like the ability to constrain
+            sketches and turn 2d sketches into 3d objects through extrudes, revolves, and more. 
+            <br><br>
+            Please go to the "CAD" page to check it out!
+        </div>
+    </div>
+
+
+    <div class = "parallax" style = " height:40vw; background-image: url('Lake2IMG.jpg');">
+    </div>
+    -->
+
+
+
+
+    <!--
+    <div style = "background-color: rgb(20,20,20); display:flex; justify-content: center;">
+        <div style = "display:flex; flex-direction: row; max-width: 1000px;">
+            <div class = "Text" style = "padding:2vw;">
+                More projects coming soon! Thank you for visiting!
+            </div>
+        </div>
+    </div>
+    -->
+
+
+    <!--
+    <div class = 'bottomBar'> 
+        <div class = 'bottomBarContent'>
+            <a href="https://www.linkedin.com/in/zack-gunther-9484641b9/" target="_blank" style='width:10px; height:10px'>
+                <img src= 'linkedin_logo.png' alt='linkedin' style = 'width:10px; height:10px;'>
+            </a>
+        </div>
+        <div class = 'bottomBarContent'>
+            <a href="https://www.linkedin.com/in/zack-gunther-9484641b9/" target="_blank" style='width:10px; height:10px'>
+                <img src= 'linkedin_logo.png' alt='linkedin' style = 'width:10px; height:10px;'>
+            </a>
+        </div>
+    </div>
+    -->
+
+</body>
+<script src="script.js"></script>
+
+</html>

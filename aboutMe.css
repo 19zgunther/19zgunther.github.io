@@ -1,0 +1,12 @@
+
+*{
+    --aboutMeParentBackgroundColor: rgba(50,50,50,.2);
+}
+
+#aboutMeParent
+{
+    width: 90vw; 
+    height:fit-content;
+    min-height: 20vh;
+    background-color: var(--aboutMeParentBackgroundColor);
+}

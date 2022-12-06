@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gunther</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../menu.css">
+    <link rel="stylesheet" href="mathpad.css">
+    <link rel="shortcut icon" type="image/x-icon" href="../favicon.ico" />
+</head>
+<body style='background-color: rgba(30,30,30);'>
+    
+    
+    <!-- Menu Goes Here -->
+    <title>
+        MathPad
+    </title>
+
+    <section>
+        <header>
+            Row Reduction
+        </header>
+        <input id='matrixNumColumns' type='number' value='3' style='width:3vmax' onchange=makeMatrix() >Num Columns</input> 
+        <br>
+        <input id='matrixNumRows' type='number' value='3' style='width:3vmax' onchange=makeMatrix() >Num Rows</input> 
+        <br>
+        <br>
+        Input Matrix:
+        <br>
+        <div style='display: flex;'>
+            <div>A = </div>
+            <matrix id='matrixGrid'>
+                AUTOFILLED
+            </matrix>
+        </div>
+        <br>
+        <br>
+        Row Reduced Matrix:
+        <matrix id='rowReducedMatrix'>
+            AUTOFILLED
+        </matrix>
+    </section>
+
+    <section>
+        <header>
+            NullSpace
+        </header>
+        <flex>
+            <div style='width: 50%;'>
+                1.) Row-reduce the matrix A []
+                <br>
+                <flex>
+                    2.) Set A *
+                        <matrix>x1<br>x2<br>...<br>xN</matrix> 
+                        = 
+                        <matrix>0<br>0<br>...<br>0</matrix>
+                        and get a set of linear equations.
+                </flex>
+                3.) Pick free variables, and solve each other x in terms of those free variables
+            </div>
+            <div style='width: 50%;'>
+                <flex>
+                    Example:
+                    A = <matrix>1 0 -2 1<br>-2 3 4 1<br>-1 6 2 5</matrix>
+                </flex>
+                <flex>
+                    Row Reduced A = <matrix>1 0 -2 1 <br>0 3 0 3<br> 0 0 0 0 </matrix>
+                </flex>
+                <flex>
+                    R(A) = span(<matrix>1<br>-2<br>-1</matrix>, <matrix>0<br>3<br>6</matrix>)
+                </flex>
+                <flex>
+                    Equations: 
+                    <div>
+                        x1 - 2x3 + x4 = 0   
+                        <br>
+                        3x2 + 3x4 = 0
+                        <br>
+                        Free Variable: x3 & x4
+                    </div>
+                </flex>
+                
+                    Thus, the null space of A:
+                <flex>
+                    <div style='width:2vmin'></div>
+                    N(A)=<matrix>2x3 - x4<br>-x4<br>x3<br>x4</matrix>
+                    =
+                    x3<matrix>2<br>0<br>1<br>0</matrix> + x4<matrix>-1<br>-1<br>0<br>1</matrix>
+                    = span(<matrix>2<br>0<br>1<br>0</matrix>, <matrix>-1<br>-1<br>0<br>1</matrix>)
+                </flex>
+            </div>
+        </flex>
+    </section>
+
+
+
+    <section>
+        <header>
+            Determinant
+        </header>
+        <br>
+        <br>
+        Input Matrix:
+        <br>
+        <div style='display: flex;'>
+            <div>A = </div>
+            <matrix id='DET_input'>
+                AUTOFILLED
+            </matrix>
+        </div>
+        <br>
+        <br>
+        Determinant:
+        <div id='DET_output'>
+            AUTOFILLED
+        </div>
+    </section>
+
+    <section>
+        <header>
+            Plotter
+        </header>
+        <br>
+        <br>
+        Inputs:
+        <input id='numSeriesInput' type='number' value='3' min='1' max='5' oninput="numSeriesChanged()">
+        <div id='seriesInputs'>
+            <!--Autofilled by numSeriesChanged()-->
+        </div>
+        <br>
+        <canvas id='plotterCanvas' style='width: 100%; height: 50%;'>
+
+        </canvas>
+    </section>
+
+    
+
+
+</body>
+<script src="../painter.js"></script>
+<script src="../CAD/myMath.js"></script>
+<script src="mathpad.js"></script>
+<script src="../script.js"></script>
+
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!--
+    /***********************************************************************************************
+    *  Code Written by Zack Gunther
+    *  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
+    ************************************************************************************************/-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gunther</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../menu.css">
+    <link rel="stylesheet" href="cad.css">
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.ico" />
+</head>
+<body style='background-color: rgba(30,30,30);'>
+    
+    
+    <!-- Menu Goes Here -->
+
+
+    <div class = 'topbar'></div>
+
+    <br>
+    <div>
+        This page is still under development! I will be pushing updates daily (school workload permitting of course)!
+        <br>
+        Use WASD to move, and the arrow keys to rotate. This method of movement in CAD program is unorthodox and will be changed in the future. As for now, it will do :-D
+        <br>
+        Note: Sketches do not work. I am struggling to find a way to constrain points... a critical part I have yet to figure out.
+    </div>
+    
+    <!--   Top Bar - Camera settings dropdown & sketch stuff & etc    -->
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; width:100%; position:relative ; z-index: 10;">
+        <!-- Camera Settings Dropdown -->
+        <div class = "hoverDropDown_parent">
+            Camera Settings
+            <div class = 'hoverDropDown_child'>
+                
+                <div style = 'width: fit-content;'>
+                    <input id = 'orthogonalViewCheckbox' type="checkbox" oninput = updateCameraSettings(this)>
+                    Orthogonal View
+                </div>
+                <div class = 'tab' style = "font-size: smaller;">
+                    Zoom:  0 <input class = 'hoverDropDown_child_slider' id='orthogonalZoomSlider' type = "range" min='0.001' max='10' value = '.2' step='.001' oninput = updateCameraSettings(this)>100
+                </div>
+            
+                <div>
+                    <input id = 'perspectiveViewCheckbox' type="checkbox" checked oninput = updateCameraSettings(this)>
+                    Perspective View
+                </div>
+                <div class = 'tab' style = "font-size: smaller;"> 
+                    FOV: 5 <input class = 'hoverDropDown_child_slider' id='fovSlider' type = "range" min='5' max='180' value = '45' step='.1' oninput = updateCameraSettings(this)>180
+                    <br>
+                    zFar: 0 <input class = 'hoverDropDown_child_slider' id='zfarSlider' type = "range" min='1' max='100' value ='100' oninput = updateCameraSettings(this)>100
+                    <br>
+                    zNear: 0 <input class = 'hoverDropDown_child_slider' id='znearSlider' type = "range" min='.1' max='5' value='1.1' step = '.1' oninput = updateCameraSettings(this)> 5
+                    <br>
+                </div>
+                
+            </div>
+        </div>
+        <div class = 'hoverDropDown_parent'>
+            2nd Tab
+            <div class = "hoverDropDown_child">
+                hi
+            </div>
+        </div>
+    </div>
+
+    <div style='display: auto; position: relative; width: 99vw; height: 70vh;'>
+        <canvas id = 'glCanvas' onmousewheel=mouseWheel(event)  onmousemove=mouseMoved(event) onmousedown=mouseDown(event)  onmouseup=mouseUp(event)></canvas>
+        <div id='addObjectsContainer' style='background-color: transparent;'>
+            <div class = 'addObjectButton' id='cube' onclick = addObjectButtonPress(this)>Add Cube</div>
+            <div class = 'addObjectButton' id='cylinder' style="width:90%; text-align: center;" onclick = addObjectButtonPress(this)>Add Cylinder</div>
+            <div class = 'addObjectButton' id='sphere'  style="width:90%; text-align: center;" onclick = addObjectButtonPress(this)>Add Sphere</div>
+            <div class = 'addObjectButton' id='arrow'  style="width:90%; text-align: center;" onclick = addObjectButtonPress(this)>Add Arrow</div>
+            <div class = 'addObjectButton' id='doubleArrow' style="width:90%; text-align: center;" onclick = addObjectButtonPress(this)>Add DoubleArrow</div>
+        </div>
+        
+        <div id='objectContainer' style='position: absolute; display:block; top: 0%; bottom: auto; overflow:scroll; max-height: 70%;'>
+        </div>
+
+        <div id='historyContainer' class = 'backgroundPanel' style='position: absolute; display:block; top: auto; bottom:1%; max-height: 20%; overflow: scroll; font-size: xx-small;'>
+        </div>
+    </div>
+        
+    <!-- 
+    <div id = 'cameraPositionDetailsElement' style = 'z-index: 0.1; font-size: small; width: fit-content; flex-wrap: nowrap; float:right;'>
+        Camera Position, Rotation, and <br> OTher
+    </div>-->
+
+
+    <div class = 'button' style='position:relative' onclick = createSketchMenu_show()>Create Sketch</div>
+    <div class = 'button'  onclick = move_camera_home_button_press()>Move to home position</div>
+    <div style='display:flex;'>
+        <div class = 'button'  onclick = save_file_button_press()>Save File</div>
+        <input id='fileSaveNameTextbox' type="text" value = 'mySave.txt' style="color:black;" >
+    </div>
+
+    <div style='display:flex;'>
+        <input type="file" id="fileInput" accept = "text/*"> Load File </input>
+    </div>
+
+
+</input>
+
+    <!--<div style="height: 800px;">tall_boi_div</div>-->
+
+</body>
+
+<script src="../../script.js"></script>
+<script src="../../painter.js"></script>
+<script src="../../point.js"></script>
+<script src="../../utilities.js"></script>
+<script src="myMath.js"></script>
+<script src="shapes.js"></script>
+<script src="object.js"></script>
+<script src="shader.js"></script>
+<script src="camera.js"></script>
+<script src="sketchMain.js"></script>
+<script src="cad.js"></script>
+
+</html>

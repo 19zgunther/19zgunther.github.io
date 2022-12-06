@@ -1,0 +1,248 @@
+/***********************************************************************************************
+*  Code Written by Zack Gunther
+*  If you would like to copy or use this code email me at 19zgunther@gmail.com to ask permission.
+************************************************************************************************/
+
+/*general*/
+*{
+    color: white;
+    /*transition: opacity 0.1s, background-color 0.1s;*/
+    --background_panel_color: rgba(170,170,170,1);
+    --background_panel_border_radius: 1px;
+    --object_background_color: rgba(1,1,1,.3);
+}
+
+.tab {
+    margin-left:40px;
+}
+
+#glCanvas {
+    width:98vw;
+    min-width: 300px;
+    min-height: 300px;
+    height: 100%;
+    margin: auto;
+    display: inline-block;
+}
+
+/*Hover Drop Down components*/
+.hoverDropDown_parent {
+    color: white;
+    position: relative;
+    background-color: rgb(80,80,80);
+    margin-left: 5px;
+}
+.hoverDropDown_parent:hover {
+    background-color: rgb(100,100,100);
+}
+.hoverDropDown_child {
+    display: block;
+    position: absolute;
+    white-space: nowrap;
+    background-color: rgb(90,90,90);
+    padding-top: 0%;
+    padding-bottom: 0%;
+    overflow:hidden;
+    max-height: 0;
+    z-index: 2;
+
+    -webkit-transition:max-height .2s;
+   -moz-transition:max-height .2s;
+   -o-transition:max-height .2s;
+   -ms-transition:max-height .2s;
+   transition: max-height .2s, background-color 0.2s;
+}
+.hoverDropDown_parent:hover .hoverDropDown_child {
+    display: block;
+    max-height: 500px;
+}
+.hoverDropDown_child:hover {
+    background-color: rgb(110,110,110);
+}
+.hoverDropDown_child_slider {
+    padding: 0%;
+    margin: 0%;
+}
+
+
+
+
+/*button*/
+
+.button {
+    background-color:#555555;
+    height: fit-content;
+    width:fit-content;
+    min-width: 50px;
+    justify-content: center;
+    padding: 2px;
+    margin: 3px;
+    opacity: 80%;
+}
+
+.button:hover {
+    opacity: 100%;
+    cursor: pointer;
+}
+
+
+
+/* Sketch Menu */
+.sketchMenu_parent {
+    background-color: rgba(1,1,1,0.1);
+    position: absolute;
+    display:flex;
+}
+.sketchMenu_parent:hover{
+    background-color: rgba(1,1,1,0.05);
+}
+.sketchMenu_column {
+    display: block; 
+    background-color: rgba(1,1,1,0.2); 
+    color: inherit;
+    margin-left:5px;
+}
+.sketchMenu_column:hover {
+    background-color: rgba(1,1,1,0.4); 
+}
+.sketchMenu_cell {
+    background-color: rgba(1,1,1,0.1); 
+    min-width:fit-content; 
+    flex-wrap: nowrap; 
+    color: inherit;
+    margin-left:0px;
+    margin-right:0px;
+    margin-top:2px;
+    margin-bottom:2px;
+
+}
+.sketchMenu_cell:hover {
+    background-color: rgba(1,1,1,0.2); 
+}
+
+
+.backgroundPanel{
+    width: fit-content;
+    height: fit-content;
+    background-color: var(--background_panel_color);
+    border-radius: var(--background_panel_border_radius);
+    min-height: 10px;
+    padding: 1%;
+}
+
+.backgroundPanel, #addObjectsContainer {
+    top: 10%;
+    background-color: var(--background_panel_color);
+    border-radius: var(--background_panel_border_radius);
+    position: absolute;
+}
+
+
+
+/* Object List & Container */
+.backgroundPanel, #objectContainer {
+    background-color: var(--background_panel_color);
+    border-radius: var(--background_panel_border_radius);
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 1%;
+    padding: 0.5%;
+}
+
+item {
+    display: inline-block;
+    width: fit-content;
+    height: fit-content;
+    background-color: var(--object_background_color);
+    margin-top: 5px;
+    cursor: pointer;
+    padding: 0.5vmin;
+    
+}
+
+itemDropdown {
+    width: fit-content;
+    height: fit-content;
+    overflow:hidden;
+    max-height: 0;
+    display:block;
+}
+
+item:hover itemDropdown{
+    max-height: 100px;
+    height: 100px;
+}
+itemDropdown:hover {
+    max-height: 100%;
+}
+
+
+.addObjectButton{
+    background-color:#666666;
+    height: fit-content;
+    width:fit-content;
+    min-width: 50px;
+    justify-content: center;
+    padding: 2px;
+    margin: 3px;
+    opacity: 90%;
+    width:90%; 
+    border-radius: 2px;
+    text-align: center;
+
+    transition: opacity 0.5s;
+}
+.addObjectButton:hover {
+    cursor: pointer;
+    opacity: 100%;
+}
+
+
+.vectorInput {
+    color: white;
+    width: 20px;
+    background-color: rgba(0,0,0,0);
+    border-color: rgba(0,0,0,0);
+    text-align: center;
+    transition: background-color 0.5s;
+    line-height: inherit;
+    height: fit-content;
+    padding: 0;
+    margin: 0;
+}
+.vectorInput::-webkit-outer-spin-button,
+.vectorInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+.vectorInput:focus {
+    background-color: rgba(1,1,1,0.2);
+    outline: none;
+}
+.vectorInput:hover {
+    background-color: rgba(1,1,1,0.1);
+}
+
+
+.objectDetailsContainer {
+    display: block;
+    position: relative;
+
+    /*max-height: 0;*/
+    overflow: hidden;
+    height: fit-content;
+    width: fit-content;
+}
+
+.objectDetailsContainer:hover {
+    max-height:100vh;
+}
+
+item:hover .objectDetailsContainer {
+    max-height: 100vh;
+}
+
+
+
+
+

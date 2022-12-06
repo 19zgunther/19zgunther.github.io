@@ -1,0 +1,62 @@
+</html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gunther</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body style = 'padding:0px; border-radius: 0px;'>
+    
+    <!-- Menu Goes Here -->
+
+    
+    <div id = 'background' style = 'padding: 3px;'>
+        <div>
+            Instructions: <br>
+            This is a logarithmic plotter! <br>
+            Input any equation with variable x, and it will create the bode plot for the function.
+            <br>
+            In general, you should input transfer functions H(s)=Vout/Vin
+            <br><br>
+            Valid symbols are: <br>
+            Numbers & Decimal points <br>
+            'x' is the variable<br>
+            '(' & ')' for parentheses<br>
+            '^' as the power operator <br>
+            '*' & '/' for multiplication and division <br>
+            '+' & '-' for addition and subtraction<br>
+            <br>
+            Notes:<br>
+            White spaces are ignored.<br>
+            This (should) follow PEMDAS.<br>
+            For exponents, put the exponent inside of '(' ')'<br>
+            Capital letters are NOT allowed EVER. (breaks internal functionality)<br>
+        </div>
+        <br><br>
+        <div>
+            Equation:
+        </div>
+        <input id = 'equationTextbox' type=text spellcheck="false" style="color: black; width: 500;" width = 500>
+        <br>
+        <canvas id = 'myCanvas' width = 600 height = 600 ></canvas>
+        <br>
+        <input id = 'yScalarSlider' type=range value = -500  max=1000  min = -1000 step = 1 style="color: black; width: 500;" width = 500>
+        <input id = 'xScalarSlider' type=range value = 0.05  max=1  min = -1 step = .01 style="color: black; width: 500;" width = 500>
+        <input id = 'yOffsetSlider' type=range value = -600  max=600  min = -300 step = 1 style="color: black; width: 500;" width = 500>
+        <input id = 'xOffsetSlider' type=range value = 50  max=1000  min = -1000 step = 1 style="color: black; width: 500;" width = 500>
+        
+    </div>
+
+</body>
+
+<script src="../painter.js"></script>
+<script src="../point.js"></script>
+<script src="../utilities.js"></script>
+<script src="bp.js"></script>
+<script src="../script.js"></script>
+
+</html>

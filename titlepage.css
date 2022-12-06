@@ -27,7 +27,7 @@ body.loaded #welcome_section{
     width: 0%;
 
     font-size:10em;
-    background-image:url('Lake3IMG.jpg');
+    background-image:url('images/Lake3IMG.jpg');
     background-size: cover;
     color: rgba(250,255,255,0.01);
     -moz-background-clip: text;
