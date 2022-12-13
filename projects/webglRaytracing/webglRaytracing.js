@@ -86,7 +86,8 @@ function initDefaultShaderProgram(gl) {
             planeReflectance: gl.getUniformLocation(shaderProgram, 'uPlaneReflectance'),
             sphereReflectance: gl.getUniformLocation(shaderProgram, 'uSphereReflectance'),
             sphereDeformationFrequency: gl.getUniformLocation(shaderProgram, 'uSphereDeformationFrequency'),
-            sphereDeformationMultiplier: gl.getUniformLocation(shaderProgram, 'uSphereDeformationMultiplier')
+            sphereDeformationMultiplier: gl.getUniformLocation(shaderProgram, 'uSphereDeformationMultiplier'),
+            aspectRatio: gl.getUniformLocation(shaderProgram, 'uAspectRatio')
         },
     };
 
@@ -294,11 +295,11 @@ function update() {
     gl.uniform1fv(programInfo.uniformLocations.sphereReflectance, new Float32Array(sphereReflectance));
     gl.uniform1fv(programInfo.uniformLocations.sphereDeformationMultiplier, new Float32Array(sphereDeformationMultiplier));
     gl.uniform1fv(programInfo.uniformLocations.sphereDeformationFrequency, new Float32Array(sphereDeformationFrequency));
+    gl.uniform2fv(programInfo.uniformLocations.aspectRatio, new Float32Array([Number(sphereDeformationFrequency),0]));
     
     const vertexCount = indices.length;
     gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
 }
-
 
 
 
@@ -742,6 +743,8 @@ function generateShader3() {
     uniform float uSphereReflectance;
     uniform float uSphereDeformationMultiplier;
     uniform float uSphereDeformationFrequency;
+    uniform vec2 uAspectRatio;
+
 
     vec3 unit(vec3 r)
     {
@@ -994,7 +997,7 @@ function generateShader3() {
     }
 
     void main() {
-        vec3 rayD = unit(vec3(vScreenPos.x*3.0, vScreenPos.y*3.0, 5.0));
+        vec3 rayD = unit(vec3(vScreenPos.x*3.0*uAspectRatio[0]/3.0, vScreenPos.y*3.0, 5.0));
         rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
         vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
         gl_FragColor = fireRay(rayD, rayP);

@@ -16,11 +16,107 @@
 <body style = "background-color: rgba(0,0,0,1);">
     <canvas id='glcanvas' style = 'width:100%; height:100%; position:fixed; top: 0; left: 0; z-index: -100'></canvas>
     
+
     <!-- Menu Goes Here -->
+    <style>
+        .phoneScreen {
+            display: block;
+            width: 100%;
+            height:fit-content;
+        }
+        .computerScreen {
+            margin-top: 10vh;
+            display: flex;
+            width: 100%;
+            height:fit-content;
+            align-items: center;
+            align-content: center;
+        }
+
+        #CmainSection {
+            margin-top: 10vh;
+            width: 100%;
+        }
+        #CwelcomeText {
+            margin:auto;
+            color:rgba(255,255,255,0.1);
+            -moz-background-clip: text;
+            -webkit-background-clip: text;
+            background-clip: text;
+            background-size: cover;
+            background-image: url(images/Lake2IMG.jpg);
+            font-size: min(13vw, 10rem);
+            margin-right: 0px;
+        }
+        #CwelcomeImg {
+            margin-left: 0px;
+            margin-right: auto;
+            height: 10vw !important;
+            border-radius: 10vh;
+        }
+        .Ccolumn {
+            display: block;
+            margin:auto; 
+            padding: 3%; 
+            border-radius: 3rem; 
+            width:75%; 
+            background-color: rgba(100,100,100,0.1);
+        }
+
+        @media (max-aspect-ratio: 3/3) {
+            .computerScreen{display: none;}
+        }
+        @media (min-aspect-ratio: 3/3) {
+            .phoneScreen{display: none;}
+        }
+    </style>
+
+    <div class="phoneScreen">
+        <table style="width:100%; margin-top: 50vh;">
+            <tr>
+                <th>
+                    <div id="PwelcomeText">
+                        Welcome!
+                    </div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <img id="PwelcomeImg" src="images/me3.jpeg">
+                </th>
+            </tr>
+        </table>
+    </div>
+    <div class="computerScreen">
+        <div class="Ccolumn">
+            <div style="display:flex;width:100%; height:fit-content; align-content: center; align-items: center;">
+                <div id="CwelcomeText">
+                    Welcome!
+                </div>
+                <img id="CwelcomeImg" src="images/me3.jpeg">
+            </div>
+            <div style="display:flex;width:100%; height:fit-content; align-content: center; align-items: center;">
+                <div id="spawningTextDiv" style="width:50rem; margin: auto;">
+                    <!--Text will be spawned here-->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div id="mainSection">
+        <div class="row">
+            <div id="welcomeText">
+                Welcome!
+            </div>
+        </div>
+        <div class="row">
+            <img id="welcomeImg" src="images/me3.jpeg">
+        </div>
+    </div> -->
 
 
     <!-- Welcome Section -->
-    <div id = 'welcome_section' class='dualSection'>
+    <!-- <div id = 'welcome_section' class='dualSection'>
         <div class='dualSectionA'>
             <div id= 'welcome_titleA' class='titleA'>
                 Welcome!
@@ -40,28 +136,177 @@
             </div>
         </div>
 
-   
-
         <div class='dualSectionB'>
             <div style='display: block; position: relative; width: 75%; height: auto; aspect-ratio: 1/1; justify-self: right; margin:auto;'>
                 <img class='image_me' src='images/me3.jpeg'> </img>
                 <canvas id='canvas_me' class='canvas_me'> </canvas>
             </div>
         </div>
+    </div> -->
+
+    <div style='height:10vh; width: 90vw;'>
         
     </div>
 
-    <!--<div style="width:100%; height:100%; display:flex;">
-        <img class="image_downarrow" src='LakeWaterSquare.jpg'>
-    </div>-->
-
-    <div style='height:40vh; width: 90vw;'>
-        
-    </div>
-
-
-
+    <!--About me Style-->
     <style>
+        #AboutMeContainer{
+            margin: 10%; 
+            width: 80%; 
+            height:fit-content; 
+            border-radius: 1vmax; 
+            background-color: rgba(0,0,0,0.6);
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        #AboutMeContainer:hover{
+            opacity: 1;
+        }
+        #AboutMeTable{
+            width: 100%;
+            padding: 0.5vw;
+            border-spacing: 2vmin;
+            height: auto;
+            table-layout: fixed;
+        }
+        .AMTRow{
+            padding:2vw; 
+            height: 50vh;
+            overflow: auto;
+        }
+        .AMTCell{
+            text-align: left;
+            vertical-align: top;
+            font-weight: lighter;
+
+            padding:1vw;             
+            cursor:default;
+
+            border-radius: 1vw;
+            border-style:solid;
+            border-color: rgba(255,255,255,0.1);
+
+            opacity: 0.8;
+            transition: opacity 0.3s, color 0.1s, border-color 0.4s;
+        }
+        .AMTCell:hover{
+            transition: opacity 0.3s, color 0.3s 0.2s;
+            opacity: 1;
+            border-color: rgba(255,255,255,0.3);
+        }
+        .AMTCellTitle {
+            font-size: 1.8em;
+            font-weight: lighter;
+
+            border-style: solid;
+            border-color: rgba(0,0,0,0);
+            border-bottom-color: rgba(0,0,0,0);
+            margin-bottom: 1vh;
+            padding-bottom: 0.8vh;
+
+            border-bottom-color: white;
+
+            transition: font-size 0.3s, font-weight 0.2s, border-bottom-color 0.5s;
+
+            /* display: flex;
+            justify-content: center; */
+        }
+        .AMTCell:hover .AMTCellTitle {
+            border-bottom-color: white;
+        }
+
+        .AMTCellTitleImg1 {
+            vertical-align:middle;
+            height: 5vmax;
+            transition: filter 0.5s;
+        }
+        .AMTCellTitleImg2 {
+            vertical-align:middle;
+            height: 5vmax;
+            transition: filter 0.5s;
+        }
+        .AMTCellTitleImg3 {
+            vertical-align:middle;
+            height: 5vmax;
+            transition: filter 0.5s;
+        }
+        .AMTCell:hover .AMTCellTitleImg1 {
+            font-size: 2em;
+            font-weight: bolder;
+            border-bottom-color: white;
+            filter: opacity(0.5) drop-shadow(0 0 0 red);
+        } 
+        .AMTCell:hover .AMTCellTitleImg2 {
+            font-size: 2em;
+            font-weight: bolder;
+            border-bottom-color: white;
+            filter: opacity(0.5) drop-shadow(0 0 0 green);
+        } 
+        .AMTCell:hover .AMTCellTitleImg3 {
+            font-size: 2em;
+            font-weight: bolder;
+            border-bottom-color: white;
+            filter: opacity(0.5) drop-shadow(0 0 0 blue);
+        } 
+
+    </style>
+    <div id="AboutMeContainer">
+        <div style="width: 100%; height: fit-content; font-size: 6em; text-align: center; padding-top: 5vh;">
+            About Me
+        </div>
+        <table id="AboutMeTable">
+            <tr class="AMTrow">
+                <th class="AMTCell">
+                    <div class=AMTCellTitle>
+                        <img class="AMTCellTitleImg1" src="images/computerIcon_transparent.png"alt="">
+                        <br>
+                        Computer Science
+                    </div>
+                    - Item 1<br>
+                    - Item 2<br>
+                </th>
+                <th class="AMTCell">
+                    <div class=AMTCellTitle>
+                        <img class="AMTCellTitleImg2" src="images/embeddedSystemsIcon_transparent.png"alt="">
+                        <br>
+                        Embedded Systems
+                    </div>
+                    - Item 1<br>
+                    - Item 2<br>
+                    - Item 3<br>
+                    - Item 4<br>
+                </th>
+                <th class="AMTCell">
+                    <div class=AMTCellTitle>
+                        <img class="AMTCellTitleImg3" src="images/analogElectronicsIcon_transparent.png" alt="">
+                        <br>
+                        Analog Electronics
+                    </div>
+                    - Item 1<br>
+                    - Item 2<br>
+                    - Item 3<br>
+                    - Item 4<br>
+                    - Item 5<br>
+                    - Item 6<br>
+                </th>
+            </tr>
+        </table>
+    </div>
+
+    <!--Projects Table Style-->
+    <style>
+        #ProjectContainer{
+            margin: 10%; 
+            width: 80%; 
+            height:fit-content; 
+            border-radius: 1vmax; 
+            background-color: rgba(0,0,0,0.6);
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        #ProjectContainer:hover{
+            opacity: 1;
+        }
         #ProjectTable{
             width: 100%;
             padding: 1vw;
@@ -123,7 +368,8 @@
         }
 
     </style>
-    <div style="margin: 10%; width: 80%; height:fit-content; border-radius: 1vmax; background-color: rgba(0,0,0,0.6);">
+    <!--Projects Table-->
+    <div id="ProjectContainer">
         <div style="width: 100%; height: fit-content; font-size: 6em; text-align: center; padding-top: 5vh;">
             Projects
         </div>
@@ -215,12 +461,12 @@
     </div>
 
     
-    <div style='height:40vh; width: 90vw;'>
+    <div style='height:30vh; width: 90vw;'>
         
     </div>
 
 
-    <!--Project List-->
+    <!--OLd Project List-->
     <!--
     <div class="content_column"id="cps_content_column">
         <div class="project_container">
@@ -334,6 +580,7 @@
         
     </div>
 
+    <!--Controls box for background planet-->
     <div id = 'controls_box'>
         <br>
         fov:
@@ -353,9 +600,11 @@
 
 </body>
 
+<script src="titlepage.js"></script>
 <script src="projects/CAD/myMath.js"></script>
 <script src="painter.js"></script>
 <script src="script.js"></script>
 <script src="projects/planetGenerator/gl.js"></script>
 <script src="projects/planetGenerator/planetGenerator.js"></script>
+
 </html>

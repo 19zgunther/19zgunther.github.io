@@ -1,7 +1,6 @@
 *{
     font-family:monospace;
-    /*font-family:Arial, Helvetica, sans-serif;*/
-    font-size: max(1.5vw,10px);
+    font-size: max(1rem);
     color: rgba(240,240,240);
     margin:0px;
 }
@@ -14,6 +13,16 @@
     background-color:rgb(40,40,40);
     z-index: 0;
 }
+h1 {
+    font-size: 3rem;
+    margin: 1rem;
+}
+h1Centered h1 {
+    width: 100%;
+    text-align: center;
+}
+
+/*
 .header {
     font-family:'Times New Roman', Times, serif;
     position:sticky;
@@ -29,7 +38,7 @@
 .HeaderButton {
     cursor: pointer;
     display:flex;
-    font-size: max(2vw, 25px);
+    font-size: max(1rem, 25px);
     font-weight:bolder;
     padding:auto;
     margin-left:2vw;
@@ -47,20 +56,16 @@
 }
 
 .Title1{
-    padding:2vw;
-    font-size: max(10vw, 25px);
-    /*color:rgb(226, 226, 226);*/
+    padding:1rem;
+    font-size: max(10rem, 25px);
     background-color:rgba(255, 255, 255, 0);
     opacity:1;
     animation: fadeInAnimation ease 3s;
-    /*animation-iteration-count: 1;
-    animation-fill-mode: forwards;*/
 }
 
 .Title2{
-    padding:2vw;
-    font-size: max(5vw,20px);
-    /*color:rgb(226, 226, 226);*/
+    padding:1rem;
+    font-size: max(5rem,20px);
     background-color:rgba(255, 255, 255, 0);
     opacity:1;
     animation: fadeInAnimation ease 3s;
@@ -72,12 +77,10 @@
     padding-bottom:0.5vw;
     position:relative;
     display:flex;
-    /*color:rgb(226, 226, 226);*/
     background-color:rgba(255, 255, 255, 0);
     opacity:1;
     animation: fadeInAnimation ease 3s;
 }
-
 
 .image{
     margin:1vw;
@@ -104,7 +107,6 @@
     justify-content: center; 
     image-rendering: optimizeSpeed;   
 }
-
 
 .banner {
     background-color: rgb(20,20,20); 
@@ -135,12 +137,7 @@
 }
 
 
-/*
-body {
-    animation: fadeInAnimation ease 3s;
-    animation-iteration-count: 1;
-    animation-fill-mode: forwards;
-}*/
+
 @keyframes fadeInAnimation {
     0% {
         opacity: 0.1;
@@ -172,3 +169,4 @@ body {
     margin: 1vh;
     justify-content: center;
 }
+ */
