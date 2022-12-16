@@ -46,8 +46,6 @@
             border-radius: 30vw;
         }
 
-
-
         .computerScreen {
             margin-top: 10vh;
             display: flex;
@@ -134,19 +132,6 @@
         </div>
     </div>
 
-    <!-- <div id="mainSection">
-        <div class="row">
-            <div id="welcomeText">
-                Welcome!
-            </div>
-        </div>
-        <div class="row">
-            <img id="welcomeImg" src="images/me3.jpeg">
-        </div>
-    </div> -->
-
-
-    <!-- Welcome Section -->
 
     <div style='height:10vh; width: 90vw;'>
         
@@ -166,19 +151,8 @@
         #AboutMeContainer:hover{
             opacity: 1;
         }
-        #AboutMeTable{
-            width: 100%;
-            padding: 0.5vw;
-            border-spacing: 2vmin;
-            height: auto;
-            table-layout: fixed;
-        }
-        .AMTRow{
-            padding:2vw; 
-            height: 50vh;
-            overflow: auto;
-        }
-        .AMTCell{
+
+        .AMCell{
             text-align: left;
             vertical-align: top;
             font-weight: lighter;
@@ -187,6 +161,7 @@
             padding:1vw;
             margin: auto;      
             margin-top: 0px;
+            margin-bottom: 1vh;
             padding-top: 0px;  
             cursor:default;
 
@@ -197,12 +172,12 @@
             opacity: 0.8;
             transition: opacity 0.3s, color 0.1s, border-color 0.4s;
         }
-        .AMTCell:hover{
+        .AMCell:hover{
             transition: opacity 0.3s, color 0.3s 0.2s;
             opacity: 1;
             border-color: rgba(255,255,255,0.3);
         }
-        .AMTCellTitle {
+        .AMCellTitle {
             font-size: 1.8em;
             font-weight: lighter;
 
@@ -219,38 +194,38 @@
             /* display: flex;
             justify-content: center; */
         }
-        .AMTCell:hover .AMTCellTitle {
+        .AMCell:hover .AMCellTitle {
             border-bottom-color: white;
         }
 
-        .AMTCellTitleImg1 {
+        .AMCellTitleImg1 {
             vertical-align:middle;
             height: 5vmax;
             transition: filter 0.5s;
         }
-        .AMTCellTitleImg2 {
+        .AMCellTitleImg2 {
             vertical-align:middle;
             height: 5vmax;
             transition: filter 0.5s;
         }
-        .AMTCellTitleImg3 {
+        .AMCellTitleImg3 {
             vertical-align:middle;
             height: 5vmax;
             transition: filter 0.5s;
         }
-        .AMTCell:hover .AMTCellTitleImg1 {
+        .AMCell:hover .AMCellTitleImg1 {
             font-size: 2em;
             font-weight: bolder;
             border-bottom-color: white;
             filter: opacity(0.5) drop-shadow(0 0 0 red);
         } 
-        .AMTCell:hover .AMTCellTitleImg2 {
+        .AMCell:hover .AMCellTitleImg2 {
             font-size: 2em;
             font-weight: bolder;
             border-bottom-color: white;
             filter: opacity(0.5) drop-shadow(0 0 0 green);
         } 
-        .AMTCell:hover .AMTCellTitleImg3 {
+        .AMCell:hover .AMCellTitleImg3 {
             font-size: 2em;
             font-weight: bolder;
             border-bottom-color: white;
@@ -278,9 +253,9 @@
             Project Span
         </div>
         <div class="AMspan">
-            <div class="AMTCell">
-                <div class=AMTCellTitle>
-                    <img class="AMTCellTitleImg1" src="images/computerIcon_transparent.png"alt="">
+            <div class="AMCell">
+                <div class=AMCellTitle>
+                    <img class="AMCellTitleImg1" src="images/computerIcon_transparent.png"alt="">
                     <br>
                     Computer Science
                 </div>
@@ -289,9 +264,9 @@
                 - Programmed WebGl (js) and OpenGl (java) based games and simulations with custom shaders<br><br>
                 - Wrote multithreaded programs for machine learning (python), audio (c++), and image analysis (js)
             </div>
-            <div class="AMTCell">
-                <div class=AMTCellTitle>
-                    <img class="AMTCellTitleImg2" src="images/embeddedSystemsIcon_transparent.png"alt="">
+            <div class="AMCell">
+                <div class=AMCellTitle>
+                    <img class="AMCellTitleImg2" src="images/embeddedSystemsIcon_transparent.png"alt="">
                     <br>
                     Embedded Systems
                 </div>
@@ -300,9 +275,9 @@
                 - Programmed microprocessors & built input/output circuitry for digital audio processing <br><br>
                 - Built electric drumset controller with real-time audio synthesizing and rgb light controller <br><br>
             </div>
-            <div class="AMTCell">
-                <div class=AMTCellTitle>
-                    <img class="AMTCellTitleImg3" src="images/analogElectronicsIcon_transparent.png" alt="">
+            <div class="AMCell">
+                <div class=AMCellTitle>
+                    <img class="AMCellTitleImg3" src="images/analogElectronicsIcon_transparent.png" alt="">
                     <br>
                     Analog Electronics
                 </div>
@@ -312,88 +287,9 @@
                 - Created custom guitar effects pedals (filtering & distortion) <br><br>
             </div>
         </div>
-        <!-- <table id="AboutMeTable">
-            <tr class="AMTrow">
-                <th class="AMTCell">
-                    <div class=AMTCellTitle>
-                        <img class="AMTCellTitleImg1" src="images/computerIcon_transparent.png"alt="">
-                        <br>
-                        Computer Science
-                    </div>
-                    Javascript - Python - C - C++ - C# - Java - HTML - CSS<br><br>
-                    - Developed C# & Python GUI applications for factory automation<br><br>
-                    - Programmed WebGl (js) and OpenGl (java) based games and simulations with custom shaders<br><br>
-                    - Wrote multithreaded programs for machine learning (python), audio (c++), and image analysis (js)
-                </th>
-                <th class="AMTCell">
-                    <div class=AMTCellTitle>
-                        <img class="AMTCellTitleImg2" src="images/embeddedSystemsIcon_transparent.png"alt="">
-                        <br>
-                        Embedded Systems
-                    </div>
-                    - Designed and built CNC router with custom controller circuit <br><br>
-                    - Programmed PID feedback, linear path following, and forward & inverse kinematics for 5 DOF robotic arm <br><br>
-                    - Programmed microprocessors & built input/output circuitry for digital audio processing <br><br>
-                    - Built electric drumset controller with real-time audio synthesizing and rgb light controller <br><br>
-                </th>
-                <th class="AMTCell">
-                    <div class=AMTCellTitle>
-                        <img class="AMTCellTitleImg3" src="images/analogElectronicsIcon_transparent.png" alt="">
-                        <br>
-                        Analog Electronics
-                    </div>
-                    - Designed and prototyped custom FM & AM transceivers for RC cars and audio transmission <br><br>
-                    - Built high power class D power amplifier for driving PA speakers <br><br>
-                    - Designed MOSFET grate driver circuitry for amplifiers, induction heaters, tesla coils, etc. <br><br>
-                    - Created custom guitar effects pedals (filtering & distortion) <br><br>
-                </th>
-            </tr>
-        </table> -->
     </div>
-    <!-- <div id="AboutMeContainer">
-        <div style="width: 100%; height: fit-content; font-size: 6em; text-align: center; padding-top: 5vh;">
-            Project Span
-        </div>
-        <table id="AboutMeTable">
-            <tr class="AMTrow">
-                <th class="AMTCell">
-                    <div class=AMTCellTitle>
-                        <img class="AMTCellTitleImg1" src="images/computerIcon_transparent.png"alt="">
-                        <br>
-                        Computer Science
-                    </div>
-                    Javascript - Python - C - C++ - C# - Java - HTML - CSS<br><br>
-                    - Developed C# & Python GUI applications for factory automation<br><br>
-                    - Programmed WebGl (js) and OpenGl (java) based games and simulations with custom shaders<br><br>
-                    - Wrote multithreaded programs for machine learning (python), audio (c++), and image analysis (js)
-                </th>
-                <th class="AMTCell">
-                    <div class=AMTCellTitle>
-                        <img class="AMTCellTitleImg2" src="images/embeddedSystemsIcon_transparent.png"alt="">
-                        <br>
-                        Embedded Systems
-                    </div>
-                    - Designed and built CNC router with custom controller circuit <br><br>
-                    - Programmed PID feedback, linear path following, and forward & inverse kinematics for 5 DOF robotic arm <br><br>
-                    - Programmed microprocessors & built input/output circuitry for digital audio processing <br><br>
-                    - Built electric drumset controller with real-time audio synthesizing and rgb light controller <br><br>
-                </th>
-                <th class="AMTCell">
-                    <div class=AMTCellTitle>
-                        <img class="AMTCellTitleImg3" src="images/analogElectronicsIcon_transparent.png" alt="">
-                        <br>
-                        Analog Electronics
-                    </div>
-                    - Designed and prototyped custom FM & AM transceivers for RC cars and audio transmission <br><br>
-                    - Built high power class D power amplifier for driving PA speakers <br><br>
-                    - Designed MOSFET grate driver circuitry for amplifiers, induction heaters, tesla coils, etc. <br><br>
-                    - Created custom guitar effects pedals (filtering & distortion) <br><br>
-                </th>
-            </tr>
-        </table>
-    </div> -->
 
-    <!--Projects Table Style-->
+
     <style>
         #ProjectContainer{
             margin: 10%; 
@@ -467,9 +363,123 @@
             border-bottom-color: white;
         }
 
+        .PParent{
+            flex: 1 1 0px;
+            display:flex; 
+            width:100%; 
+            height:fit-content;
+            align-items: center;
+            align-content: center;
+            flex-wrap: wrap;
+        }
+        .PCell{
+            padding: 1vmax;
+            margin-bottom: 5vmax;
+            margin-top: 5vmax;
+            display: block;
+            width: 35vmax;
+            align-self: center;
+            margin: auto;
+            color: rgb(255,255,255, 0);
+            transition: opacity 0.3s, color 0.1s, border-color 0.4s;
+            min-height: 30vh;
+        }
+        .PCell:hover{
+            transition: opacity 0.3s, color 0.3s 0.2s;
+            opacity: 1;
+            color: rgb(255,255,255);
+            border-color: rgba(255,255,255,0.3);
+        }
+
     </style>
-    <!--Projects Table-->
+
     <div id="ProjectContainer">
+        <div style="width: 100%; height: fit-content; font-size: 6em; text-align: center; padding-top: 5vh;">
+            Web Projects
+        </div>
+
+        <div class="PParent">
+            <div class=PCell 
+            style="background-image: url(images/chargedParticleSimulatorIMG.png);" 
+            onclick='buttonClick("charged_particle_simulator")'>
+                <div class = "PTCellBackground"></div>
+                <div class=PTCellTitle>
+                    Charged Particle<br>Simulator
+                </div>
+                While taking Physics II, I realized all of the simulators my school used were created and hosted by other colleges. 
+                I felt and still feel that RPI, being a technical institution, should have it's own suite of simulators available to students and the general public. 
+                This was the motivation behind working on this project, with the long-run goal being gifting the simulator to the RPI physics department.
+                Please go to the "Charge Simulator" page to check it out!
+            </div>
+            <div class=PCell 
+            style="background-image: url(images/circuitSimulatorIMG.png)"
+            onclick='buttonClick("circuit_simulator")'>
+                <div class=PTCellTitle>
+                    Circuit Simulator
+                </div>
+                In RPI's Circuits class, students are tasked with solving basic circuits over and over again. Quickly, I became frustrated with the number of circuits 
+                we had to solve and how similar each circuit was. To aid in checking my homework and practice problems, I decided to create my own basic circuit simulator. 
+                I worked on this project in my free time for a few weeks, and am satisfied with the functionality of the project at this point. In the future I plan to 
+                add more electrical components and improve the speed of the program.
+                Please go to the "Circuit Simulator" page to check it out!
+            </div>
+            <div class=PCell 
+            style="background-image: url(images/webglRaytracingPNG.png)"
+            onclick='buttonClick("webgl_raytracing")'>
+                <div class=PTCellTitle>
+                    WebGL Raytracing
+                </div>
+                After completing the cpu-based raytracing project (above), I realized I would like to be able to raytrace in real time. This has recently become possible
+                thanks to new raytracing GPUs which have hardware designed to increase the speed of raytracing. Unfortunately, I do not have one of these GPUs, nor does webGL support
+                this new architecture. Instead, I used standard webGL and wrote a program to write the shader with the scene data hardcoded into it. Now I can render almost any scene with
+                reflective spheres and planes in real time! 
+            </div>
+            <div class=PCell 
+            style="background-image: url(images/snakeGameMachineIMG.png);"
+            onclick='buttonClick("snake_game_neural_network")'>
+                <div class=PTCellTitle>
+                    Snake Game <br> Neural Network
+                </div>
+                One day I woke up and decided to make a basic snake game. The next day, I wanted to learn about machine learning and AI. Thus, I created a simple 
+                neural network to play the snake game for me! This is my first attempt at making a neural network from scratch, and I hope to add many ML projects in the future!
+            </div>
+            <div class=PCell 
+            style="background-image: url(images/webExperimentsPNG.png)"
+            onclick='buttonClick("web_experiments")'>
+                <div class=PTCellTitle>
+                    Web Experiments
+                </div>
+                As I have been building this website I commonly come across little project and web dev ideas I would like to work on.
+                Sometimes they are large enough projects to deserve an entire page and description, but more often then not they are 
+                little gizmos and only take an hour or so to code. This page is where all of the little projects end up, and is a 
+                scratch pad for me to experiment with!
+            </div>
+            <div class=PCell 
+            style="background-image: url(images/planetGeneratorIMG.png);"
+            onclick='buttonClick("planet_generator")'>
+                <div class=PTCellTitle>
+                    Planet Generator
+                </div>
+                I have always been interested in procedurally generated terrain and objects. 
+                The idea that I can generate different 3d objects by simply modifying a few input parameters prompted me to build this model.
+                In this project I learned about generating different 3d models, and randomly augmenting those models to produce familiar-looking 
+                objects. In the end algorithms to generate earth-like planets, astroids, satellites, and space stations were implemented.
+                Please go to the "Planet Generator" page to check it out!
+            </div>
+            <div class=PCell 
+            style="background-image: url(images/easyGl.png);"
+            onclick='buttonClick("easygl")'>
+                <div class=PTCellTitle>
+                    EasyGL<br>Library Demo
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!--Projects Table Style-->
+    <!--Projects Table-->
+    <!-- <div id="ProjectContainer">
         <div style="width: 100%; height: fit-content; font-size: 6em; text-align: center; padding-top: 5vh;">
             Web Projects
         </div>
@@ -558,7 +568,8 @@
                 </th>
             </tr>
         </table>
-    </div>
+    </div> -->
+
 
     
     <div style='height:30vh; width: 90vw;'>
