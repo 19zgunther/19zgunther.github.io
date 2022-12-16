@@ -24,6 +24,29 @@
             width: 100%;
             height:fit-content;
         }
+        #PwelcomeText {
+            display: block;
+            margin:auto;
+            padding:auto;
+            color:rgba(255,255,255,0.1);
+            -moz-background-clip: text;
+            -webkit-background-clip: text;
+            background-clip: text;
+            background-size: cover;
+            background-image: url(images/Lake2IMG.jpg);
+            font-size: 10vw;
+            max-width: 90%;
+            text-align: center;
+            text-overflow:hidden;
+        }
+        #PwelcomeImg {
+            margin: auto;
+            width: 40vw;
+            padding: 5vmax;
+            border-radius: 30vw;
+        }
+
+
 
         .computerScreen {
             margin-top: 10vh;
@@ -37,8 +60,17 @@
             margin-top: 10vh;
             width: 100%;
         }
+        .flexbox {
+            display:flex; 
+            width:100%; 
+            height:fit-content;
+            align-items: center;
+            align-content: center;
+        }
         #CwelcomeText {
+            display: block;
             margin:auto;
+            padding: auto;
             color:rgba(255,255,255,0.1);
             -moz-background-clip: text;
             -webkit-background-clip: text;
@@ -46,7 +78,7 @@
             background-size: cover;
             background-image: url(images/Lake2IMG.jpg);
             font-size: min(11vw, 10rem);
-            margin-right: 0px;
+            /* margin-right: 0px; */
         }
         #CwelcomeImg {
             margin-left: 0px;
@@ -72,20 +104,19 @@
     </style>
 
     <div class="phoneScreen">
-        <table style="width:100%; margin-top: 50vh;">
-            <tr>
-                <th>
-                    <div id="PwelcomeText">
-                        Welcome!
-                    </div>
-                </th>
-            </tr>
-            <tr>
-                <th>
-                    <img id="PwelcomeImg" src="images/me3.jpeg">
-                </th>
-            </tr>
-        </table>
+        <div class="flexbox">
+            <div id="PwelcomeText">
+                Welcome!
+            </div>
+        </div>
+        <div class="flexbox">
+            <img id="PwelcomeImg" src="images/me3.jpeg">
+        </div>
+        <div class="flexbox">
+            <div id="spawningTextDiv"class="spawningTextDiv" style="width:80%; margin: auto;">
+                <!--Text will be spawned here-->
+            </div>
+        </div>
     </div>
     <div class="computerScreen">
         <div class="Ccolumn">
@@ -96,7 +127,7 @@
                 <img id="CwelcomeImg" src="images/me3.jpeg">
             </div>
             <div style="display:flex;width:100%; height:fit-content; align-content: center; align-items: center;">
-                <div id="spawningTextDiv" style="width:50rem; margin: auto;">
+                <div id="spawningTextDiv" class="spawningTextDiv" style="width:50rem; margin: auto;">
                     <!--Text will be spawned here-->
                 </div>
             </div>
@@ -116,33 +147,6 @@
 
 
     <!-- Welcome Section -->
-    <!-- <div id = 'welcome_section' class='dualSection'>
-        <div class='dualSectionA'>
-            <div id= 'welcome_titleA' class='titleA'>
-                Welcome!
-            </div>
-
-            <div class='subtitleA subtitle_delay1'>
-                Hi, I'm Zack Gunther
-            </div>
-            
-            <div class='subtitleA subtitle_delay2'>
-                <br>
-                I am a Computer Science and Electrical Engineering Dual Major, studying at RPI.
-            </div>
-            <div class='subtitleA subtitle_delay3'>
-                <br>
-                Welcome to my website, where I showcase some of the projects I have worked on!
-            </div>
-        </div>
-
-        <div class='dualSectionB'>
-            <div style='display: block; position: relative; width: 75%; height: auto; aspect-ratio: 1/1; justify-self: right; margin:auto;'>
-                <img class='image_me' src='images/me3.jpeg'> </img>
-                <canvas id='canvas_me' class='canvas_me'> </canvas>
-            </div>
-        </div>
-    </div> -->
 
     <div style='height:10vh; width: 90vw;'>
         
@@ -180,7 +184,10 @@
             font-weight: lighter;
             font-size: 0.75rem;
 
-            padding:1vw;             
+            padding:1vw;
+            margin: auto;      
+            margin-top: 0px;
+            padding-top: 0px;  
             cursor:default;
 
             border-radius: 1vw;
@@ -248,10 +255,102 @@
             font-weight: bolder;
             border-bottom-color: white;
             filter: opacity(0.5) drop-shadow(0 0 0 blue);
-        } 
+        }
+        
+        .AMspan {
+            display:flex; 
+            width:100%; 
+            height:fit-content;
+            align-items: center;
+            align-content: center;
+        }
+
+        @media (max-aspect-ratio: 3/3) {
+            .AMspan{display: block;}
+        }
+        @media (min-aspect-ratio: 3/3) {
+            .AMspan{display: flex;}
+        }
 
     </style>
     <div id="AboutMeContainer">
+        <div style="width: 100%; height: fit-content; font-size: 6em; text-align: center; padding-top: 5vh;">
+            Project Span
+        </div>
+        <div class="AMspan">
+            <div class="AMTCell">
+                <div class=AMTCellTitle>
+                    <img class="AMTCellTitleImg1" src="images/computerIcon_transparent.png"alt="">
+                    <br>
+                    Computer Science
+                </div>
+                Javascript - Python - C - C++ - C# - Java - HTML - CSS<br><br>
+                - Developed C# & Python GUI applications for factory automation<br><br>
+                - Programmed WebGl (js) and OpenGl (java) based games and simulations with custom shaders<br><br>
+                - Wrote multithreaded programs for machine learning (python), audio (c++), and image analysis (js)
+            </div>
+            <div class="AMTCell">
+                <div class=AMTCellTitle>
+                    <img class="AMTCellTitleImg2" src="images/embeddedSystemsIcon_transparent.png"alt="">
+                    <br>
+                    Embedded Systems
+                </div>
+                - Designed and built CNC router with custom controller circuit <br><br>
+                - Programmed PID feedback, linear path following, and forward & inverse kinematics for 5 DOF robotic arm <br><br>
+                - Programmed microprocessors & built input/output circuitry for digital audio processing <br><br>
+                - Built electric drumset controller with real-time audio synthesizing and rgb light controller <br><br>
+            </div>
+            <div class="AMTCell">
+                <div class=AMTCellTitle>
+                    <img class="AMTCellTitleImg3" src="images/analogElectronicsIcon_transparent.png" alt="">
+                    <br>
+                    Analog Electronics
+                </div>
+                - Designed and prototyped custom FM & AM transceivers for RC cars and audio transmission <br><br>
+                - Built high power class D power amplifier for driving PA speakers <br><br>
+                - Designed MOSFET grate driver circuitry for amplifiers, induction heaters, tesla coils, etc. <br><br>
+                - Created custom guitar effects pedals (filtering & distortion) <br><br>
+            </div>
+        </div>
+        <!-- <table id="AboutMeTable">
+            <tr class="AMTrow">
+                <th class="AMTCell">
+                    <div class=AMTCellTitle>
+                        <img class="AMTCellTitleImg1" src="images/computerIcon_transparent.png"alt="">
+                        <br>
+                        Computer Science
+                    </div>
+                    Javascript - Python - C - C++ - C# - Java - HTML - CSS<br><br>
+                    - Developed C# & Python GUI applications for factory automation<br><br>
+                    - Programmed WebGl (js) and OpenGl (java) based games and simulations with custom shaders<br><br>
+                    - Wrote multithreaded programs for machine learning (python), audio (c++), and image analysis (js)
+                </th>
+                <th class="AMTCell">
+                    <div class=AMTCellTitle>
+                        <img class="AMTCellTitleImg2" src="images/embeddedSystemsIcon_transparent.png"alt="">
+                        <br>
+                        Embedded Systems
+                    </div>
+                    - Designed and built CNC router with custom controller circuit <br><br>
+                    - Programmed PID feedback, linear path following, and forward & inverse kinematics for 5 DOF robotic arm <br><br>
+                    - Programmed microprocessors & built input/output circuitry for digital audio processing <br><br>
+                    - Built electric drumset controller with real-time audio synthesizing and rgb light controller <br><br>
+                </th>
+                <th class="AMTCell">
+                    <div class=AMTCellTitle>
+                        <img class="AMTCellTitleImg3" src="images/analogElectronicsIcon_transparent.png" alt="">
+                        <br>
+                        Analog Electronics
+                    </div>
+                    - Designed and prototyped custom FM & AM transceivers for RC cars and audio transmission <br><br>
+                    - Built high power class D power amplifier for driving PA speakers <br><br>
+                    - Designed MOSFET grate driver circuitry for amplifiers, induction heaters, tesla coils, etc. <br><br>
+                    - Created custom guitar effects pedals (filtering & distortion) <br><br>
+                </th>
+            </tr>
+        </table> -->
+    </div>
+    <!-- <div id="AboutMeContainer">
         <div style="width: 100%; height: fit-content; font-size: 6em; text-align: center; padding-top: 5vh;">
             Project Span
         </div>
@@ -292,7 +391,7 @@
                 </th>
             </tr>
         </table>
-    </div>
+    </div> -->
 
     <!--Projects Table Style-->
     <style>

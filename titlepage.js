@@ -1,6 +1,6 @@
 
 
-var spawningTextDiv = document.getElementById("spawningTextDiv");
+var spawningTextDiv = null;
 // const text = ["","Hi, I'm Zack Gunther", 
 //         "I'm a Computer Science and Electrical Engineering dual major at RPI",
 //         "Welcome to my website where I showcase some of the projects I've worked on!","\n\nplease press enter"];
@@ -23,9 +23,22 @@ window.addEventListener("keydown", bash);
 
 function bash(e = null)
 {
-    if (spawningTextDiv == null)
+
+    if (spawningTextDiv == null || spawningTextDiv.offsetParent == null)
     {
-        spawningTextDiv = document.getElementById("spawningTextDiv");
+        let spawningTextDivs = document.getElementsByClassName("spawningTextDiv");
+        console.log(spawningTextDivs.length);
+        for (let i in spawningTextDivs)
+        {
+            console.log(spawningTextDivs[i].offsetParent);
+            if (spawningTextDivs[i].offsetParent != null)
+            {
+                spawningTextDiv = spawningTextDivs[i];
+                break;
+            }
+        }
+        spawningTextDiv.innerText = "";
+        text = origText;
     }
     
     const D = spawningTextDiv
