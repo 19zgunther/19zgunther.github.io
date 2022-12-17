@@ -409,11 +409,11 @@ body.loaded .image_downarrow{
 
 
 #glcanvas {
-    opacity: 0.2;
-    transition: opacity 3s 6s;
+    opacity: 0.01;
+    transition: opacity 10s 1s;
 }
 body.loaded #glcanvas {
-    opacity: 1;
+    opacity: 0.5;
 }
 
 
