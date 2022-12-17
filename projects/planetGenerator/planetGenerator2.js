@@ -352,7 +352,7 @@ glCanvasElement.style.height = glCanvasElement.height + 'px';
 var gl = new EasyGL(glCanvasElement);
 
 
-function setup2()
+function setup()
 {
     objects.push( new Planet(gl) );
     objects.push( new SpaceStation(gl) );
@@ -365,12 +365,11 @@ function setup2()
         objects.push(new ManMadeSatellite(gl, 7 + random()*5, 8-random()*16, random()+0.25, 0.75 + random()/5, random(), random()*2+2 ) );
     }
 }
-async function setup()
-{
-    const result = await setup2();
-
-}
-setup();
+// async function setup()
+// {
+//     const result = await setup2();
+// }
+// setup();
 
 gl.setCameraPosition(new vec4(0,0,10));
 updateCameraSettings();
@@ -448,9 +447,13 @@ function resetObjects() {
 var rot = 0;
 
 
-let dt = 1;
+let dt = 0;
 let startTime = Date.now();
 function update() {
+    if (dt != 0 && objects.length == 0)
+    {
+        setup();
+    }
 
     dt = (Date.now() - startTime)/100;
     startTime = Date.now();
