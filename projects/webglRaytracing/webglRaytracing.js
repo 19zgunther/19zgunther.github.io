@@ -295,7 +295,8 @@ function update() {
     gl.uniform1fv(programInfo.uniformLocations.sphereReflectance, new Float32Array(sphereReflectance));
     gl.uniform1fv(programInfo.uniformLocations.sphereDeformationMultiplier, new Float32Array(sphereDeformationMultiplier));
     gl.uniform1fv(programInfo.uniformLocations.sphereDeformationFrequency, new Float32Array(sphereDeformationFrequency));
-    gl.uniform2fv(programInfo.uniformLocations.aspectRatio, new Float32Array([Number(sphereDeformationFrequency),0]));
+    let bb = glCanvasElement.getBoundingClientRect();
+    gl.uniform2fv(programInfo.uniformLocations.aspectRatio, new Float32Array([Number(3*bb.width/bb.height),0]));
     
     const vertexCount = indices.length;
     gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
