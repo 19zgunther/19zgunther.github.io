@@ -47,7 +47,7 @@ class EasyGL {
 
         //Environment Settings
         this.clearColor = clearColor;
-        this.ambientLightLevel = 0.25;        //Minimum light level ranging from 0.01 to 0.99
+        this.ambientLightLevel = 0.7;        //Minimum light level ranging from 0.01 to 0.99
         this.directionalLighting = true;      //Enable/disable directional lighting & use of normals;
         this.directionalLightingDirection = new vec4(0.74, 0.6, 0.4);
 
@@ -65,9 +65,16 @@ class EasyGL {
         this.sortedSolidObjs = [];
         this.sortedTransObjs = []; 
 
+
+        //Texture info
+        this.textures = new Map();
+        this.textureIDs = [];
+
         //Initialize Shader - following are set in _initShader()
         this.programInfo = null;
         this.shaderProgram = null;
+        this.textureProgramInfo = null;
+        this.textureShaderProgram = null;
         this.pickerProgramInfo = null;
         this.pickerShaderProgram = null;
         
@@ -77,6 +84,7 @@ class EasyGL {
         this.pickerDepthBuffer = null; //^ depth buffer also needs to be stored
 
         this._initShader();
+        this._initTextureShader();
         this._initPickerShader();
         this.clear();
     }
@@ -98,6 +106,7 @@ class EasyGL {
     }
     _initShader()//initialize the default shader
     {
+        
         let vsSource = `
         attribute vec4 aVertexPosition;
         attribute vec4 aNormalVector;
@@ -107,9 +116,12 @@ class EasyGL {
         uniform mat4 uObjectMatrix;
         uniform mat4 uObjectRotationMatrix;
         uniform vec4 uLightDirectionVector;
+        uniform float uAmbientLightLevel;
+
         varying highp vec4 color;
         varying highp vec4 pos;
         varying highp vec3 surfaceNormal;
+
         void main() {
             vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
             pos = uObjectMatrix * vPos;
@@ -117,33 +129,11 @@ class EasyGL {
             
             surfaceNormal = (uObjectRotationMatrix * aNormalVector).xyz;
             float d = dot(surfaceNormal, uLightDirectionVector.xyz);
-            float scalar = d*0.3 + 0.7;
-            if (d > 0.0)
-            {
-                //float d2 = d*d*d*d;
-                color = aColor * scalar;// + d2*d2*vec4(0.5,0.5,0.5,1.0);
-                color.w = aColor.w;
-            } else {
-                color = aColor * scalar;
-                color.w = aColor.w;
-            }
-        }`;
-        /*if(this.directionalLighting==true) {
-            const difference = 1 - this.ambientLightLevel; //max brightness vs min brightness for directional ambient light
-            const maxDotValue = difference/2;
-            const scale = maxDotValue.toPrecision(4);
-            const offset = (1-maxDotValue).toPrecision(4);
-            const x = this.directionalLightingDirection.x.toPrecision(4); //directional lighting direction
-            const y = this.directionalLightingDirection.y.toPrecision(4);
-            const z = this.directionalLightingDirection.z.toPrecision(4);
-            
-            vsSource +=`float scalar = dot((uObjectRotationMatrix * aNormalVector).xyz, vec3(`+x+`, `+y+`, `+z+`))*`+scale+` + `+offset+`;
+
+            float scalar = d*(1.0-uAmbientLightLevel) + uAmbientLightLevel;
             color = aColor * scalar;
-            color.w = aColor.w;}`;
-        } else {
-            vsSource +=` color = aNormalVector;
-            color = aColor;}`;
-        }*/
+            color.w = aColor.w;
+        }`;
     
         const fsSource = `
         precision mediump float;
@@ -153,7 +143,7 @@ class EasyGL {
         uniform highp vec4 uLightDirectionVector;
         uniform vec4 uCameraPositionVector;
         uniform float uObjectReflectivity;
-        
+
         void main() {
             vec3 ray = reflect( normalize(pos.xyz - uCameraPositionVector.xyz), surfaceNormal);
             float d = dot(uLightDirectionVector.xyz, ray);
@@ -193,6 +183,7 @@ class EasyGL {
                 objectMatrix: this.gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
                 objectRotationMatrix: this.gl.getUniformLocation(shaderProgram, 'uObjectRotationMatrix'),
                 lightDirectionVector: this.gl.getUniformLocation(shaderProgram, 'uLightDirectionVector'),
+                ambientLightLevelFloat: this.gl.getUniformLocation(shaderProgram, 'uAmbientLightLevel'),
                 cameraPositionVector: this.gl.getUniformLocation(shaderProgram, 'uCameraPositionVector'),
                 objectReflectivity: this.gl.getUniformLocation(shaderProgram, 'uObjectReflectivity'),
             },
@@ -200,6 +191,106 @@ class EasyGL {
 
         this.shaderProgram = shaderProgram;
         this.programInfo = programInfo;
+    }
+    _initTextureShader()//initialize the default shader
+    {
+        
+        const vsSource = `
+        attribute vec4 aVertexPosition;
+        attribute vec4 aNormalVector;
+        attribute vec4 aColor;
+        uniform mat4 uProjectionMatrix;
+        uniform mat4 uViewMatrix;
+        uniform mat4 uObjectMatrix;
+        uniform mat4 uObjectRotationMatrix;
+        uniform vec4 uLightDirectionVector;
+        uniform float uAmbientLightLevel;
+
+        varying highp float colorScalar;
+        varying highp vec4 pos;
+        varying highp vec3 surfaceNormal;
+
+        attribute vec2 aTextureCoord;
+        varying highp vec2 textureCoord;
+
+        void main() {
+            vec4 vPos = vec4(aVertexPosition.x, aVertexPosition.y, aVertexPosition.z, 1.0);
+            pos = uObjectMatrix * vPos;
+            gl_Position = uProjectionMatrix * uViewMatrix * pos;
+            
+            surfaceNormal = (uObjectRotationMatrix * aNormalVector).xyz;
+            float d = dot(surfaceNormal, uLightDirectionVector.xyz);
+
+            colorScalar = d*(1.0-uAmbientLightLevel) + uAmbientLightLevel;
+            //color = aColor * scalar;
+            //color.w = aColor.w;
+
+            textureCoord = aTextureCoord;
+        }`;
+    
+        const fsSource = `
+        precision mediump float;
+        varying float colorScalar;
+        varying vec4 pos;
+        varying vec3 surfaceNormal;
+        uniform highp vec4 uLightDirectionVector;
+        uniform vec4 uCameraPositionVector;
+        uniform float uObjectReflectivity;
+
+        varying highp vec2 textureCoord;
+        uniform sampler2D uTextureSampler;
+
+        void main() {
+            vec3 ray = reflect( normalize(pos.xyz - uCameraPositionVector.xyz), surfaceNormal);
+            float d = dot(uLightDirectionVector.xyz, ray);
+            
+            vec4 color = texture2D(uTextureSampler, textureCoord)*0.5 + vec4(0.3,0.3,0.3, 0.5) * colorScalar;
+            
+            if (d < 0.0) { 
+                gl_FragColor = color;
+            } else { 
+                d = (d*d*d*d)*uObjectReflectivity; 
+                gl_FragColor = color + d*vec4(0.9,0.9,0.9,0.9);
+            }
+        }
+        `;
+        const vertexShader = this.__loadShader(this.gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = this.__loadShader(this.gl.FRAGMENT_SHADER, fsSource);
+
+        // Create the shader program
+        const shaderProgram = this.gl.createProgram();
+        this.gl.attachShader(shaderProgram, vertexShader);
+        this.gl.attachShader(shaderProgram, fragmentShader);
+        this.gl.linkProgram(shaderProgram);
+
+        // If creating the shader program failed, alert
+        if (!this.gl.getProgramParameter(shaderProgram, this.gl.LINK_STATUS)) {
+            console.error('Unable to initialize the shader program: ' + this.gl.getProgramInfoLog(shaderProgram));
+            return null;
+        }
+
+        const programInfo = {
+            program: shaderProgram,
+            attribLocations: {
+                vertexLocation: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                normalLocation: this.gl.getAttribLocation(shaderProgram, 'aNormalVector'),
+                textureCoordLocation: this.gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+            },
+            uniformLocations: {
+                projectionMatrix: this.gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                viewMatrix: this.gl.getUniformLocation(shaderProgram, 'uViewMatrix'),
+                objectMatrix: this.gl.getUniformLocation(shaderProgram, 'uObjectMatrix'),
+                objectRotationMatrix: this.gl.getUniformLocation(shaderProgram, 'uObjectRotationMatrix'),
+                lightDirectionVector: this.gl.getUniformLocation(shaderProgram, 'uLightDirectionVector'),
+                ambientLightLevelFloat: this.gl.getUniformLocation(shaderProgram, 'uAmbientLightLevel'),
+                cameraPositionVector: this.gl.getUniformLocation(shaderProgram, 'uCameraPositionVector'),
+                objectReflectivity: this.gl.getUniformLocation(shaderProgram, 'uObjectReflectivity'),
+                textureSampler: this.gl.getUniformLocation(shaderProgram, 'uTextureSampler'),
+            },
+        };
+
+        this.textureShaderProgram = shaderProgram;
+        this.textureProgramInfo = programInfo;
     }
     _initPickerShader() //initialize shader for object picker
     {
@@ -318,6 +409,53 @@ class EasyGL {
         const objectData = this.objects.get(objectID);
         if (objectData == null) { return; console.error("Object: " + objectID + " Does Not Exist. Cannot Render."); return; }
 
+        if (objectData.textureID != undefined && objectData.textureID != null)
+        {
+            const textureData = this.textures.get(objectData.textureID);
+            if (textureData == null) { console.error("Cannot render textured object with invalid texture ID"); return; }
+            this.gl.useProgram(this.textureProgramInfo.program);
+
+            //BIND BUFFERS ///////////////////////////////////////////
+            //Bind Vertices Buffer
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, objectData.verticesBuffer);
+            this.gl.vertexAttribPointer(this.textureProgramInfo.attribLocations.vertexLocation, 3, this.gl.FLOAT, false, 0, 0);
+            this.gl.enableVertexAttribArray(this.textureProgramInfo.attribLocations.vertexLocation);
+    
+            //Bind Normals Buffer
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, objectData.normalsBuffer);
+            this.gl.vertexAttribPointer(this.textureProgramInfo.attribLocations.normalLocation, 3, this.gl.FLOAT, false, 0, 0);
+            this.gl.enableVertexAttribArray(this.textureProgramInfo.attribLocations.normalLocation);
+    
+            //Bind textureCoord Buffer
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, objectData.textureCoordBuffer);
+            this.gl.vertexAttribPointer(this.textureProgramInfo.attribLocations.textureCoordLocation, 2, this.gl.FLOAT, false, 0, 0);
+            this.gl.enableVertexAttribArray(this.textureProgramInfo.attribLocations.textureCoordLocation);
+    
+            //Bind Indices
+            this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, objectData.indicesBuffer);
+
+            //this.gl.activeTexture(gl.TEXTURE0);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, textureData.texture);
+
+            //BIND UNIFORMS////////////////////////////////////////
+            // Set the shader uniforms
+            this.gl.uniformMatrix4fv(this.textureProgramInfo.uniformLocations.projectionMatrix,  false, this.projectionMatrix.getFloat32Array());
+            this.gl.uniformMatrix4fv(this.textureProgramInfo.uniformLocations.viewMatrix, false, this.viewMatrix.getFloat32Array());
+            this.gl.uniformMatrix4fv(this.textureProgramInfo.uniformLocations.objectMatrix, false, objectData.objectMatrix.getFloat32Array());
+            this.gl.uniformMatrix4fv(this.textureProgramInfo.uniformLocations.objectRotationMatrix, false, objectData.objectRotationMatrix.getFloat32Array());
+            this.gl.uniform4fv(this.textureProgramInfo.uniformLocations.lightDirectionVector, this.directionalLightingDirection.getFloat32Array());
+            this.gl.uniform4fv(this.textureProgramInfo.uniformLocations.cameraPositionVector, this.cameraPosition.getFloat32Array());
+            this.gl.uniform1f(this.textureProgramInfo.uniformLocations.objectReflectivity, objectData.reflectivity);
+            this.gl.uniform1f(this.textureProgramInfo.uniformLocations.ambientLightLevelFloat, this.ambientLightLevel);
+            this.gl.uniform1i(this.textureProgramInfo.uniformLocations.textureSampler, 0);
+
+            //RENDER////////////////////////////////////////////////
+            this.gl.drawElements(this.gl.TRIANGLES, objectData.indices.length, this.gl.UNSIGNED_SHORT, 0);
+            //this.gl.drawArrays(this.gl.TRIANGLES, 0, objectData.indices.length, this.gl.UNSIGNED_SHORT, 0);
+
+            //this.gl.bindTexture(gl.TEXTURE_2D, null);
+            return;
+        }
         this.gl.useProgram(this.programInfo.program);
 
         //BIND BUFFERS ///////////////////////////////////////////
@@ -349,7 +487,8 @@ class EasyGL {
         this.gl.uniform4fv(this.programInfo.uniformLocations.lightDirectionVector, this.directionalLightingDirection.getFloat32Array());
         this.gl.uniform4fv(this.programInfo.uniformLocations.cameraPositionVector, this.cameraPosition.getFloat32Array());
         this.gl.uniform1f(this.programInfo.uniformLocations.objectReflectivity, objectData.reflectivity);
-
+        this.gl.uniform1f(this.programInfo.uniformLocations.ambientLightLevelFloat, this.ambientLightLevel);
+        
         //RENDER////////////////////////////////////////////////
         this.gl.drawElements(this.gl.TRIANGLES, objectData.indices.length, this.gl.UNSIGNED_SHORT, 0);
     }
@@ -413,7 +552,17 @@ class EasyGL {
                         continue;
                     }
 
-                    if (obj.isTransparent != true)
+                    let isTransparent = obj.isTransparent;
+                    if (obj.textureID != null)
+                    {
+                        const textureData = this.textures.get(obj.textureID);
+                        if (textureData.isTransparent)
+                        {
+                            isTransparent = true;
+                        }
+                    }
+
+                    if (isTransparent != true)
                     {
                         this.sortedSolidObjs.push(this.objectIDs[i])
                     } else {
@@ -686,6 +835,227 @@ class EasyGL {
 
         return objectID;
     }
+    createTexture(textureID = 0, data1DDataArray = defaultTexture)
+    {
+        const gl = this.gl;
+        //this.gl.activeTexture(gl.TEXTURE0);
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        const textureWidth = (Math.sqrt(data1DDataArray.length/4));
+        const pixels = new Uint8Array(data1DDataArray);
+
+        //check for transparency...
+        let isTransparent = false;
+        for (let i=3; i<data1DDataArray.length; i+=4)
+        {
+            if (data1DDataArray[i] < 250){
+                isTransparent = true;
+                break;
+            }
+        }
+
+        //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const width = textureWidth;
+        const height = textureWidth;
+        const border = 0;
+        const srcFormat = gl.RGBA;
+        const srcType = gl.UNSIGNED_BYTE;
+        gl.texImage2D(  gl.TEXTURE_2D, level, internalFormat, width,
+            height, border, srcFormat, srcType, pixels
+        );
+        
+        this.deleteTexture(textureID);
+        this.textures.set(textureID, {
+            texture: texture,
+            isTransparent: isTransparent,
+        });
+        this.textureIDs.push(textureID);
+    }
+    createTextureObject(objectID, position=new vec4(), rotation=new vec4(), scale=new vec4(1,1,1), vertices=cubeVertices, indices=cubeIndices, normals=cubeNormals, textureCoordinates=cubeTextureCoordinates, textureID = 0, shouldHideFromRenderAll = false, reflectivity=0.1) 
+    {
+        //Case statements to allow for passing null and undefined values
+        if (objectID == null || objectID == undefined)
+        {
+            objectID = Math.round(Math.random()*10000+1000)
+        }
+        if (!(position instanceof vec4))
+        {
+            position = new vec4();
+        }
+        if (!(rotation instanceof vec4))
+        {
+            rotation = new vec4();
+        }
+        if (!(scale instanceof vec4))
+        {
+            scale = new vec4(1,1,1);
+        }
+        if (vertices == null || vertices == undefined)
+        {
+            vertices = cubeVertices;
+        }
+        if (normals == null || normals == undefined)
+        {
+            normals = cubeNormals;
+        }
+        if (indices == null || indices == undefined)
+        {
+            indices = cubeIndices;
+        }
+        if (textureCoordinates == null || textureCoordinates == undefined)
+        {
+            textureCoordinates = cubeTextureCoordinates;
+        }
+        if (textureID == null || textureID == undefined)
+        {
+            textureID = 0;
+        }
+
+
+        //Handle indices & check for correct format
+        if (indices.length % 3 != 0) {console.error("Cannot make object with non-multiple of 3 length indices"); return;}
+
+        //Handle vertices & check for correct format & Data
+        if (vertices instanceof Array && vertices.length > 0)
+        {
+            if (vertices[0] instanceof vec4)
+            {
+                //array of vec4s
+                const vs = vertices;
+                vertices = [];
+                for (let i=0; i<vs.length; i++)
+                {
+                    vertices.push(vs[i].x, vs[i].y, vs[i].z);
+                }
+            } else {
+                //assuming vertices are correctly formatted.
+                if (vertices.length % 3 != 0) {console.error("Cannot make object with non-multiple of 3 length vertices"); return;}
+            }
+        } else {
+            console.error("Cannot make object with non-array of vertices");
+            return;
+        }
+
+        //Handle normals & check for correct format & Data
+        if (normals instanceof Array && normals.length > 0)
+        {
+            if (normals[0] instanceof vec4)
+            {
+                //array of vec4s
+                const vs = normals;
+                normals = [];
+                for (let i=0; i<vs.length; i++)
+                {
+                    normals.push(vs[i].x, vs[i].y, vs[i].z);
+                }
+            } else {
+                //assuming vertices are correctly formatted.
+                if (normals.length % 3 != 0) {console.error("Cannot make object with non-multiple of 3 length normals"); return;}
+            }
+        } else {
+            //normals = null;
+            //NO NORMALS
+            console.error("Cannot make object with non-array of normals", normals);
+            return;
+        }
+
+        //Handle Colors. Can either be:
+        // let isTransparent = false;
+        // if (colors instanceof vec4)
+        // {
+        //     //case 1: colors = vec4, so we need to expand to all vertices. 
+        //     if (colors.a < 0.98) { isTransparent = true; }
+        //     let c = colors;
+        //     colors = [];
+        //     for (let i=0; i<vertices.length; i++)
+        //     {
+        //         colors.push(c.x, c.y, c.z, c.a);
+        //     }
+        // } else if (colors[0] instanceof vec4)
+        // {
+        //     //case 2: colors = [ vec4, vec4, vec4...]
+        //     const cs = colors;
+        //     colors = [];
+        //     for (let i=0; i<cs.length; i++)
+        //     {
+        //         colors.push(cs[i].x, cs[i].y, cs[i].z, cs[i].a);
+        //         if (cs[i].a < 0.98) { isTransparent = true;}
+        //     }
+        // } else {
+        //     //Assume to be Array of Numbers
+        //     for (let i=0; i<colors.length; i+=4)
+        //     {
+        //         if (colors[i+3] < 0.98) { isTransparent = true; }
+        //     }
+        // }
+        let isTransparent = false;
+
+
+        //Now, initialize the buffers
+        const verticesBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, verticesBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+
+        const normalsBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, normalsBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(normals), this.gl.STATIC_DRAW);
+
+        // const colorsBuffer = this.gl.createBuffer();
+        // this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorsBuffer);
+        // this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+        const textureCoordBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), this.gl.STATIC_DRAW);
+
+        const indicesBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
+        this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), this.gl.STATIC_DRAW);
+
+        /*
+        scale.a = 1;
+        const tmat = new mat4().makeTranslation(position);
+        const rmat = new mat4().makeRotation(rotation);
+        const smat = new mat4().makeScale(scale);
+        const objectMatrix = tmat.mul(rmat.mul(smat));*/
+        const objectMatrix = new mat4().makeTranslationRotationScale(position, rotation, scale);
+        const objectRotationMatrix = new mat4().makeRotation(rotation);
+        //Save data to this.objects Map/Dictionary
+        const objectData = {
+            id: objectID,
+            textureID: textureID,
+            vertices: vertices,
+            indices: indices,
+            normals: normals,
+            textureCoord: textureCoordinates,
+            isTransparent: isTransparent,
+            hide: shouldHideFromRenderAll,
+            reflectivity,reflectivity,
+
+            position: position.copy(),
+            rotation: rotation.copy(),
+            scale: scale.copy(),
+            objectMatrix: objectMatrix,
+            objectRotationMatrix: objectRotationMatrix,
+
+            verticesBuffer: verticesBuffer,
+            indicesBuffer: indicesBuffer, 
+            textureCoordBuffer: textureCoordBuffer,
+            normalsBuffer: normalsBuffer,
+        };
+
+        this.deleteObject(objectID);
+        this.objects.set(objectID, objectData);
+        this.objectIDs.push(objectID);
+
+        return objectID;
+    }
     createStandardObject(objectID, position=new vec4(), rotation=new vec4(), scale=new vec4(1,1,1), type='cube', color=new vec4(1,0,0,1)) 
     {
         console.error("Depreciated. DO NOT USE.");
@@ -849,6 +1219,18 @@ class EasyGL {
             if (this.objectIDs[i] == objectID)
             {
                 this.objectIDs.splice(i,1);
+                //we don't break out of the loop in case of duplicates.
+            }
+        }
+    }
+    deleteTexture(textureID)
+    {
+        this.textures.set(textureID, null);
+        for (let i=0; i<this.textureIDs.length; i++)
+        {
+            if (this.textureIDs[i] == textureID)
+            {
+                this.textureIDs.splice(i,1);
                 //we don't break out of the loop in case of duplicates.
             }
         }
@@ -1210,7 +1592,7 @@ class EasyGL {
     //Set ambient light level - WARNING: CPU intensive. Do not do often.
     setAmbientLightLevel(value = 0.25) //sets minimum light level for directional lighting (in shadow, how dark it is)
     {
-        console.error("DEPRECIATED. DO NOT USE");
+        //console.error("DEPRECIATED. DO NOT USE"); <-- I use it now... 
         if (isNaN(value))
         {
             console.error("Cannot set ambient light level to NaN.");
@@ -1395,6 +1777,53 @@ const cubeColors = [
     0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
     0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1, 0.5,0.5,0.5,1,
 ];
+const cubeTextureCoordinates = [
+    0,0, 1,0, 1,1, 0,1,
+    0,0, 1,0, 1,1, 0,1,
+    0,0, 1,0, 1,1, 0,1,
+    0,0, 1,0, 1,1, 0,1,
+    0,0, 1,0, 1,1, 0,1,
+    0,0, 1,0, 1,1, 0,1
+];
+const defaultTexture = [
+    0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 
+    100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 
+    200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 
+    700, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 
+    500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 
+    255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 
+    255, 0, 0, 0, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 
+    200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300,
+    300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255,
+    100, 100, 100, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 
+    100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 
+    0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100,
+    100, 100, 255, 0, 200, 200, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100,
+    300, 700, 255, 0, 0, 0, 255, 255, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 
+    0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 255, 300, 700, 255, 0, 0, 0, 255, 100, 
+    100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 100, 100, 500, 255, 0, 200, 600, 255, 
+    100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 255, 200, 200, 255, 100, 300, 300, 
+    255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 255, 0, 0, 
+    255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 0, 200, 600, 
+    255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 
+    255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 
+    100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 
+    100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 
+    400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100,
+    255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 
+    500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 
+    100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 
+    300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 255, 200, 600, 255, 
+    100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 255, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 
+    100, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 255, 0, 0, 255, 255, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 
+    255, 100, 500, 255, 255, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 
+    255, 100, 100, 100, 255, 0, 200, 200, 255, 255, 300, 300, 255, 255, 0, 400, 255, 255, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 
+    100, 300, 300, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 
+    600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 
+    200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400,
+    255, 100, 100, 500, 255, 100, 300, 700, 255, 0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255, 100, 300, 700, 255, 
+    0, 0, 0, 255, 100, 100, 100, 255, 0, 200, 200, 255, 100, 300, 300, 255, 0, 0, 400, 255, 100, 100, 500, 255, 0, 200, 600, 255
+];
 
 
 //Flat triangle
@@ -1405,7 +1834,7 @@ const triangleColors = [1,0,0,1, 0,1,0,1, 0,0,1,1];
 
 
 
-function generateSphereMesh(steps = 1, radius = 1, randomModifier = 0.0, color = new vec4(1,0,0,1))
+function generateSphereMesh(steps = 1, radius = 1, randomModifier = 0.0, color = new vec4(1,0,0,1), smoothNormals = false)
 {
     let vertices = [0,-1,0, 1,0,0, 0,0,1, -1,0,0, 0,0,-1, 0,1,0];
     for (let i in vertices)
@@ -1446,9 +1875,6 @@ function generateSphereMesh(steps = 1, radius = 1, randomModifier = 0.0, color =
         indices = inds;
     }
 
-    
-
-
     n = [];
     c = [];
     ind = [];
@@ -1463,15 +1889,24 @@ function generateSphereMesh(steps = 1, radius = 1, randomModifier = 0.0, color =
         const v1 = new vec4( vertices[indices[i  ]*3], vertices[indices[i  ]*3+1], vertices[indices[i  ]*3+2] );
         const v2 = new vec4( vertices[indices[i+1]*3], vertices[indices[i+1]*3+1], vertices[indices[i+1]*3+2] );
         const v3 = new vec4( vertices[indices[i+2]*3], vertices[indices[i+2]*3+1], vertices[indices[i+2]*3+2] );
-        const a = v2.sub(v1);
-        const b = v3.sub(v1);
-        b.scaleToUnit();
-        a.scaleToUnit();
-        const nx = a.y*b.z - a.z*b.y;
-        const ny = a.z*b.x - a.x*b.z;
-        const nz = a.x*b.y - a.y*b.x;
-        const newN = new vec4(nx,ny,nz).scaleToUnit();
-        n.push( newN.x, newN.y, newN.z,   newN.x, newN.y, newN.z,   newN.x, newN.y, newN.z);
+        
+        if (smoothNormals)
+        {
+            const r1 = v1.copy().scaleToUnit();
+            const r2 = v2.copy().scaleToUnit();
+            const r3 = v3.copy().scaleToUnit();
+            n.push( r1.x, r1.y, r1.z,   r2.x, r2.y, r2.z,   r3.x, r3.y, r3.z);
+        } else {
+            const a = v2.sub(v1);
+            const b = v3.sub(v1);
+            b.scaleToUnit();
+            a.scaleToUnit();
+            const nx = a.y*b.z - a.z*b.y;
+            const ny = a.z*b.x - a.x*b.z;
+            const nz = a.x*b.y - a.y*b.x;
+            const newN = new vec4(nx,ny,nz).scaleToUnit();
+            n.push( newN.x, newN.y, newN.z,   newN.x, newN.y, newN.z,   newN.x, newN.y, newN.z);
+        }
         let cur = v.length/3;
         ind.push(cur, cur+1, cur+2);
         c.push(color.x, color.y, color.z, color.a,  color.x, color.y, color.z, color.a,  color.x, color.y, color.z, color.a );

@@ -1624,7 +1624,17 @@ class Chunk
             }
         }
         this.easyGl.deleteObject(this.uniqueId);
+        
+        // let textureCoords = [];
+        // for (let i=0; i<v.length; i+=1)
+        // {
+        //     textureCoords.push(0,0, 0,1, 1,0);
+        // }
+
         this.easyGl.createObject(this.uniqueId, this.position, null, null, v, i, n, c);
+        //this.easyGl.createTextureObject(this.uniqueId, this.position, null, null, v, i, n, textureCoords, 0);
+
+
         //create all transparent objects as independedent gl objects
         let incrementor = 1;
         for (let x=0; x<maxX; x++)
@@ -2227,6 +2237,19 @@ const player = new Player(new vec4(1,75,1));
 const chunkManager = new ChunkManager(easyGl, chunkSize);
 const entities = [ new FloatingBlock(new vec4(6, 30, 6), "test", easyGl)];
 
+
+// let texture = [];
+// for (let x=0; x<16; x++)
+// {
+//     for (let y=0; y<16; y++)
+//     {
+//         texture.push(Math.random()*255, 255, 255, 255);   
+//     }
+// }
+// easyGl.createTexture(0, texture);
+
+
+easyGl.setAmbientLightLevel(0.7);
 easyGl.setSortingTimeDelayMs(100);
 easyGl.resizeListener(); //resize canvas & gl
 sliderInput(); //set FOV, zNear, and zFar to slider defaults
@@ -2369,7 +2392,7 @@ function sliderInput()
 
 
 
-test();
+//test();
 
 function test()
 {

@@ -11,7 +11,7 @@ class Planet {
     }
 
     generateMesh() {
-        const ret = generatePlanet2(8, this.radius);
+        const ret = generatePlanet3(8, this.radius);
         this.vertices = ret.vertices;
         this.indices = ret.indices;
         this.normals = ret.normals;
@@ -350,6 +350,7 @@ glCanvasElement.height = window.visualViewport.height;
 glCanvasElement.style.width = glCanvasElement.width + "px";
 glCanvasElement.style.height = glCanvasElement.height + 'px';
 var gl = new EasyGL(glCanvasElement);
+var sunRotationSpeed = 0.1;
 
 
 function setup()
@@ -365,13 +366,15 @@ function setup()
         objects.push(new ManMadeSatellite(gl, 7 + random()*5, 8-random()*16, random()+0.25, 0.75 + random()/5, random(), random()*2+2 ) );
     }
 }
-// async function setup()
-// {
-//     const result = await setup2();
-// }
-// setup();
 
 gl.setCameraPosition(new vec4(0,0,10));
+gl.createTexture("myTexture");
+gl.createTextureObject("myObj", null, null, null, 
+    [0,0,0, 0,2,0, 2,2,0, 2,0,0],
+    [0,1,2, 0,2,1, 0,2,3, 0,3,2], 
+    [1,1,1, 1,1,1, 1,1,1, 1,1,1], 
+    [0,0, 0,1, 1,1, 1,0], "myTexture"
+);
 updateCameraSettings();
 
 var resizeInterval;
@@ -442,24 +445,28 @@ function resetObjects() {
     }
     //setup();
 }
+function setSunRotateSpeed(e) {
+    sunRotationSpeed = Number(e.value);
+}
 
 
 var rot = 0;
-
-
 let dt = 0;
 let startTime = Date.now();
+const initialStartTimeSeconds = Date.now()/1000;
 function update() {
     if (dt != 0 && objects.length == 0)
     {
         setup();
     }
 
+    const s = (1 + Date.now()/1000 - initialStartTimeSeconds) * sunRotationSpeed;
+    gl.setAmbientLightLevel(0.3);
+    gl.setDirectionalLightingDirection(new vec4( Math.sin(s), -0.2, Math.cos(s)));
+
     dt = (Date.now() - startTime)/100;
     startTime = Date.now();
-
     gl.renderAll();
-
 
     for (let i in objects)
     {
@@ -1018,7 +1025,6 @@ function generatePlanet2(steps = 5, radius = 3, randomModifier = 0.1, findRandom
     }
 
     //console.log("new radius: " + radius);
-    
     let v = [];
     let ind = [];
     let n = [];
@@ -1046,7 +1052,6 @@ function generatePlanet2(steps = 5, radius = 3, randomModifier = 0.1, findRandom
             n = [];
             c = [];
         }
-
         v.push( vertices[indices[i]].x, vertices[indices[i]].y, vertices[indices[i]].z);
         v.push( vertices[indices[i+1]].x, vertices[indices[i+1]].y, vertices[indices[i+1]].z);
         v.push( vertices[indices[i+2]].x, vertices[indices[i+2]].y, vertices[indices[i+2]].z);
@@ -1057,12 +1062,225 @@ function generatePlanet2(steps = 5, radius = 3, randomModifier = 0.1, findRandom
         const maxMag = Math.max(vertices[indices[i+0]].getLength(), vertices[indices[i+1]].getLength(), vertices[indices[i+2]].getLength())/radius;
         
         //Creating normal vectors
-        if (maxMag < -1)
+        if (maxMag < -10000)
         {
             const n1 = vertices[indices[i]].copy().scaleToUnit();
             const n2 = vertices[indices[i+1]].copy().scaleToUnit();
             const n3 = vertices[indices[i+2]].copy().scaleToUnit();
-            n.push( n1.x, n1.y, n1.z,  n2.z, n2.y, n2.z, n3.x, n3.y, n3.z);
+            n.push( n1.x, n1.y, n1.z,  n2.x, n2.y, n2.z, n3.x, n3.y, n3.z);
+        } else {
+            const a = vertices[indices[i+1]].sub(vertices[indices[i]]);
+            const b = vertices[indices[i+2]].sub(vertices[indices[i]]);
+            b.scaleToUnit();
+            a.scaleToUnit();
+            const nx = a.y*b.z - a.z*b.y;
+            const ny = a.z*b.x - a.x*b.z;
+            const nz = a.x*b.y - a.y*b.x;
+            const newN = new vec4(nx,ny,nz).scaleToUnit();
+            n.push( newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, newN.x, newN.y, newN.z, );
+        }
+
+        //colors..?
+        for (let k=0; k<3; k++){
+            const vecMag = vertices[indices[i+k]].getLength();
+            const mag = vecMag/radius;
+            const magDifScaled = (vecMag - radius)/mountainHeight;
+            const cv = random()*colorVariation;
+            const yvar = Math.abs(vertices[indices[i+k]].y)/radius;
+            
+           
+            if (yvar > 0.85)
+            {
+                c.push(1-cv,1-cv,1-cv,1); //color polar ice caps
+            } else if (magDifScaled < 0.0001) 
+            {
+                c.push(0, (1-yvar)/4, cv +  .5 - yvar/2,1);//for water
+            } else if (magDifScaled < 0.5) 
+            {
+                c.push(cv,(.5-cv-yvar*0.3)/mag,cv,1);//for forest
+            } else if (magDifScaled < 0.7) 
+            {
+                c.push(.45,.41,.33,1);//for mountains
+            } else { 
+                c.push(1-cv,1-cv,1-cv,1);//for snowy peaks
+            }
+        }
+    }
+    vs.push(v);
+    inds.push(ind);
+    ns.push(n);
+    cs.push(c);
+
+
+    return {
+        vertices: vs,
+        indices: inds,
+        normals: ns,
+        colors: cs,
+    }
+}
+function generatePlanet3(steps = 5, radius = 3, randomModifier = 0.1, findRandomModifier = 3, colorVariation=0.2)
+{
+    setRandomSeed(0);
+    //var vertices = [0,-1,0, 1,0,0, 0,0,1, -1,0,0, 0,0,-1, 0,1,0];
+    let indices = [0,1,2, 0,2,3, 0,3,4, 0,4,1, 1,5,2, 2,5,3, 3,5,4, 4,5,1];
+    let vertices = [
+        new vec4(0,-1,0),
+        new vec4(1,0,0),
+        new vec4(0,0,1),
+        new vec4(-1,0,0),
+        new vec4(0,0,-1),
+        new vec4(0,1,0),
+    ];
+
+
+    let vertDict = new Map();
+    for (let i in vertices)
+    {
+        vertices[i].muli(radius);
+        vertDict.set(vertices[i].getHash(), i);
+    }
+   
+    //Generate sphere mesh with distortions
+    let zz = new vec4();  //zero zero, the center of the sphere
+    for (let s=0; s<steps; s++)
+    {
+        let inds = [];
+        for( let i=0; i<indices.length; i+=3)
+        {
+            let v1 = vertices[indices[i]];
+            let v2 = vertices[indices[i+1]];
+            let v3 = vertices[indices[i+2]];
+            let r1 = distanceBetweenPoints(v1, zz);
+            let r2 = distanceBetweenPoints(v2, zz);
+            let r3 = distanceBetweenPoints(v3, zz)
+            let dv1v2 = (r1 + r2)/2;
+            let dv1v3 = (r1 + r3)/2;
+            let dv2v3 = (r2 + r3)/2;
+
+            let rand = 1; //(0.95 + random()*0.05);
+            let b1 = (v1.add(v2)).muli(0.5);
+            b1.muli( dv1v2 /distanceBetweenPoints(b1, zz)  );
+            let b2 = (v2.add(v3)).muli(0.5);
+            b2.muli( dv2v3 /distanceBetweenPoints(b2, zz)  );
+            let b3 = (v1.add(v3)).muli(0.5);
+            b3.muli( dv1v3 /distanceBetweenPoints(b3, zz)  );
+
+            
+            let r = vertDict.get(b1.getHash());
+            if (r != null) {
+                b1 = r;
+            } else {
+                r = vertices.length;
+                vertDict.set(b1.getHash(),r);
+                vertices.push(b1);
+                b1 = r;
+            }
+
+            r = vertDict.get(b2.getHash());
+            if (r != null) {
+                b2 = r;
+            } else {
+                r = vertices.length;
+                vertDict.set(b2.getHash(),r);
+                vertices.push(b2);
+                b2 = r;
+            }
+
+            r = vertDict.get(b3.getHash());
+            if (r != null) {
+                b3 = r;
+            } else {
+                r = vertices.length;
+                vertDict.set(b3.getHash(),r);
+                vertices.push(b3);
+                b3 = r;
+            }
+
+            inds.push(indices[i], b1, b3,   b1, indices[i+1], b2,   b3, b2, indices[i+2],  b1,b2,b3);
+        }
+        indices = inds;
+
+        //distorting the mesh from a sphere
+        for (let i in vertices)
+        {
+            let v = vertices[i];
+            v.muli(1 + random()/(1/randomModifier + s*s*findRandomModifier));
+            vertDict.set(v.getHash(), i);
+        }
+    }
+
+    //Find new average radius, so that we can adjust the ocean height (coloring)
+    radius = 0;
+    let temp = 0;
+    let maxi = 0;
+    for (let i in vertices)
+    {
+        temp = vertices[i].getLength();
+        radius += temp;
+        if (temp > maxi){
+            maxi = temp;
+        }
+    }
+    radius /= vertices.length;
+    const maxRadius = maxi;
+    const mountainHeight = maxRadius - radius;
+    const mountainPercent = mountainHeight/radius;
+
+    //Now, smooth out oceans
+    for (let i in vertices)
+    {
+        temp = vertices[i].getLength();
+        if (temp < radius)
+        {
+            vertices[i].muli(radius/temp);
+        }
+    }
+
+    //console.log("new radius: " + radius);
+    let v = [];
+    let ind = [];
+    let n = [];
+    let c = [];
+    
+    let vs = [];
+    let inds = [];
+    let ns = [];
+    let cs = [];
+
+    //transform...
+    // and Color planet
+    let indOn = 0;
+    for(let i=0; i<indices.length; i+=3)
+    {
+        if (v.length > 100000)
+        {
+            vs.push(v);
+            inds.push(ind);
+            ns.push(n);
+            cs.push(c);
+            indOn = 0;
+            v = [];
+            ind = [];
+            n = [];
+            c = [];
+        }
+        v.push( vertices[indices[i]].x, vertices[indices[i]].y, vertices[indices[i]].z);
+        v.push( vertices[indices[i+1]].x, vertices[indices[i+1]].y, vertices[indices[i+1]].z);
+        v.push( vertices[indices[i+2]].x, vertices[indices[i+2]].y, vertices[indices[i+2]].z);
+
+        ind.push(indOn, indOn+1, indOn+2);
+        indOn += 3;
+
+        const maxMag = Math.max(vertices[indices[i+0]].getLength(), vertices[indices[i+1]].getLength(), vertices[indices[i+2]].getLength())/radius;
+        
+        //Creating normal vectors
+        if (maxMag < -10000)
+        {
+            const n1 = vertices[indices[i]].copy().scaleToUnit();
+            const n2 = vertices[indices[i+1]].copy().scaleToUnit();
+            const n3 = vertices[indices[i+2]].copy().scaleToUnit();
+            n.push( n1.x, n1.y, n1.z,  n2.x, n2.y, n2.z, n3.x, n3.y, n3.z);
         } else {
             const a = vertices[indices[i+1]].sub(vertices[indices[i]]);
             const b = vertices[indices[i+2]].sub(vertices[indices[i]]);

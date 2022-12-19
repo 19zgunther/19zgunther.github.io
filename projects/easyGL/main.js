@@ -241,7 +241,6 @@ function resize(event)
 }
 
 
-
 //canvas 5
 {
 
@@ -273,11 +272,18 @@ function resize(event)
     gl.setPerspective(); //set to default perspective mode values
     gl.setClearColor(c5Color);
 
+    randTexture = [];
+    for (let i=0; i<256*4; i++)
+    {
+        randTexture.push(Math.random()*255);
+    }
+    gl.createTexture("randTexture", randTexture);
+
     //Create some EasyGL objects
     gl.createObject('t1F', new vec4(0,0,2), null, null, [-0.7,0,0, 0.7,0,0, 0,1,0],  [0,1,2, 0,2,1],  [1,0,0, 0,1,0, 0,0,1], [1,0,0,1, 1,1,0,1, 1,0,1,1]);
     gl.createObject('t2F', new vec4(0,0,-2), null, null, [-0.7,0,0, 0.7,0,0, 0,1,0],  [0,1,2, 0,2,1],  [1,0,0, 0,1,0, 0,0,1], [1,0,0,1, 0,1,0,1, 0,0,1,1]);
     gl.createObject('myCube', new vec4(2,0,0), new vec4(0,3.14/4), new vec4(1,2,3));
-    gl.createObject('transCube', new vec4(-2), null, null, undefined, undefined, undefined, new vec4(1,0,0,.3));
+    gl.createTextureObject('transCube', new vec4(-2), null, null, null, null, null, null, "randTexture");
     gl.createObject('bigCube', new vec4(0,2,0), null, null, undefined, undefined, undefined, new vec4(0,1,0,1));
 
     gl.setObjectReflectivity('bigCube', 0.6);
@@ -326,6 +332,105 @@ function resize(event)
         clearInterval(updateInterval);
         //updateInterval = setInterval(update, 100);
     });
+
+}
+
+//canvas 11
+{
+    const canvasElement = document.getElementById( "c11" );
+    const easygl = new EasyGL( canvasElement );
+
+    randTexture = [];
+    for (let i=0; i<256*4; i++)
+    {
+        randTexture.push(Math.random()*255);
+    }
+
+    easygl.createTexture(); //creates default texture 16x16 smiley face image
+    easygl.createTexture(2, randTexture);
+    easyglInstances.push(easygl);
+    easygl.setClearColor(c3Color);
+    easygl.setPerspective();
+    easygl.createTextureObject( 'myObject1' , null, null, null, null, null, null, null, 2);
+    easygl.createTextureObject( 'myObject2' ); //creates a textured object, using default texture & texture coordinates for cube
+    easygl.createObject( 'myObject3' );
+    easygl.setObjectPosition( 'myObject1', 1, 1, 1,);
+    easygl.setObjectPosition( 'myObject2', -1, -1, -1,);
+    easygl.setObjectRotation( 'myObject1', 0.8, .1, 1);
+    //easygl.setObjectColor( 'myObject1', new vec4(1,0,0,1));
+    //easygl.setObjectColor( 'myObject2', new vec4(0,1,0,1));
+    easygl.setObjectColor( 'myObject3', new vec4(0,0,1,1));
+    easygl.setObjectReflectivity('myObject1', 0.2);
+    easygl.setObjectReflectivity('myObject2', 0.5);
+    easygl.setObjectReflectivity('myObject3', 0.7);
+
+    let t=0;
+    let updateInterval = setInterval( update, 100 );
+    function update() {
+        t += 0.03;
+        easygl.setObjectRotation( 'myObject2', t,t,t);
+        easygl.setCameraPosition( 4*Math.cos(t), 0, -4*Math.sin(t) );
+        easygl.setCameraRotation( 0, -t -Math.PI/2, 0);
+        easygl.clear();
+        easygl.renderAll();
+    }
+
+    canvasElement.addEventListener('mouseenter', function() {
+        clearInterval(updateInterval);
+        updateInterval = setInterval(update, 20);
+    });
+    canvasElement.addEventListener('mouseleave', function() {
+        clearInterval(updateInterval);
+        updateInterval = setInterval(update, 100);
+    });
+}
+//canvas 12
+{
+    const canvasElement = document.getElementById( "c12" );
+    const easygl = new EasyGL( canvasElement );
+    easyglInstances.push(easygl);
+    easygl.setClearColor(c2Color);
+    easygl.setCameraPosition( 0, 0, 3 );
+    easygl.setPerspective();
+
+    let sphere = generateSphereMesh(1,0.7,0, new vec4(1,0,0,1), true);
+    easygl.createObject( 's1' , null, null, null, sphere.vertices, sphere.indices, sphere.normals, sphere.colors);
+    easygl.setObjectPosition( 's1' , 0,2,0);
+    easygl.setObjectReflectivity('s1', 0.6);
+
+    sphere = generateSphereMesh(2,0.7,0,  new vec4(0,1,0,1), true);
+    easygl.createObject( 's2' , null, null, null, sphere.vertices, sphere.indices, sphere.normals, sphere.colors);
+    easygl.setObjectPosition( 's2' , 0,0,0);
+    easygl.setObjectReflectivity('s2', 0.6);
+
+    sphere = generateSphereMesh(3,0.7,0,  new vec4(0,0,1,1), true);
+    easygl.createObject( 's3' , null, null, null, sphere.vertices, sphere.indices, sphere.normals, sphere.colors);
+    easygl.setObjectPosition( 's3' , 0,-2,0);
+    easygl.setObjectReflectivity('s3', 0.6);
+    
+    //easygl.setObjectRotation( 'myObject1', 0.8, .1, 1);
+
+    let t=0;
+    let updateInterval = setInterval( update, 100 );
+    function update() {
+        t += 0.1;
+        easygl.setDirectionalLightingDirection( 
+            Math.cos(t), 
+            Math.sin(t/2), 
+            Math.sin(t/3) );
+        easygl.clear();
+        easygl.renderAll();
+    }
+
+    canvasElement.addEventListener('mouseenter', function() {
+        clearInterval(updateInterval);
+        updateInterval = setInterval(update, 20);
+    });
+    canvasElement.addEventListener('mouseleave', function() {
+        clearInterval(updateInterval);
+        updateInterval = setInterval(update, 100);
+    });
+
 
 }
 
