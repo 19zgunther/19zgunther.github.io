@@ -634,13 +634,16 @@ function generateShader3_OLD() {
 }
 
 ///THIS IS THE ONE USED
+
+//
 function generateShader3() {
 
-    const numSpheres = 10;
+    //SPHERES
+    let numSpheres = 10;
     let spheres = [];
     for (let i=0; i<numSpheres; i++)
     {
-        let center = new vec4(3 - Math.random() * 6, 3 - Math.random()*6, 3 - Math.random()*6);
+        let center = new vec4( - Math.random() * 4, 3 - Math.random()*6, 3 - Math.random()*6);
         let color = new vec4(Math.random(),Math.random(), Math.random(), 1);
         let radius = Math.random() + 0.3;
         spheres.push(
@@ -652,17 +655,62 @@ function generateShader3() {
         )
     }
     
+    //PLANES
     let planes = [];
     planes.push({ center: new vec4(0,0,10),  normal: new vec4(0,0,1),  color: new vec4(Math.random(),0,Math.random()) });
     planes.push({ center: new vec4(0,5,0),  normal: new vec4(0,1,0),  color: new vec4(0,Math.random(),0) });
     planes.push({ center: new vec4(0,-5,0),  normal: new vec4(0,1,0),  color: new vec4(Math.random(),0,Math.random()) });
     planes.push({ center: new vec4(-5,0,0),  normal: new vec4(1,0,0),  color: new vec4(Math.random(),0.6,0) });
     planes.push({ center: new vec4(5,0,10),  normal: new vec4(1,0,0),  color: new vec4(Math.random(),Math.random(),Math.random()) });
-    const numPlanes = planes.length;
+    let numPlanes = planes.length;
+
+
+    //Trianlges vertices in form [ t1_v1, t1_v2, t1_v3,   t2_v1, t2_v2, ... ]
+    //Colors length = 1 per vertex
+    //TRIANGLES
+    let vertices = [
+        new vec4(0,0,4),
+        new vec4(2,0,4),
+        new vec4(0,2,4),
+        new vec4(0,-1,4),
+        new vec4(-2,-1,4),
+        new vec4(0,1,4)
+    ];
+    let colors = [
+        new vec4(1,0,0),
+        new vec4(0,1,0),
+        new vec4(0,0,1),
+        new vec4(0,0,1),
+        new vec4(0,1,0),
+        new vec4(1,0,0)
+    ];
+
+    // for (let i=0; i<3; i++)
+    // {
+    //     //vertices.push(new vec4(0, i, 0), new vec4(1, i, 0), new vec4(1,i+1,0));
+    //     //colors.push(new vec4(1,0,0), new vec4(0,1,0), new vec4(0,0,1));
+    // }
+    const r = 3
+    for (let a = 0; a < 3; a += 0.5)
+    {
+        let a2 = a + 0.25;
+        let a3 = a + 0.5;
+        vertices.push(
+            new vec4(r * Math.sin(a ),     r*Math.cos(a ),     Math.random()),
+            new vec4(1.5*r * Math.sin(a2), 1.5*r*Math.cos(a2), Math.random()),
+            new vec4(r * Math.sin(a3),     r*Math.cos(a3),     Math.random())
+        );
+        colors.push(
+            new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit(),
+            new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit(),
+            new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit()
+        );
+    }
 
 
 
 
+    //CREATE CODE>>>>
     const precision = 4;
     let sphereCode = "const int numSpheres = " + numSpheres + ";\n";
     sphereCode += "vec3 sphereC[numSpheres];\n";
@@ -688,6 +736,20 @@ function generateShader3() {
         planeCode += "planeN["+i+"] = vec3("+s.normal.x.toPrecision(precision)+","+s.normal.y.toPrecision(precision)+","+s.normal.z.toPrecision(precision)+");\n";
     }
 
+    let numVertices = vertices.length;
+    let numColors = colors.length;
+    let triangleCode = "vec3 vertices["+numVertices+"];\n";
+    triangleCode += "vec3 colors["+numColors+"];\n";
+    for (let i=0; i<numVertices; i++)
+    {
+        triangleCode += "vertices["+i+"] = vec3("+vertices[i].x.toPrecision(precision)+","+vertices[i].y.toPrecision(precision)+","+vertices[i].z.toPrecision(precision)+");\n";
+    }
+    for (let i=0; i<numColors; i++)
+    {
+        triangleCode += "colors["+i+"] = vec3("+colors[i].x.toPrecision(precision)+","+colors[i].y.toPrecision(precision)+","+colors[i].z.toPrecision(precision)+");\n";
+    }
+
+
 
     const beginning = `
     precision highp float;
@@ -710,6 +772,7 @@ function generateShader3() {
         vec3 color;
         int sphereHit;
         int planeHit;
+        int triangleHit;
     };
 
 
@@ -731,11 +794,13 @@ function generateShader3() {
     const findHitData = `
     MyData findHitData(vec3 rayD, vec3 rayP,
         vec3 sphereCenters[`+numSpheres+`], float sphereRs[`+numSpheres+`], vec3 sphereColors[`+numSpheres+`], int sphereToSkip,
-        vec3 planeCenters[`+numPlanes+`], vec3 planeNormals[`+numPlanes+`], vec3 planeColors[`+numPlanes+`], int planeToSkip
+        vec3 planeCenters[`+numPlanes+`], vec3 planeNormals[`+numPlanes+`], vec3 planeColors[`+numPlanes+`], int planeToSkip,
+        vec3 vertices[`+numVertices+`], vec3 colors[`+numColors+`]
         )
     {
         const int numSpheres = `+numSpheres+`;
         const int numPlanes = `+numPlanes+`;
+        const int numVertices = `+numVertices+`;
 
         MyData data;
         data.distance = 100000.0;
@@ -768,6 +833,7 @@ function generateShader3() {
                 data.normal = data.position - sphereCenters[i];
                 data.sphereHit = i;
                 data.planeHit = -1;
+                data.triangleHit = -1;
             }
         }
 
@@ -784,6 +850,46 @@ function generateShader3() {
                 data.color = planeColors[i];
                 data.sphereHit = -1;
                 data.planeHit = i;
+                data.triangleHit = -1;
+            }
+        }
+
+        ////////////////// FOR EACH TRIANGLE /////////////////
+        vec3 v1,v2,v3,U,V,norm,P;
+        float d1,d2,d3,divisor;
+        for (int i=0; i<numVertices; i+=3)
+        {
+            v1 = vertices[i];
+            v2 = vertices[i+1];
+            v3 = vertices[i+2];
+            U = v2-v1;
+            V = v3-v1;
+            norm = vec3( U.y*V.z-U.z*V.y,  U.z*V.x - U.x*V.z,  U.x*V.y - U.y*V.x);
+            dist = dot(v1-rayP, norm) / dot(rayD, norm);
+            if (dist > 0.001 && dist < data.distance)
+            {
+                P = rayP + rayD*dist;
+                if (
+                    dot(norm, cross(v2-v1,P-v1)) > 0.0 &&
+                    dot(norm, cross(v3-v2,P-v2)) > 0.0 &&
+                    dot(norm, cross(v1-v3,P-v3)) > 0.0 )
+                {
+                    d1 = length(v1-P);
+                    d2 = length(v2-P);
+                    d3 = length(v3-P);
+                    divisor = d1+d2+d3;
+                    d1 = 1.0 - d1/divisor;
+                    d2 = 1.0 - d2/divisor;
+                    d3 = 1.0 - d3/divisor;
+
+                    data.distance = dist;
+                    data.position = P;
+                    data.normal = norm;
+                    data.color = colors[i]*d1 + colors[i+1]*d2 + colors[i+2]*d3;
+                    data.sphereHit = -1;
+                    data.planeHit = -1;
+                    data.triangleHit = i;
+                }
             }
         }
         return data;
@@ -792,7 +898,7 @@ function generateShader3() {
     const fireRayAndMain = `
     vec4 fireRay(vec3 rayD, vec3 rayP) {
 
-        ` + sphereCode + "\n" + planeCode +`
+        ` + sphereCode + "\n" + planeCode + "\n" + triangleCode + `
 
         //CUBES/////////////////////////
         const int numCubes = 1;
@@ -802,7 +908,13 @@ function generateShader3() {
         float cubeRs[numCubes];
         cubeRs[0] = 0.5;
 
+        // vec3 vertices[3];
+        // vertices[0] = vec3(0,0,0);
+        // vertices[1] = vec3(0,5,0);
+        // vertices[2] = vec3(10,0,0);
 
+        // vec3 colors[1];
+        // colors[0] = vec3(1,0,0);
 
 
         float temp = 1000.0;
@@ -818,7 +930,10 @@ function generateShader3() {
 
             //Find intersecting object, distance, normal, etc.
             MyData data;
-            data = findHitData(rayD, rayP, sphereC, sphereR, sphereColor, previousSphereHit, planeC, planeN, planeColor, previousPlaneHit);
+            data = findHitData(rayD, rayP, 
+                sphereC, sphereR, sphereColor, previousSphereHit, 
+                planeC, planeN, planeColor, previousPlaneHit,
+                vertices, colors);
             previousSphereHit = data.sphereHit;
             previousPlaneHit = data.planeHit;
 
@@ -829,7 +944,10 @@ function generateShader3() {
 
             //Check if we can see the light source
             MyData dataToLightSource;
-            dataToLightSource = findHitData(tempRayD, tempRayP, sphereC, sphereR, sphereColor, -1, planeC, planeN, planeColor, -1);
+            dataToLightSource = findHitData(tempRayD, tempRayP, 
+                sphereC, sphereR, sphereColor, -1, 
+                planeC, planeN, planeColor, -1,
+                vertices, colors);
             
             float distToLight = length(newRayP - lightSource);
             
@@ -839,6 +957,8 @@ function generateShader3() {
             if (data.planeHit > -1)
             {
                 reflectance = uPlaneReflectance;
+            } else if (data.triangleHit > -1) {
+                reflectance = 0.7;
             }
 
 
