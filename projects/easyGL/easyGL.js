@@ -715,6 +715,11 @@ class EasyGL {
                 vertices = [];
                 for (let i=0; i<vs.length; i++)
                 {
+                    if (!(vs[i] instanceof vec4))
+                    {
+                        console.error( "Error: Cannot create object with vertice "+i+"/"+vs.length+" of type: " + typeof(vs[i]) )
+                        return
+                    }
                     vertices.push(vs[i].x, vs[i].y, vs[i].z);
                 }
             } else {
@@ -732,11 +737,16 @@ class EasyGL {
             if (normals[0] instanceof vec4)
             {
                 //array of vec4s
-                const vs = normals;
+                const ns = normals;
                 normals = [];
-                for (let i=0; i<vs.length; i++)
+                for (let i=0; i<ns.length; i++)
                 {
-                    normals.push(vs[i].x, vs[i].y, vs[i].z);
+                    if (!(ns[i] instanceof vec4 ))
+                    {
+                        console.error("Error: Normal "+i+" was undefined.");
+                        continue;
+                    }
+                    normals.push(ns[i].x, ns[i].y, ns[i].z);
                 }
             } else {
                 //assuming vertices are correctly formatted.
