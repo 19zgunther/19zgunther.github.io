@@ -50,7 +50,7 @@
                     Webgl Ray Tracing Project <br> <div style="font-size:x-small">(in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("cnc_router")'>
-                    CNC Router Built <br> <div style="font-size:x-small">(in dev)</div>
+                    CNC Router Build <br> <div style="font-size:x-small">(in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("cad")'>
                     CAD <br><div style="font-size:x-small">(in dev)</div>
