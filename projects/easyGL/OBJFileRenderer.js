@@ -217,8 +217,11 @@ class OBJFileRenderer
         } else if (event.type == "mousewheel")
         {
             event.preventDefault();
-            let dy = event.deltaY;
-            objRenderer.setObjectPosition( objRenderer.getObjectPosition().add(0, 0, -dy/100));
+            const bb = this.canvasElement.getBoundingClientRect();
+            const x = event.offsetX - bb.width/2;
+            const y = -(event.offsetY - bb.height/2);
+            const dt = -event.deltaY/100;
+            objRenderer.setObjectPosition( objRenderer.getObjectPosition().add(dt*x/300, dt*y/300, -dt));
         }
     }
 }

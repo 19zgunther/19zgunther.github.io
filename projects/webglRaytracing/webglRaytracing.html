@@ -68,6 +68,18 @@
     </div>
     <canvas id='glcanvas' style = 'position:relative; display: block; width:100%; height:100%; z-index: 100; '></canvas>
 
+    <div style = 'display: flex; width: 100%; justify-content: center;'>
+        <div style='width: 80vw; margin-bottom: 5vmin;'>
+            1. This is an experimental raytracing engine I built, where I procedurally generate the GPU fragment shader
+            code. This allows for different scenes to be created quite easily!
+            <br><br>
+            2. Running this program can requires significant GPU usage, so I advise reducing the frame rate (via the first slider) if you are experiencing gittering.
+            <br><br>
+            3. Currently, every surface is perfectly smooth meaning there exists only one output ray for each ray-object intersection.
+            <br><br>
+            4. This renderer is based on only planes and spheres currently. Triangle-based objects have not been implemented.
+        </div>
+    </div>
     
     
 
