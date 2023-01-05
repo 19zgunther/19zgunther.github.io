@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zack Gunther</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../menu.css">
+    <link rel="shortcut icon" type="image/x-icon" href="../../favicon.ico" />
+</head>
+
+<body id="Background">
+
+    <!-- Menu Goes Here -->
+
+    <div style = 'display: flex; width: 100%; justify-content: center;'>
+        <h1>
+            CNC Router Development
+        </h1>
+    </div>
+
+    <!-- <div style = 'display: flex; width: 100%; justify-content: center; flex-wrap:wrap;'>
+        <canvas id='snakeCanvas'              style='height: 45vmin; aspect-ratio: 1/1; padding: 2vmin;'></canvas>
+        <canvas id='snakeNeuralNetworkCanvas' style='height: 45vmin; aspect-ratio: 1/1; padding: 2vmin;'></canvas>
+    </div> -->
+    <div style = 'display: flex; width: 100%; justify-content: center; flex-wrap:wrap;'>
+        <canvas id='mainCanvas' style='width: 95%; height: 70%; padding: 2vmin;border-radius: 3vmax;'></canvas>
+    </div>
+    
+    <!-- <div style = 'display: flex; width: 100%; justify-content: center; padding-bottom: 5vmin; '>
+        <div style='width:fit-content; height:fit-content; background-color: white; color:black; cursor: pointer; padding: 1vmin;' onclick='reset()'>
+            Reset
+        </div>
+    </div> -->
+
+
+    <div style = 'display: flex; width: 100%; justify-content: center;'>
+        <div style='width: 90vmin; margin-bottom: 5vmin;'>
+            I recently purchased a 3D printer with the intent to learn more about robotics and mechanical assemblies.
+            I was thrilled by my $160 base-model Ender 3's accuracy and detail, but was seriously disappointed at the amount of time it took to print even the smallest part.
+            Because I knew I wanted to work on larger projects in the future, I decided to use my new 3D printer to create a CNC router so I could cut plywood and other such materials rapidly.
+            <br><br>
+            Instead of simply downloading and printing freely available designs for simple three-axis routers from other creators, I set out to design my own from scratch.
+            This is the current design for my CNC router for which I have designed all of the circuitry. 
+            I also programmed the controller and slicer to be able to take images and router designs easily.
+            <br><br>
+            This project is very much ongoing, and I am hoping to show some of the results here soon! 
+        </div>
+    </div>
+</body>
+
+<script src="../../script.js"></script>
+<script src="../CAD/myMath.js"></script>
+<script src="../easyGL/easyGL.js"></script>
+<script src="../easyGL/OBJFileRenderer.js"></script>
+<script src="cncRouterData.js"></script>
+<script src="cncRouter.js"></script>
+</html>
