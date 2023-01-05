@@ -8,22 +8,29 @@ window.addEventListener("keydown", eventListener);
 window.addEventListener("keyup", eventListener);
 
 
-var objRenderer = new OBJFileRenderer(canvasElement, objDataText,new vec4(0,0,20), new vec4(0,0,0,1));
+let objRenderer = new OBJFileRenderer(canvasElement, objDataText,new vec4(0,0,20), new vec4(0,0,0,1));
 objRenderer.setObjectRotation(new vec4(0,0,-1.55));
 
 let updateInterval = setInterval(render, 60);
+let mouseIsDown = false;
+let pressedKeys = new Map()
 
-var pressedKeys = new Map()
 
-//window.addEventListener("keydown", )
-
+let rotationSpeed = 0;
+const rotationAcceleration = 0.0001;
+const maxRotationSpeed = 0.004;
 
 
 function render()
 {
     objRenderer.render();
+
+    if (rotationSpeed < maxRotationSpeed && !mouseIsDown)
+    {
+        rotationSpeed += rotationAcceleration;
+    }
     try {
-        objRenderer.setObjectRotation( objRenderer.getObjectRotation().add(0.00, 0.004, 0));
+        objRenderer.setObjectRotation( objRenderer.getObjectRotation().add(0.00, rotationSpeed, 0));
     } catch (error) {
         
     }
@@ -45,6 +52,16 @@ function eventListener(e)
     } else if (e.type == "keydown")
     {
         pressedKeys.set(e.key.toLowerCase(), true);
+    } else if (e.type == "mousewheel")
+    {
+        rotationSpeed = 0;
+    } else if (e.type == "mousedown")
+    {
+        mouseIsDown = true;
+        rotationSpeed = 0;
+    } else if (e.type == "mouseup")
+    {
+        mouseIsDown = false;
     }
 }
 

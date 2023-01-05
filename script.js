@@ -44,10 +44,13 @@
                     Web Dev Experiments <br> <div style="font-size:x-small">(perpetually in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
-                    Ray Tracing Project <br> <div style="font-size:x-small">(in dev)</div>
+                    Ray Tracing Project <br> <div style="font-size:x-small"></div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("webgl_raytracing")'>
                     Webgl Ray Tracing Project <br> <div style="font-size:x-small">(in dev)</div>
+                </div>
+                <div class = 'menu_dropdown_child' onclick='buttonClick("cnc_router")'>
+                    CNC Router Built <br> <div style="font-size:x-small">(in dev)</div>
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("cad")'>
                     CAD <br><div style="font-size:x-small">(in dev)</div>
@@ -105,6 +108,7 @@
             case 'webgl_raytracing':            pageString += 'projects/webglRaytracing/webglRaytracing.html'; break;
             case 'snake_game_neural_network':   pageString += 'projects/snake/snake.html'; break;
             case 'easygl':                      pageString += 'projects/easyGL/easyGL.html'; break;
+            case 'cnc_router':                  pageString += 'projects/cncRouter/cncRouter.html'; break;
         }
         document.location = pageString;    
     }
