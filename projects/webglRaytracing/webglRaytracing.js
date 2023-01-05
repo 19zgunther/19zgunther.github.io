@@ -157,6 +157,10 @@ function keyPressed(event)
     var keyCode = event.key;
     pressedKeys[keyCode.toLowerCase()] = true;
     console.log(keyCode);
+    if (keyCode == "Enter")
+    {
+        setup();
+    }
 }
 function keyReleased(event)
 {
@@ -301,6 +305,594 @@ function update() {
     const vertexCount = indices.length;
     gl.drawElements(gl.TRIANGLES, vertexCount, gl.UNSIGNED_SHORT, 0);
 }
+
+
+
+
+
+function generateShader3_OLD() {
+    const defaultCode = `
+    precision highp float;
+    varying vec4 vScreenPos;
+
+    uniform vec4 uViewPosition;
+    uniform mat4 uRotationMatrix;
+    uniform float uLightDistanceDivisor;
+    uniform float uPlaneReflectance;
+    uniform float uSphereReflectance;
+    uniform float uSphereDeformationMultiplier;
+    uniform float uSphereDeformationFrequency;
+    uniform vec2 uAspectRatio;
+
+
+    vec3 unit(vec3 r)
+    {
+        float d = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
+        if (d < 0.0) { d = -d;}
+        r.x = r.x / d;
+        r.y = r.y / d;
+        r.z = r.z / d;
+        return r;
+    }
+
+    vec3 reflectRay(vec3 rayD, vec3 N)
+    {
+        float d = dot(rayD, N)*2.0;
+        return unit( rayD - N*d );
+    }
+    float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
+    {
+        float a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
+        float b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
+        float c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
+        float top = b*b - 4.0*a*c;
+
+        if (top >= 0.001)
+        {
+            top = sqrt(top);
+            float t1 = (-b-top)/(2.0*a);
+            float t2 = (-b+top)/(2.0*a);
+            if (t1 > 0.01 && (t1 < t2 || t2 < 0.01))
+            {
+            return t1;
+            } else if (t2 > 0.01 && (t2 < t1 || t1 < 0.01))
+            {
+            return t2;
+            }
+        }
+        return 100000.0;
+    }
+
+    float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
+    {
+        float t = dot(pP-rayP, pN) / dot(rayD, pN);
+        if (t > 0.001)
+        {
+            return t;
+        }
+        return 10000.0;
+    }
+
+    float distToPoint(vec3 rayP, vec3 P)
+    {
+        vec3 x = P-rayP;
+        return sqrt( dot(x,x) );
+    }
+
+    float distToCube(vec3 rayD, vec3 rayP, vec3 cubeCenter, float cubeR)
+    {
+        float r = cubeR;
+        float d = distToPlane(rayD, rayP, cubeCenter + vec3(0,0,r), vec3(0,0,1));
+        vec3 interPoint = rayP + rayD*d;
+        if (interPoint.x < cubeCenter.x+r && 
+            interPoint.x > cubeCenter.x-r &&
+            interPoint.y < cubeCenter.y+r &&
+            interPoint.y > cubeCenter.y-r
+            )
+        {
+            return d;
+        }
+        return 100000.0;
+    }
+
+
+    vec4 fireRay(vec3 rayD, vec3 rayP) {
+        vec4 fragColor = vec4(0,0,0,1);
+        float percentDone = 0.0;
+
+        vec3 lightSource = vec3(4,4,4);
+
+
+        //SPhERES//////////////////////
+        const int numSpheres = 9;
+        vec3 sphereC[numSpheres];
+        sphereC[0] = vec3(0,-3,0);
+        sphereC[1] = vec3(0,-2,1);
+        sphereC[2] = vec3(0,-1,2);
+        sphereC[3] = vec3(1,0,0);
+        sphereC[4] = vec3(1,1,1);
+        sphereC[5] = vec3(1,2,2);
+        sphereC[6] = vec3(2,3,0);
+        sphereC[7] = vec3(2,4,1);
+        sphereC[8] = vec3(2,5,2);
+       
+        float sphereR[numSpheres];
+        sphereR[0] = 2.;
+        sphereR[1] = .5;
+        sphereR[2] = .5;
+        sphereR[3] = .5;
+        sphereR[4] = .5;
+        sphereR[5] = .5;
+        sphereR[6] = .5;
+        sphereR[7] = .5;
+        sphereR[8] = .5;
+
+        vec3 sphereColor[numSpheres];
+        sphereColor[0] = vec3( 1, 0.5, 0.5);
+        sphereColor[1] = vec3( 0.5, 1, 0.5);
+        sphereColor[2] = vec3( 0.5, 0.5, 1);
+        sphereColor[3] = vec3( 1, 0.5, 1);
+        sphereColor[4] = vec3( 1, 1, 0.5);
+        sphereColor[5] = vec3( 0.5, 1, 1);
+        sphereColor[6] = vec3( 1, 1, 1);
+        sphereColor[7] = vec3( 1, 0.5, 0.5);
+        sphereColor[8] = vec3( 1, 0.5, 0.5);
+
+        //PLANES////////////////////////
+        const int numPlanes = 5;
+        vec3 planeC[numPlanes];
+        planeC[0] = vec3(0,0,10);
+        planeC[1] = vec3(0,5,0);
+        planeC[2] = vec3(0,-5,0);
+        planeC[3] = vec3(-5,0,0);
+        planeC[4] = vec3(5,0,0);
+
+        vec3 planeN[numPlanes];
+        planeN[0] = vec3(0,0,1);
+        planeN[1] = vec3(0,1,0);
+        planeN[2] = vec3(0,1,0);
+        planeN[3] = vec3(1,0,0);
+        planeN[4] = vec3(1,0,0);
+
+        vec3 planeColor[numPlanes];
+        planeColor[0] = vec3(1,0,0);
+        planeColor[1] = vec3(0,1,0);
+        planeColor[2] = vec3(0,0,1);
+        planeColor[3] = vec3(0.6,0,0.6);
+        planeColor[4] = vec3(0.5,0.5,0.5);
+
+        //CUBES/////////////////////////
+        const int numCubes = 1;
+        vec3 cubeCenters[numCubes];
+        cubeCenters[0] = vec3(0,0,0);
+
+        float cubeRs[numCubes];
+        cubeRs[0] = 0.5;
+        
+
+        
+        float temp = 1000.0;
+        float bestD = 1000000.0;
+        bool bestIsSphere = false;
+        int leavingSphere = -1;
+        int sphereHit = -1;
+
+        vec3 C;
+        vec3 N;
+        vec3 color;
+        float R;
+
+        for (int tick=0; tick<10; tick++) {
+            bestD = 100000.0;
+
+            //initial distances
+            for (int i=0; i<numSpheres; i++)
+            {
+                if (leavingSphere == i) { continue; }
+                temp = distToSphere(rayD, rayP, sphereC[i], sphereR[i]);
+                if (temp < bestD && temp > 0.0)
+                {
+                    bestD = temp;
+                    C = sphereC[i];
+                    R = sphereR[i];
+                    bestIsSphere = true;
+                    color = sphereColor[i];
+                    sphereHit = i;
+                }
+            }
+
+            for (int i=0; i<numPlanes; i++)
+            {
+                temp = distToPlane(rayD, rayP, planeC[i], planeN[i]);
+                if (temp < bestD && temp > 0.0)
+                {
+                    bestD = temp;
+                    C = planeC[i];
+                    N = planeN[i];
+                    color = planeColor[i];
+                    bestIsSphere = false;
+                }
+            }
+
+            temp = 100000.0;
+            for (int i=0; i<numCubes; i++)
+            {
+                float r = cubeRs[i];
+                float d = distToPlane(rayD, rayP, cubeCenters[i] + vec3(0,0,r), vec3(0,0,1));
+                vec3 interPoint = rayP + rayD*d;
+                if ( d < bestD &&
+                    interPoint.x < cubeCenters[i].x+r && 
+                    interPoint.x > cubeCenters[i].x-r &&
+                    interPoint.y < cubeCenters[i].y+r &&
+                    interPoint.y > cubeCenters[i].y-r
+                    )
+                {
+                    bestD = d;
+                    C = vec3(1,0,0);
+                    N = vec3(0,0,1);
+                    bestIsSphere = false;
+                }
+            }
+
+
+            if (bestD < 10000.0 && bestIsSphere == true)
+            {
+                //Hit a sphere!!
+                leavingSphere = sphereHit;
+                
+                rayP = rayP + rayD*bestD;
+                rayD = reflectRay(rayD, unit( C - rayP)) + vec3(sin(uSphereDeformationFrequency*rayP.x), sin(uSphereDeformationFrequency*rayP.y), sin(uSphereDeformationFrequency*rayP.z))*uSphereDeformationMultiplier;
+                rayD = normalize(rayD);
+
+                if (sphereHit > 2 && sphereHit < 6)
+                {
+                    rayD = -rayD;
+                    continue;
+                }
+                
+                vec3 newRayD = unit(lightSource - rayP);
+
+                float d = distToPoint(rayP, lightSource);
+                
+                for (int i=0; i<numSpheres; i++)
+                {
+
+                    //if (i == sphereHit) { continue; }
+
+                    temp = distToSphere(newRayD, rayP, sphereC[i], sphereR[i]);
+                    if (temp < d && temp > 0.01)
+                    {
+                        d = d*2.0;
+                        break;
+                    }
+                }
+                
+                d = d/uLightDistanceDivisor;
+                temp = (1.0-percentDone)*uSphereReflectance;
+                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                percentDone += temp;
+
+
+            } else if (bestD < 10000.0)
+            {
+                //Hit a plane!
+                leavingSphere = -1;
+
+                rayP = rayP + bestD*rayD;
+                rayD = reflectRay(rayD, N);
+                vec3 newRayD = unit(lightSource - rayP);
+
+                float d = distToPoint(rayP, lightSource);
+                
+                for (int i=0; i<numSpheres; i++)
+                {
+                    temp = distToSphere(newRayD, rayP, sphereC[i], sphereR[i]);
+                    if (temp < d && temp > 0.0)
+                    {
+                        d = d*2.0;
+                        break;
+                    }
+                }
+                
+                d = d/uLightDistanceDivisor;
+                temp = (1.0-percentDone)*uPlaneReflectance;
+                /*if (sin(rayP.x*5.) > 0. && sin(rayP.y*5.) > 0.)
+                {
+                    fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                } else {
+                    fragColor += temp*vec4(color.y/d, color.z/d, color.x/d, 0);
+                }*/
+                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+
+                percentDone += temp;
+            } else {
+                return fragColor;
+            }
+
+
+            if (percentDone > 0.9)
+            {
+                return fragColor;
+            }
+            
+        }
+
+        //Return white if there's an issue and nothing is hit.
+        return fragColor;
+    }
+
+    void main() {
+        vec3 rayD = unit(vec3(vScreenPos.x*3.0*uAspectRatio[0]/3.0, vScreenPos.y*3.0, 5.0));
+        rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
+        vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
+        gl_FragColor = fireRay(rayD, rayP);
+        gl_FragColor.a = 1.0;
+    }
+    `;
+
+    return defaultCode;
+}
+
+///THIS IS THE ONE USED
+function generateShader3() {
+
+    const numSpheres = 10;
+    let spheres = [];
+    for (let i=0; i<numSpheres; i++)
+    {
+        let center = new vec4(3 - Math.random() * 6, 3 - Math.random()*6, 3 - Math.random()*6);
+        let color = new vec4(Math.random(),Math.random(), Math.random(), 1);
+        let radius = Math.random() + 0.3;
+        spheres.push(
+            {
+                center:center,
+                radius:radius,
+                color:color,
+            }
+        )
+    }
+    
+    let planes = [];
+    planes.push({ center: new vec4(0,0,10),  normal: new vec4(0,0,1),  color: new vec4(Math.random(),0,Math.random()) });
+    planes.push({ center: new vec4(0,5,0),  normal: new vec4(0,1,0),  color: new vec4(0,Math.random(),0) });
+    planes.push({ center: new vec4(0,-5,0),  normal: new vec4(0,1,0),  color: new vec4(Math.random(),0,Math.random()) });
+    planes.push({ center: new vec4(-5,0,0),  normal: new vec4(1,0,0),  color: new vec4(Math.random(),0.6,0) });
+    planes.push({ center: new vec4(5,0,10),  normal: new vec4(1,0,0),  color: new vec4(Math.random(),Math.random(),Math.random()) });
+    const numPlanes = planes.length;
+
+
+
+
+    const precision = 4;
+    let sphereCode = "const int numSpheres = " + numSpheres + ";\n";
+    sphereCode += "vec3 sphereC[numSpheres];\n";
+    sphereCode += "float sphereR[numSpheres];\n";
+    sphereCode += "vec3 sphereColor[numSpheres];\n";
+    for (let i=0; i<numSpheres; i++)
+    {
+        const s = spheres[i];
+        sphereCode += "sphereC["+i+"] = vec3("+s.center.x.toPrecision(precision)+","+s.center.y.toPrecision(precision)+","+s.center.z.toPrecision(precision)+");\n";
+        sphereCode += "sphereColor["+i+"] = vec3("+s.color.x.toPrecision(precision)+","+s.color.y.toPrecision(precision)+","+s.color.z.toPrecision(precision)+");\n";
+        sphereCode += "sphereR["+i+"] = " + s.radius.toPrecision(precision)+";\n";
+    }
+
+    let planeCode = "const int numPlanes = " + numPlanes + ";\n";
+    planeCode += "vec3 planeC[numPlanes];\n";
+    planeCode += "vec3 planeN[numPlanes];\n";
+    planeCode += "vec3 planeColor[numPlanes];\n";
+    for (let i=0; i<numPlanes; i++)
+    {
+        const s = planes[i];
+        planeCode += "planeC["+i+"] = vec3("+s.center.x.toPrecision(precision)+","+s.center.y.toPrecision(precision)+","+s.center.z.toPrecision(precision)+");\n";
+        planeCode += "planeColor["+i+"] = vec3("+s.color.x.toPrecision(precision)+","+s.color.y.toPrecision(precision)+","+s.color.z.toPrecision(precision)+");\n";
+        planeCode += "planeN["+i+"] = vec3("+s.normal.x.toPrecision(precision)+","+s.normal.y.toPrecision(precision)+","+s.normal.z.toPrecision(precision)+");\n";
+    }
+
+
+    const beginning = `
+    precision highp float;
+    varying vec4 vScreenPos;
+
+    uniform vec4 uViewPosition;
+    uniform mat4 uRotationMatrix;
+    uniform float uLightDistanceDivisor;
+    uniform float uPlaneReflectance;
+    uniform float uSphereReflectance;
+    uniform float uSphereDeformationMultiplier;
+    uniform float uSphereDeformationFrequency;
+    uniform vec2 uAspectRatio;
+
+
+    struct MyData {
+        float distance;
+        vec3 normal;
+        vec3 position;
+        vec3 color;
+        int sphereHit;
+        int planeHit;
+    };
+
+
+    vec3 unit(vec3 r)
+    {
+        float d = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
+        if (d < 0.0) { d = -d;}
+        r.x = r.x / d;
+        r.y = r.y / d;
+        r.z = r.z / d;
+        return r;
+    }
+    vec3 reflectRay(vec3 rayD, vec3 N)
+    {
+        float d = dot(rayD, N)*2.0;
+        return unit( rayD - N*d );
+    }`;
+
+    const findHitData = `
+    MyData findHitData(vec3 rayD, vec3 rayP,
+        vec3 sphereCenters[`+numSpheres+`], float sphereRs[`+numSpheres+`], vec3 sphereColors[`+numSpheres+`], int sphereToSkip,
+        vec3 planeCenters[`+numPlanes+`], vec3 planeNormals[`+numPlanes+`], vec3 planeColors[`+numPlanes+`], int planeToSkip
+        )
+    {
+        const int numSpheres = `+numSpheres+`;
+        const int numPlanes = `+numPlanes+`;
+
+        MyData data;
+        data.distance = 100000.0;
+
+        /////////////// FOR EACH SPHERE /////////////////////
+        float a,b,c,top,dist,sR,t1,t2;
+        for (int i=0; i<numSpheres; i++)
+        {
+            if (sphereToSkip == i) {continue;}
+            vec3 sC = sphereCenters[i];
+            sR = sphereRs[i];
+            a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
+            b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
+            c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
+            top = b*b - 4.0*a*c;
+            dist = 100000.0;
+            if (top >= 0.001)
+            {
+                top = sqrt(top); 
+                t1 = (-b-top)/(2.0*a);
+                t2 = (-b+top)/(2.0*a);
+                if (t1 > 0.01 && (t1 < t2 || t2 < 0.01))         { dist = t1;
+                } else if (t2 > 0.01 && (t2 < t1 || t1 < 0.01)) {  dist = t2; }
+            }
+            if (dist < data.distance)
+            {
+                data.distance = dist;
+                data.position = rayP + rayD*dist;
+                data.color = sphereColors[i];
+                data.normal = data.position - sphereCenters[i];
+                data.sphereHit = i;
+                data.planeHit = -1;
+            }
+        }
+
+        //////////////// FOR EACH PLANE ///////////////////
+        for (int i=0; i < numPlanes; i++)
+        {
+            if (planeToSkip == i) {continue;}
+            dist = dot(planeCenters[i]-rayP, planeNormals[i]) / dot(rayD, planeNormals[i]);
+            if (dist > 0.001 && dist < data.distance)
+            {
+                data.distance = dist;
+                data.position = rayP + rayD*dist;
+                data.normal = planeNormals[i];
+                data.color = planeColors[i];
+                data.sphereHit = -1;
+                data.planeHit = i;
+            }
+        }
+        return data;
+    }`;
+
+    const fireRayAndMain = `
+    vec4 fireRay(vec3 rayD, vec3 rayP) {
+
+        ` + sphereCode + "\n" + planeCode +`
+
+        //CUBES/////////////////////////
+        const int numCubes = 1;
+        vec3 cubeCenters[numCubes];
+        cubeCenters[0] = vec3(0,0,0);
+
+        float cubeRs[numCubes];
+        cubeRs[0] = 0.5;
+
+
+
+
+        float temp = 1000.0;
+        float d = 0.0;
+        vec4 fragColor = vec4(0,0,0,1);
+        float percentDone = 0.0;
+        vec3 lightSource = vec3(4,4,4);
+        int previousSphereHit = -1;
+        int previousPlaneHit = -1;
+
+
+        for (int tick=0; tick<10; tick++) {
+
+            //Find intersecting object, distance, normal, etc.
+            MyData data;
+            data = findHitData(rayD, rayP, sphereC, sphereR, sphereColor, previousSphereHit, planeC, planeN, planeColor, previousPlaneHit);
+            previousSphereHit = data.sphereHit;
+            previousPlaneHit = data.planeHit;
+
+            vec3 newRayD = reflectRay(rayD, unit(data.normal));
+            vec3 newRayP = data.position;
+            vec3 tempRayD = unit(lightSource - data.position);
+            vec3 tempRayP = data.position;
+
+            //Check if we can see the light source
+            MyData dataToLightSource;
+            dataToLightSource = findHitData(tempRayD, tempRayP, sphereC, sphereR, sphereColor, -1, planeC, planeN, planeColor, -1);
+            
+            float distToLight = length(newRayP - lightSource);
+            
+            vec3 color = data.color;
+            
+            float reflectance = uSphereReflectance;
+            if (data.planeHit > -1)
+            {
+                reflectance = uPlaneReflectance;
+            }
+
+
+            if (distToLight < dataToLightSource.distance)
+            {
+                //We're in light
+                d = distToLight/uLightDistanceDivisor;
+                temp = (1.0-percentDone)*reflectance;
+                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                percentDone += temp;
+            } else {
+                //In shadow
+                d = 2.0*distToLight/uLightDistanceDivisor;
+                temp = (1.0-percentDone)*reflectance;
+                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                percentDone += temp;
+            }
+
+            if (percentDone > 0.9 || tick > 8)
+            {
+                fragColor.a = 1.0;
+                return fragColor;
+            }
+
+
+            rayD = newRayD;
+            rayP = newRayP;
+            if (data.sphereHit > -1)
+            {
+                rayD += vec3(sin(uSphereDeformationFrequency*rayP.x), sin(uSphereDeformationFrequency*rayP.y), sin(uSphereDeformationFrequency*rayP.z))*uSphereDeformationMultiplier;
+            }
+        }
+    }
+
+
+    void main() {
+        vec3 rayD = unit(vec3(vScreenPos.x*3.0*uAspectRatio[0]/3.0, vScreenPos.y*3.0, 5.0));
+        rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
+        vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
+        gl_FragColor = fireRay(rayD, rayP);
+        gl_FragColor.a = 1.0;
+    }
+    `;
+    
+    const combined = beginning + findHitData + fireRayAndMain;
+    console.log(combined);
+    return combined;
+}
+
+
+
+
+
+
 
 
 
@@ -516,8 +1108,6 @@ float distToPoint(vec3 rayP, vec3 P)
     return defaultCode + str + mainFunction;
 }
 
-
-
 function generateShader4() {
     const defaultCode = `
     precision highp float;
@@ -728,285 +1318,6 @@ float distToPoint(vec3 rayP, vec3 P)
     str += "} return color;}";
     console.log(defaultCode + str + mainFunction);
     return defaultCode + str + mainFunction;
-}
-
-
-///THIS IS THE ONE USED
-function generateShader3() {
-    const defaultCode = `
-    precision highp float;
-    varying vec4 vScreenPos;
-
-    uniform vec4 uViewPosition;
-    uniform mat4 uRotationMatrix;
-    uniform float uLightDistanceDivisor;
-    uniform float uPlaneReflectance;
-    uniform float uSphereReflectance;
-    uniform float uSphereDeformationMultiplier;
-    uniform float uSphereDeformationFrequency;
-    uniform vec2 uAspectRatio;
-
-
-    vec3 unit(vec3 r)
-    {
-        float d = sqrt(r.x*r.x + r.y*r.y + r.z*r.z);
-        if (d < 0.0) { d = -d;}
-        r.x = r.x / d;
-        r.y = r.y / d;
-        r.z = r.z / d;
-        return r;
-    }
-
-    vec3 reflectRay(vec3 rayD, vec3 N)
-    {
-        float d = dot(rayD, N)*2.0;
-        return unit( rayD - N*d );
-    }
-    float distToSphere(vec3 rayD, vec3 rayP, vec3 sC, float sR)
-    {
-        float a = rayD.x*rayD.x + rayD.y*rayD.y + rayD.z*rayD.z;
-        float b = 2.0 * (rayD.x * (rayP.x - sC.x) + rayD.y * (rayP.y - sC.y) + rayD.z * (rayP.z - sC.z));
-        float c = (rayP.x-sC.x)*(rayP.x-sC.x) + (rayP.y-sC.y)*(rayP.y-sC.y) + (rayP.z-sC.z)*(rayP.z-sC.z) - sR*sR;
-        float top = b*b - 4.0*a*c;
-
-        if (top >= 0.001)
-        {
-            top = sqrt(top);
-            float t1 = (-b-top)/(2.0*a);
-            float t2 = (-b+top)/(2.0*a);
-            if (t1 > 0.01 && (t1 < t2 || t2 < 0.01))
-            {
-            return t1;
-            } else if (t2 > 0.01 && (t2 < t1 || t1 < 0.01))
-            {
-            return t2;
-            }
-        }
-        return 100000.0;
-    }
-
-    float distToPlane(vec3 rayD, vec3 rayP, vec3 pP, vec3 pN)
-    {
-        float t = dot(pP-rayP, pN) / dot(rayD, pN);
-        if (t > 0.001)
-        {
-            return t;
-        }
-        return 10000.0;
-    }
-    float distToPoint(vec3 rayP, vec3 P)
-    {
-        vec3 x = P-rayP;
-        return sqrt( dot(x,x) );
-    }
-
-
-    vec4 fireRay(vec3 rayD, vec3 rayP) {
-        vec4 fragColor = vec4(0,0,0,1);
-        float percentDone = 0.0;
-
-        vec3 lightSource = vec3(4,4,4);
-
-
-        const int numSpheres = 9;
-        vec3 sphereC[numSpheres];
-        sphereC[0] = vec3(0,-3,0);
-        sphereC[1] = vec3(0,-2,1);
-        sphereC[2] = vec3(0,-1,2);
-        sphereC[3] = vec3(1,0,0);
-        sphereC[4] = vec3(1,1,1);
-        sphereC[5] = vec3(1,2,2);
-        sphereC[6] = vec3(2,3,0);
-        sphereC[7] = vec3(2,4,1);
-        sphereC[8] = vec3(2,5,2);
-       
-
-        float sphereR[numSpheres];
-        sphereR[0] = 2.;
-        sphereR[1] = .5;
-        sphereR[2] = .5;
-        sphereR[3] = .5;
-        sphereR[4] = .5;
-        sphereR[5] = .5;
-        sphereR[6] = .5;
-        sphereR[7] = .5;
-        sphereR[8] = .5;
-
-        vec3 sphereColor[numSpheres];
-        sphereColor[0] = vec3( 1, 0.5, 0.5);
-        sphereColor[1] = vec3( 0.5, 1, 0.5);
-        sphereColor[2] = vec3( 0.5, 0.5, 1);
-        sphereColor[3] = vec3( 1, 0.5, 1);
-        sphereColor[4] = vec3( 1, 1, 0.5);
-        sphereColor[5] = vec3( 0.5, 1, 1);
-        sphereColor[6] = vec3( 1, 1, 1);
-        sphereColor[7] = vec3( 1, 0.5, 0.5);
-        sphereColor[8] = vec3( 1, 0.5, 0.5);
-
-
-        const int numPlanes = 5;
-        vec3 planeC[numPlanes];
-        planeC[0] = vec3(0,0,10);
-        planeC[1] = vec3(0,5,0);
-        planeC[2] = vec3(0,-5,0);
-        planeC[3] = vec3(-5,0,0);
-        planeC[4] = vec3(5,0,0);
-
-        vec3 planeN[numPlanes];
-        planeN[0] = vec3(0,0,1);
-        planeN[1] = vec3(0,1,0);
-        planeN[2] = vec3(0,1,0);
-        planeN[3] = vec3(1,0,0);
-        planeN[4] = vec3(1,0,0);
-
-        vec3 planeColor[numPlanes];
-        planeColor[0] = vec3(1,0,0);
-        planeColor[1] = vec3(0,1,0);
-        planeColor[2] = vec3(0,0,1);
-        planeColor[3] = vec3(0.6,0,0.6);
-        planeColor[4] = vec3(0.5,0.5,0.5);
-
-        
-        float temp = 1000.0;
-        float bestD = 1000000.0;
-        bool bestIsSphere = false;
-        int leavingSphere = -1;
-        int sphereHit = -1;
-
-        vec3 C;
-        vec3 N;
-        vec3 color;
-        float R;
-
-
-        for (int tick=0; tick<10; tick++) {
-            bestD = 100000.0;
-
-            //initial distances
-            for (int i=0; i<numSpheres; i++)
-            {
-                if (leavingSphere == i) { continue; }
-                temp = distToSphere(rayD, rayP, sphereC[i], sphereR[i]);
-                if (temp < bestD && temp > 0.0)
-                {
-                    bestD = temp;
-                    C = sphereC[i];
-                    R = sphereR[i];
-                    bestIsSphere = true;
-                    color = sphereColor[i];
-                    sphereHit = i;
-                }
-            }
-            for (int i=0; i<numPlanes; i++)
-            {
-                temp = distToPlane(rayD, rayP, planeC[i], planeN[i]);
-                if (temp < bestD && temp > 0.0)
-                {
-                    bestD = temp;
-                    C = planeC[i];
-                    N = planeN[i];
-                    color = planeColor[i];
-                    bestIsSphere = false;
-                }
-            }
-
-
-            if (bestD < 10000.0 && bestIsSphere == true)
-            {
-                //Hit a sphere!!
-                leavingSphere = sphereHit;
-                
-                rayP = rayP + rayD*bestD;
-                rayD = reflectRay(rayD, unit( C - rayP)) + vec3(sin(uSphereDeformationFrequency*rayP.x), sin(uSphereDeformationFrequency*rayP.y), sin(uSphereDeformationFrequency*rayP.z))*uSphereDeformationMultiplier;
-                rayD = normalize(rayD);
-
-                if (sphereHit > 2 && sphereHit < 6)
-                {
-                    rayD = -rayD;
-                    continue;
-                }
-                
-                vec3 newRayD = unit(lightSource - rayP);
-
-                float d = distToPoint(rayP, lightSource);
-                
-                for (int i=0; i<numSpheres; i++)
-                {
-
-                    //if (i == sphereHit) { continue; }
-
-                    temp = distToSphere(newRayD, rayP, sphereC[i], sphereR[i]);
-                    if (temp < d && temp > 0.01)
-                    {
-                        d = d*2.0;
-                        break;
-                    }
-                }
-                
-                d = d/uLightDistanceDivisor;
-                temp = (1.0-percentDone)*uSphereReflectance;
-                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
-                percentDone += temp;
-
-
-            } else if (bestD < 10000.0)
-            {
-                //Hit a plane!
-                leavingSphere = -1;
-
-                rayP = rayP + bestD*rayD;
-                rayD = reflectRay(rayD, N);
-                vec3 newRayD = unit(lightSource - rayP);
-
-                float d = distToPoint(rayP, lightSource);
-                
-                for (int i=0; i<numSpheres; i++)
-                {
-                    temp = distToSphere(newRayD, rayP, sphereC[i], sphereR[i]);
-                    if (temp < d && temp > 0.0)
-                    {
-                        d = d*2.0;
-                        break;
-                    }
-                }
-                
-                d = d/uLightDistanceDivisor;
-                temp = (1.0-percentDone)*uPlaneReflectance;
-                /*if (sin(rayP.x*5.) > 0. && sin(rayP.y*5.) > 0.)
-                {
-                    fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
-                } else {
-                    fragColor += temp*vec4(color.y/d, color.z/d, color.x/d, 0);
-                }*/
-                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
-
-                percentDone += temp;
-            } else {
-                return fragColor;
-            }
-
-
-            if (percentDone > 0.9)
-            {
-                return fragColor;
-            }
-            
-        }
-
-        //Return white if there's an issue and nothing is hit.
-        return fragColor;
-    }
-
-    void main() {
-        vec3 rayD = unit(vec3(vScreenPos.x*3.0*uAspectRatio[0]/3.0, vScreenPos.y*3.0, 5.0));
-        rayD = ( uRotationMatrix * vec4(rayD.xyz,1.0) ).xyz;        
-        vec3 rayP = uViewPosition.xyz;  //vec3(0.0, 0.0, 0.0);
-        gl_FragColor = fireRay(rayD, rayP);
-        gl_FragColor.a = 1.0;
-    }
-    `;
-
-    return defaultCode;
 }
 
 
