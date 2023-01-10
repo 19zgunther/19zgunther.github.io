@@ -118,13 +118,12 @@ const vertices = [-1,1,0, 1,1,0, 1,-1,0, -1,-1,0];
 const indices = [0,1,2, 0,2,3];
 const buffers = initBuffers(vertices, null, null, indices);
 
-var updateInterval = setInterval(update, 30);
+var updateInterval = setInterval(update, 1000);
 document.addEventListener('keydown', keyPressed);
 document.addEventListener('keyup', keyReleased);
 glCanvasElement.addEventListener('mousedown', mouseDown);
 glCanvasElement.addEventListener('mousemove', mouseMove);
 document.addEventListener('mouseup', mouseUp);
-
 
 
 function setup() {
@@ -690,22 +689,22 @@ function generateShader3() {
     //     //vertices.push(new vec4(0, i, 0), new vec4(1, i, 0), new vec4(1,i+1,0));
     //     //colors.push(new vec4(1,0,0), new vec4(0,1,0), new vec4(0,0,1));
     // }
-    const r = 3
-    for (let a = 0; a < 3; a += 0.5)
-    {
-        let a2 = a + 0.25;
-        let a3 = a + 0.5;
-        vertices.push(
-            new vec4(r * Math.sin(a ),     r*Math.cos(a ),     Math.random()),
-            new vec4(1.5*r * Math.sin(a2), 1.5*r*Math.cos(a2), Math.random()),
-            new vec4(r * Math.sin(a3),     r*Math.cos(a3),     Math.random())
-        );
-        colors.push(
-            new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit(),
-            new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit(),
-            new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit()
-        );
-    }
+    // const r = 3
+    // for (let a = 0; a < 3; a += 0.5)
+    // {
+    //     let a2 = a + 0.25;
+    //     let a3 = a + 0.5;
+    //     vertices.push(
+    //         new vec4(r * Math.sin(a ),     r*Math.cos(a ),     Math.random()),
+    //         new vec4(1.5*r * Math.sin(a2), 1.5*r*Math.cos(a2), Math.random()),
+    //         new vec4(r * Math.sin(a3),     r*Math.cos(a3),     Math.random())
+    //     );
+    //     colors.push(
+    //         new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit(),
+    //         new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit(),
+    //         new vec4(Math.random(), Math.random(), Math.random()).scaleToUnit()
+    //     );
+    // }
 
 
 
@@ -961,19 +960,22 @@ function generateShader3() {
                 reflectance = 0.7;
             }
 
-
+            float minLightLevelMultiplier = 0.2;
+            float dt = minLightLevelMultiplier;
             if (distToLight < dataToLightSource.distance)
             {
                 //We're in light
                 d = distToLight/uLightDistanceDivisor;
                 temp = (1.0-percentDone)*reflectance;
-                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                dt = max(dot(data.normal, tempRayD), minLightLevelMultiplier);
+
+                fragColor += temp*vec4(dt * color.x/d, dt * color.y/d, dt * color.z/d, 0);
                 percentDone += temp;
             } else {
                 //In shadow
                 d = 2.0*distToLight/uLightDistanceDivisor;
                 temp = (1.0-percentDone)*reflectance;
-                fragColor += temp*vec4(color.x/d, color.y/d, color.z/d, 0);
+                fragColor += temp*vec4(dt*color.x/d, dt*color.y/d, dt*color.z/d, 0);
                 percentDone += temp;
             }
 
