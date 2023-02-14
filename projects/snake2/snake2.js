@@ -635,7 +635,7 @@ class Snake
     var NUM_SNAKES = 20;
     var GRID_WIDTH = 32;
 
-    var SNAKE_ML = new ML([25,20,10,4]);
+    var SNAKE_ML = new ML([49,30,10,4]);
 
     var AVERAGE_AGE = 0;
     var AVERAGE_APPLES_CONSUMED = 0;
