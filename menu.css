@@ -6,17 +6,9 @@
     font-family:'Courier New';
     color: white;
 
-    /*--theme_color: #ac4d2d;*/
-    /*
-    --theme_color: rgb(70, 97, 114);
-    --theme_color_low_opacity: rgba(70, 97, 114, 0.7);
-    --theme_color_light2: rgb(156, 215, 252);
-    --theme_color_light: rgb(129, 177, 207);
-    --theme_color_dark: rgb(32, 44, 51);*/
     --background_color: rgba(20,20,20,.7);
     --button_highlight_color: rgba(40,40,40,1);
     --dropdown_child_color: rgba(30,30,30,1);
-
     --theme_color: rgb(255, 199, 139);
     --theme_color_low_opacity: rgba(255, 189, 118,0.5);
     --theme_color_light2: rgb(253, 234, 214);
@@ -26,9 +18,7 @@
     --scroll_indicator_color: var(--theme_color);
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap');
-
-
+/* @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&display=swap'); */
 
 
 .menu {
@@ -41,7 +31,6 @@
     max-width: 100%;
     min-height: fit-content;
     background-color: var(--background_color);
-    /*background-color:  rgba(20, 32, 66,.7);*/
     display:flex;
     justify-content: right;
 }
@@ -49,7 +38,6 @@
     cursor: pointer;
     font-size: 1rem;
     color: rgba(200,200,200);
-    /*font-weight: bold;*/
     text-align: center;
     display: block;
     float: left;
@@ -124,31 +112,14 @@
     opacity: 1;
 }
 
-
-logo{
+logo {
+    font-family:'Times New Roman', Times, serif;
     cursor: pointer;
-    /*color: #141A46;*/
     font-size:3rem;
-    /*
-    color: rgba(1,1,1,1);
-    text-shadow: 0px 0px 5px var(--theme_color);
-    background-image:url('Lake3IMG.jpg');
-    background-size:cover; */
 
-    /*
-    background-image:url('LogoBackgroundImage.jpg');
-    background-size:cover; 
-    color: rgba(0,0,0,0);
-    -moz-background-clip: text;
-    -webkit-background-clip: text;
-    background-clip: text; */
-
-    /*background-color:var(--theme_color);*/
     background-color: rgba(0,0,0,0);
     color: var(--theme_color);
 
-    /*background-color: var(--theme_color);
-    color: var(--theme_color_dark);*/
     display: block;
     position: relative;
 
@@ -158,8 +129,6 @@ logo{
     margin: auto;
     padding: 0px;
     
-    /*letter-spacing: 0px;*/
-
     -webkit-transition: background-color 0.5s, color 0.5s 0.1s;
     -moz-transition: background-color 0.5s, color 0.5s 0.1s;
     -o-transition: background-color 0.5s, color 0.5s 0.1s;
@@ -167,9 +136,7 @@ logo{
     transition: background-color 0.5s, color 0.5s 0.1s, clip-path 1s;
 }
 logo:hover {
-    /*background-color: var(--button_highlight_color);*/
     color: rgba(0,0,0,1);
-    /*background-clip: border-box;*/
     background-color: var(--theme_color);
 }
 #scrollIndicator {

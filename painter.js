@@ -8,7 +8,6 @@ class Painter {
 
         this.plotStrokeWidth = 1;
     }
-
     Clear(color)
     {
         if (color == null)
@@ -23,6 +22,10 @@ class Painter {
             this.SetFillColor(tempFill);
             this.SetStrokeColor(tempStroke);
         }
+    }
+    ClearTransparent()
+    {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
     DrawLine(x1 = 0, y1 = 0, x2 = 10, y2 = 10, color)
     {

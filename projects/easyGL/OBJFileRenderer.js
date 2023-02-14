@@ -20,6 +20,8 @@ class OBJFileRenderer
 
         this.mouseIsDown = false;
 
+        this.mouseInteractionStyle = 2;
+
         this._parseObject(this.objText);
     }
     setPerspective(FOV, aspectRatio, zNear, zFar)
@@ -202,26 +204,63 @@ class OBJFileRenderer
     }
     eventListener(event)
     {
-        if (event.type == "mousedown")
+        if (this.mouseInteractionStyle == 1)
         {
-            this.mouseIsDown = true;
-        } else if (event.type == "mouseup")
+            if (event.type == "mousedown")
+            {
+                this.mouseIsDown = true;
+            } else if (event.type == "mouseup")
+            {
+                this.mouseIsDown = false;
+            } else if (event.type == "mousemove" && this.mouseIsDown)
+            {
+                let dx = event.movementX;
+                let dy = event.movementY;
+                objRenderer.setObjectRotation( objRenderer.getObjectRotation().add(0, dx/100, dy/100));
+                //console.log(dx, dy);
+            } else if (event.type == "mousewheel")
+            {
+                event.preventDefault();
+                const bb = this.canvasElement.getBoundingClientRect();
+                const x = event.offsetX - bb.width/2;
+                const y = -(event.offsetY - bb.height/2);
+                const dt = -event.deltaY/100;
+                objRenderer.setObjectPosition( objRenderer.getObjectPosition().add(dt*x/300, dt*y/300, -dt));
+            }
+        } else if (this.mouseInteractionStyle == 2)
         {
-            this.mouseIsDown = false;
-        } else if (event.type == "mousemove" && this.mouseIsDown)
-        {
-            let dx = event.movementX;
-            let dy = event.movementY;
-            objRenderer.setObjectRotation( objRenderer.getObjectRotation().add(0, dx/100, dy/100));
-            //console.log(dx, dy);
-        } else if (event.type == "mousewheel")
-        {
-            event.preventDefault();
-            const bb = this.canvasElement.getBoundingClientRect();
-            const x = event.offsetX - bb.width/2;
-            const y = -(event.offsetY - bb.height/2);
-            const dt = -event.deltaY/100;
-            objRenderer.setObjectPosition( objRenderer.getObjectPosition().add(dt*x/300, dt*y/300, -dt));
+            if (event.type == "mousedown")
+            {
+                this.mouseButtonDown = event.button;
+                this.mouseIsDown = true;
+            } else if (event.type == "mouseup")
+            {
+                this.mouseButtonDown = event.button;
+                this.mouseIsDown = false;
+            } else if (event.type == "mousemove" && this.mouseIsDown)
+            {
+                if (this.mouseButtonDown == 1) // translate
+                {
+                    console.log(event)
+                    const x = event.movementX;
+                    const y = -event.movementY;
+                    console.log(x,y);
+                    objRenderer.setObjectPosition( objRenderer.getObjectPosition().add(x/100, y/100, 0));
+                } else { //rotate
+                    let dx = event.movementX;
+                    let dy = event.movementY;
+                    objRenderer.setObjectRotation( objRenderer.getObjectRotation().add(0, dx/300, dy/300));
+                }
+
+            } else if (event.type == "mousewheel")
+            {
+                event.preventDefault();
+                const bb = this.canvasElement.getBoundingClientRect();
+                const x = 0;//event.offsetX - bb.width/2;
+                const y = 0;//-(event.offsetY - bb.height/2);
+                const dt = event.deltaY/100;
+                objRenderer.setObjectPosition( objRenderer.getObjectPosition().add(dt*x/300, dt*y/300, -dt));
+            }
         }
     }
 }

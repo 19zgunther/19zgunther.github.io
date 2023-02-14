@@ -1253,6 +1253,8 @@ class EasyGL {
             console.error("EasyGL.setObjectShape() cannot set without objectID (Which object..?)");
             return;
         }
+        const objectData = this.objects.get(objectID);
+        if (objectData == null) { console.log("Object: "+objectID+" does not exist. Cannot set shape."); return;}
 
         //Handle indices & check for correct format
         if (indices != null && indices != undefined && indices.length % 3 != 0) {console.error("Cannot make object with non-multiple of 3 length indices"); return;}
@@ -1293,36 +1295,8 @@ class EasyGL {
             }
         }
 
-        /*
-        //Handle Colors. Can either be:
-        if (colors instanceof vec4)
-        {
-            //case 1: colors = vec4, so we need to expand to all vertices. 
-            let c = colors;
-            colors = [];
-            for (let i=0; i<vertices.length; i++)
-            {
-                colors.push(c.x, c.y, c.z, c.a);
-            }
-        } else if (colors[0] instanceof vec4)
-        {
-            //case 2: colors = [ vec4, vec4, vec4...]
-            let cs = colors;
-            colors = [];
-            for (let i=0; i<cs.length; i++)
-            {
-                colors.push(cs.x, cs.y, cs.z, cs.a);
-            }
-        }
-        */
-
-        //Pass it to this function, because we already wrote the logit...
+        //Pass it to this function, because we already wrote the logic...
         this.setObjectColor(objectID, colors);
-
-
-        const objectData = this.objects.get(objectID);
-        if (objectData == null) { console.log("Object: "+objectID+" does not exist. Cannot set shape."); return;}
-
 
         if (vertices != null && vertices != undefined)
         {
@@ -1336,18 +1310,12 @@ class EasyGL {
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, objectData.normalsBuffer);
             this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(normals), this.gl.STATIC_DRAW);
         }
-        if (indices == null || indices == undefined)
+        if (indices != null && indices != undefined)
         {
             //objectData.indicesBuffer = this.gl.createBuffer();
             this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, objectData.indicesBuffer);
             this.gl.bufferData(this.gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), this.gl.STATIC_DRAW);
         }
-        /*if (colors != null && colors != undefined)
-        {
-            //objectData.colorsBuffer = this.gl.createBuffer();
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, objectData.colorsBuffer);
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
-        }*/
 
         return objectID;
     }
@@ -1407,6 +1375,10 @@ class EasyGL {
     }
     setObjectColor(objectID, color = new vec4(1,.2,0,1), g=0, b=0.4, a=1)
     {
+        if (color == null)
+        {
+            return;
+        }
         const objectData = this.objects.get(objectID);
         if (objectData == null) { console.log("Object: "+objectID+" does not exist. Cannot set color."); return;}
 
