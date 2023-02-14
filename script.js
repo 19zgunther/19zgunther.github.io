@@ -37,6 +37,9 @@
                 <div class = 'menu_dropdown_child' onclick='buttonClick("snake_game_neural_network")'>
                     Snake Game Neural Network
                 </div>
+                <div class = 'menu_dropdown_child' onclick='buttonClick("snake_game_neural_network_v2")'>
+                    Snake Game Neural Network V2
+                </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("easygl")'>
                     EasyGL Library Demo
                 </div>
@@ -107,6 +110,7 @@
             case 'web_experiments':             pageString += 'projects/webExperiments/webExperiments.html'; break;
             case 'webgl_raytracing':            pageString += 'projects/webglRaytracing/webglRaytracing.html'; break;
             case 'snake_game_neural_network':   pageString += 'projects/snake/snake.html'; break;
+            case 'snake_game_neural_network_v2':pageString += 'projects/snake2/snake2.html'; break;
             case 'easygl':                      pageString += 'projects/easyGL/easyGL.html'; break;
             case 'cnc_router':                  pageString += 'projects/cncRouter/cncRouter.html'; break;
         }

@@ -17,8 +17,27 @@
 
     <div style = 'display: flex; width: 100%; justify-content: center;'>
         <h1>
-            Snake Game Neural Network
+            Snake Game Neural Network V2
         </h1>
+    </div>
+    <div style = 'display: flex; width: 100%; justify-content: center;'>
+        <div style="display:block; width: fit-content; max-width: 80vw;">
+            This is my second attempt at making a perfect AI for playing snake game! 
+            This time, the snake learns in real time on your computer. 
+            <br><br>
+            The inputs to this model are the surrounding tiles, and the outputs are Up, Down, Left, and Right. 
+            The neural network rendering below shows the weights of the current model, with red and blue lines representing positive and negative weights respectively.
+            <br><br>
+            Each snake uses the same neural network, thus should all behave the same given the same situation.
+            A centralized machine learning model with multiple snakes is being used to collect more training data per time step.
+            As for the training data, as the snakes navigate the world, training data is generated based on if the snake makes a sub-optimal move.
+            For example, if the model decides to run the head of the snake into a wall, we record the inputs and find an output that if had been generated would have kept the snake alive.
+            To incentivize the snake eating apples, at each update the closest apple is found to the snake and the outputs which would move the snake closer are recorded.
+            For modifying the weights a simple gradient descent back-propagation algorithm was implemented. The activation function used is a linearized tanh function. 
+            Through these two means of learning and gradient descent, the snake is able to learn that 1.) Hitting walls is bad, and 2.) Apples are good
+            <br><br>
+            Feel free to mess around with the different parameters available, and see how the snake learns differently!
+        </div>
     </div>
 
     <style>
@@ -42,7 +61,7 @@
                         Update Speed:
                     </td>
                     <td>
-                        <input id="speedSlider" type="range" min="0" max="100" step="1" oninput="simulationSpeedSliderUpdate()">
+                        <input id="speedSlider" type="range" value="90" min="0" max="100" step="1" oninput="simulationSpeedSliderUpdate()">
                     </td>
                     <td>
                         <div id="speedSliderText"></div>
@@ -57,6 +76,28 @@
                     </td>
                     <td>
                         <div id="numSnakesSliderText"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Num Apples:
+                    </td>
+                    <td>
+                        <input id="numApplesSlider" type="range" value="20" min="1" max="100" step="1" oninput="simulationSpeedSliderUpdate()">
+                    </td>
+                    <td>
+                        <div id="numApplesSliderText"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Grid Width:
+                    </td>
+                    <td>
+                        <input id="gridWidthSlider" type="range" value="32" min="1" max="100" step="1" oninput="simulationSpeedSliderUpdate()">
+                    </td>
+                    <td>
+                        <div id="gridWidthSliderText"></div>
                     </td>
                 </tr>
             </table>
@@ -83,7 +124,7 @@
                         G.D. Iters Per Update:
                     </td>
                     <td>
-                        <input id="gradDescentIterSlider" type="range" value="5" min="1" max="100" step="1" oninput="simulationSpeedSliderUpdate()">
+                        <input id="gradDescentIterSlider" type="range" value="50" min="1" max="100" step="1" oninput="simulationSpeedSliderUpdate()">
                     </td>
                     <td>
                         <div id="gradDescentIterSliderText"></div>
@@ -104,11 +145,14 @@
             </table>
         </div>
         <div style="display: flex; width: 100%; justify-content: center;">
-            <div style='width:fit-content; height:fit-content; background-color: white; color:black; cursor: pointer; padding: 1vmin; margin: 1vmin;' onclick='reset()'>
+            <div style='width:fit-content; height:fit-content; background-color: white; color:black; cursor: pointer; padding: 1vmin; margin: 1vmin;' onclick='setup()'>
                 Reset
             </div>
             <div style='width:fit-content; height:fit-content; background-color: white; color:black; cursor: pointer; padding: 1vmin; margin: 1vmin;' onclick='randomlyPruneWeights()'>
                 Randomly Prune Weights
+            </div>
+            <div style='width:fit-content; height:fit-content; background-color: white; color:black; cursor: pointer; padding: 1vmin; margin: 1vmin;' onclick='resetTrainingData()'>
+                Rest Training Data
             </div>
         </div>
     </div>

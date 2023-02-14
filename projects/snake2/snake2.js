@@ -417,13 +417,6 @@ class Snake
             this.positions.push( [startPos[0]-1, startPos[1]]);
         }
         
-        this.learningDataInputs = [];
-        this.learningDataOutputs = [];
-        this.ml = ml;
-        if (ml == null)
-        {
-            this.ml = new ML([25,25,25,10,4]);
-        }   
         this.inputs = [];
         this.isDead = false;
         //this.score = 0;
@@ -433,9 +426,6 @@ class Snake
         this.prevDirX = 0;
         this.prevDirY = 0;
         this.numTurns = 0;
-
-        this.headOffsetLow = 2;
-        this.headOffsetHigh = 3;
 
         for (let i=0; i<49; i++)
         {
@@ -452,9 +442,21 @@ class Snake
         let nearestApple = null;
         let nearestAppleDist = 1000000;
         let nearestAppleDir = null;
-        for (let i=headX-this.headOffsetLow; i<headX+this.headOffsetHigh; i++)
+
+
+        //Compute the inputs - find head offsets, and optimal grid around snake head
+        let multiplier = 2;
+        while (multiplier*multiplier < SNAKE_ML.columnInfo[0])
         {
-            for (let j=headY-this.headOffsetLow; j<headY+this.headOffsetHigh; j++)
+            multiplier+=1;
+        }
+
+        let headOffsetLow = Math.floor(multiplier/2);
+        let headOffsetHigh = Math.ceil(multiplier/2);
+
+        for (let i=headX-headOffsetLow; i<headX+headOffsetHigh; i++)
+        {
+            for (let j=headY-headOffsetLow; j<headY+headOffsetHigh; j++)
             {
                 this.inputs[itr] = getGridValue(grid, GRID_WIDTH, i,j, WALL_VALUE);
                 if (this.inputs[itr] == APPLE_VALUE)
@@ -465,7 +467,6 @@ class Snake
                         nearestAppleDist = d;
                         nearestApple = [i,j];
                         nearestAppleDir = [ (i-headX)/d, (j-headY)/d ];
-                        nearestAppleDist = 0;
                     }
                 }
                 itr+=1;
@@ -479,7 +480,7 @@ class Snake
         const left = getGridValue(grid, GRID_WIDTH, headX-1, headY, WALL_VALUE);
         const right = getGridValue(grid, GRID_WIDTH, headX+1, headY, WALL_VALUE);
         const appleIsNearby = up == APPLE_VALUE || down == APPLE_VALUE || left == APPLE_VALUE || right == APPLE_VALUE;
-        const output = this.ml.compute(this.inputs);
+        const output = SNAKE_ML.compute(this.inputs);
         let ret = maxInList(output);
         if (ret.index == 0)
         {
@@ -500,15 +501,11 @@ class Snake
         }
 
 
-        if (this.learningDataInputs.length > 1000000)
+        if (LEARNING_DATA_INPUTS.length > 1000000)
         {
             console.log("culling learning data");
-            this.learningDataInputs = [];
-            this.learningDataOutputs = [];
-        }
-        if (this.learningDataInputs.length > 1)
-        {
-            this.ml.learnBatch(this.learningDataInputs, this.learningDataOutputs, WEIGHT_MODIFIER, 1, GRAD_DESCENT_ITERS_PER_UPDATE, false, false);
+            LEARNING_DATA_INPUTS = [];
+            LEARNING_DATA_OUTPUTS = [];
         }
 
         if (nearestApple != null)
@@ -544,29 +541,29 @@ class Snake
                     if (left != WALL_VALUE) { temp[2] = 10; }
                 }
             }
-            this.learningDataInputs.push( copyList(this.inputs) );
-            this.learningDataOutputs.push( temp );
+            LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
+            LEARNING_DATA_OUTPUTS.push( temp );
         }
 
         const headGridVal = getGridValue(grid, GRID_WIDTH, headX, headY, WALL_VALUE);
         // if (appleIsNearby)
         // {
-        //     this.ml.randomlyModifyWeights(0.001);
+        //     SNAKE_ML.randomlyModifyWeights(0.001);
         //     let temp = [0,0,0,0];
         //     if (up    == APPLE_VALUE) { temp[0]=100;}
         //     if (down  == APPLE_VALUE) { temp[1]=100;}
         //     if (left  == APPLE_VALUE) { temp[2]=100;}
         //     if (right == APPLE_VALUE) { temp[3]=100;}
-        //     this.learningDataInputs.push( copyList(this.inputs) );
-        //     this.learningDataOutputs.push( temp );
+        //     this.LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
+        //     this.LEARNING_DATA_OUTPUTS.push( temp );
 
         //     if (headGridVal != APPLE_VALUE)
         //     {
         //         //We didn't go for the apple... punish
-        //         //this.ml.punishResponsibleNeurons(this.inputs, ret.index, 1 - WEIGHT_MODIFIER/4.0);
+        //         //SNAKE_ML.punishResponsibleNeurons(this.inputs, ret.index, 1 - WEIGHT_MODIFIER/4.0);
         //     } else {
         //         //Reward. Got apple!
-        //         //this.ml.punishResponsibleNeurons(this.inputs, ret.index, 1 + WEIGHT_MODIFIER);
+        //         //SNAKE_ML.punishResponsibleNeurons(this.inputs, ret.index, 1 + WEIGHT_MODIFIER);
         //     }
         // }
 
@@ -574,21 +571,19 @@ class Snake
         {
             //Hit a wall. Punish.
             this.isDead = true;
-
             if (up != WALL_VALUE || down != WALL_VALUE || left != WALL_VALUE || right != WALL_VALUE)
             {
-                this.ml.randomlyModifyWeights(0.001);
+                SNAKE_ML.randomlyModifyWeights(0.001);
                 let temp = [-10,-10,-10,-10];
                 if (up    != WALL_VALUE) { temp[0]=10;}
                 if (down  != WALL_VALUE) { temp[1]=10;}
                 if (left  != WALL_VALUE) { temp[2]=10;}
                 if (right != WALL_VALUE) { temp[3]=10;}
-                this.learningDataInputs.push( copyList(this.inputs) );
-                this.learningDataOutputs.push( temp );
+                LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
+                LEARNING_DATA_OUTPUTS.push( temp );
             }
             return;
         }
-
 
         //now, update tail
         this.positions.unshift([headX,headY]);
@@ -600,18 +595,6 @@ class Snake
             //grid[p[0]*GRID_WIDTH+p[1]] = 0;
         }
         grid[headX*GRID_WIDTH+headY] = WALL_VALUE;
-    }
-    getChild(gridWidth = 10)
-    {
-        let x = Math.round(Math.random() * gridWidth);
-        let y = Math.round(Math.random() * gridWidth);
-        const s = new Snake( [x,y] )
-        // if (Math.random() > 0.1)
-        // {
-        //     s.ml = this.ml.getChild(Math.random()/50);
-        // }
-        s.ml = this.ml;
-        return s;
     }
 }
 
@@ -652,9 +635,13 @@ class Snake
     var NUM_SNAKES = 20;
     var GRID_WIDTH = 32;
 
+    var SNAKE_ML = new ML([25,20,10,4]);
 
     var AVERAGE_AGE = 0;
     var AVERAGE_APPLES_CONSUMED = 0;
+
+    var LEARNING_DATA_INPUTS = [];
+    var LEARNING_DATA_OUTPUTS = [];
 
 
     let apples = []; //initialized in setup()
@@ -671,16 +658,12 @@ class Snake
             let y = Math.round(Math.random() * GRID_WIDTH);
             snakes.push( new Snake( [x,y]) )
         }
-        for (let i=0; i<NUM_SNAKES; i++)
-        {
-            snakes[i].ml = snakes[0].ml;
-        }
 
         //Create all of the apples
         for (let i=0; i<NUM_APPLES; i++)
         {
-            let x = Math.round(Math.random() * GRID_WIDTH);
-            let y = Math.round(Math.random() * GRID_WIDTH);
+            let x = 1 + Math.round(Math.random() * (GRID_WIDTH-2));
+            let y = 1 + Math.round(Math.random() * (GRID_WIDTH-2));
             apples.push([x,y]);
         }
         clearInterval(UPDATE_INTERVAL)
@@ -693,24 +676,24 @@ class Snake
 
     function simulationSpeedSliderUpdate()
     {
-        let val = document.getElementById("speedSlider").value;
-        val *= 31/100;
-        val *= val;
-        val = 1000 - val;
-
+        let val = 1000-document.getElementById("speedSlider").value*10;
         clearInterval(UPDATE_INTERVAL);
         UPDATE_INTERVAL = setInterval(update, val);
         document.getElementById("speedSliderText").innerText = val.toPrecision(4) + "ms";
 
+        //Weight Modifier
         WEIGHT_MODIFIER = document.getElementById("weightSlider").value / 10000;
         document.getElementById("weightSliderText").innerText = WEIGHT_MODIFIER.toPrecision(5);
-    
+        
+        //Grad Desc Itrs
         GRAD_DESCENT_ITERS_PER_UPDATE = document.getElementById("gradDescentIterSlider").value;
         document.getElementById("gradDescentIterSliderText").innerText = Math.round(GRAD_DESCENT_ITERS_PER_UPDATE);
 
+        //Random Prune Percentage
         RANDOM_PRUNE_PERCENTAGE = document.getElementById("randomPruneSlider").value / 100;
         document.getElementById("randomPruneSliderText").innerText = RANDOM_PRUNE_PERCENTAGE.toPrecision(3);
         
+        //Num Snakes
         val = Math.max(1,document.getElementById("numSnakesSlider").value);
         document.getElementById("numSnakesSliderText").innerText = val.toPrecision(3);
         while (val < snakes.length)
@@ -721,29 +704,57 @@ class Snake
         {
             let x = Math.round(Math.random() * GRID_WIDTH);
             let y = Math.round(Math.random() * GRID_WIDTH);
-            snakes.push( new Snake( [x,y], snakes[0].ml) );
+            snakes.push( new Snake( [x,y]) );
+        }
+
+        //Num Apples
+        val = Math.max(1,document.getElementById("numApplesSlider").value);
+        document.getElementById("numApplesSliderText").innerText = val.toPrecision(3);
+        while (val < apples.length)
+        {
+            apples.pop();
+        }
+        while (val > apples.length)
+        {
+            let x = 1+Math.round(Math.random() * (GRID_WIDTH-2));
+            let y = 1+Math.round(Math.random() * (GRID_WIDTH-2));
+            apples.push( [x,y] );
+        }
+
+        GRID_WIDTH = Math.max(8,document.getElementById("gridWidthSlider").value);
+        document.getElementById("gridWidthSliderText").innerText = GRID_WIDTH.toPrecision(3);
+        cellWidthPx = canvasElement.width / GRID_WIDTH;
+        for (let i in apples)
+        {
+            if (apples[i][0] >= GRID_WIDTH || apples[i][0] >= GRID_WIDTH)
+            {
+                apples[i][0] = 1 + Math.round( Math.random() * (GRID_WIDTH-2));
+                apples[i][1] = 1 + Math.round( Math.random() * (GRID_WIDTH-2));
+            }
         }
     
     }
     function randomlyPruneWeights()
     {
-        const ml = snakes[0].ml;
-        if (ml instanceof ML)
+        for (let l in SNAKE_ML.layers)
         {
-            for (let l in ml.layers)
+            for (let n in SNAKE_ML.layers[l])
             {
-                for (let n in ml.layers[l])
+                for (let w in SNAKE_ML.layers[l][n])
                 {
-                    for (let w in ml.layers[l][n])
+                    if (Math.random() < RANDOM_PRUNE_PERCENTAGE)
                     {
-                        if (Math.random() < RANDOM_PRUNE_PERCENTAGE)
-                        {
-                            ml.layers[l][n][w] = 0;
-                        }
+                        SNAKE_ML.layers[l][n][w] = 0;
                     }
                 }
             }
         }
+        
+    }
+    function resetTrainingData()
+    {
+        LEARNING_DATA_INPUTS = [];
+        LEARNING_DATA_OUTPUTS = [];
     }
 
     function renderSnakeGame()
@@ -767,6 +778,7 @@ class Snake
         AVERAGE_AGE = AVERAGE_AGE*0.98;
         AVERAGE_APPLES_CONSUMED = AVERAGE_APPLES_CONSUMED*0.98;
         const snakeCellPadding = 3;
+        //let numLearningData = 0;
         for (let i=0; i<snakes.length; i++)
         {
             const s = snakes[i];
@@ -788,11 +800,13 @@ class Snake
                 // }
             }
             p.DrawRectFilled(s.positions[0][0]*cellWidthPx + 5, s.positions[0][1]*cellWidthPx + 5, 5, 5, 'blue');
+            //numLearningData += s.LEARNING_DATA_INPUTS.length;
         }
         p.SetTextColor("white");
-        p.SetTextSize(20);
+        p.SetTextSize(15);
         p.DrawText(10,30,"Average Age: "+AVERAGE_AGE.toPrecision(3));
-        p.DrawText(10,50,"Average Apples Consumed: "+AVERAGE_APPLES_CONSUMED.toPrecision(3));
+        p.DrawText(10,45,"Average Apples Consumed: "+AVERAGE_APPLES_CONSUMED.toPrecision(3));
+        p.DrawText(10,60,"Num Training Samples: "+LEARNING_DATA_INPUTS.length);
     }
 
     function renderNeuralNetwork()
@@ -800,7 +814,7 @@ class Snake
         //Neural Network
         //p2.Clear("black");
         p2.ClearTransparent();
-        const ml = snakes[0].ml;
+        const ml = SNAKE_ML;
         const layers = ml.layers;
 
         let x = 0;
@@ -824,11 +838,12 @@ class Snake
                     avgC += r + b;
                     numWeights++;
                     if (r < 20 && b < 20) { continue;}
-                    p2.DrawLine(x,k*k_yMultiplier, x+xStep,j*j_yMultiplier+k_yMultiplier/2, rgbToHex(r,0,b));
+                    p2.DrawLine(x,k*k_yMultiplier, x+xStep,j*j_yMultiplier, rgbToHex(r,0,b));
                 }
             }
             x += xStep; 
         }
+
         avgC /= numWeights;
         if (avgC < 80)
         {
@@ -850,6 +865,11 @@ class Snake
             previousRenderTime = Date.now();
             renderNeuralNetwork();
             renderSnakeGame();
+        }
+
+        if (LEARNING_DATA_INPUTS.length > 1)
+        {
+            SNAKE_ML.learnBatch(LEARNING_DATA_INPUTS, LEARNING_DATA_OUTPUTS, WEIGHT_MODIFIER, 1, GRAD_DESCENT_ITERS_PER_UPDATE, false, false);
         }
 
         //create grid
@@ -880,8 +900,10 @@ class Snake
             {
                 if (apples[j][0] == head[0] && apples[j][1] == head[1])
                 {
-                    apples[j][0] = Math.round(Math.random() * GRID_WIDTH);
-                    apples[j][1] = Math.round(Math.random() * GRID_WIDTH);
+                    let x = 1 + Math.round(Math.random() * (GRID_WIDTH-2));
+                    let y = 1 + Math.round(Math.random() * (GRID_WIDTH-2));
+                    apples[j][0] = x;
+                    apples[j][1] = y;
                 }
             }
         }
