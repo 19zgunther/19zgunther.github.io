@@ -123,7 +123,7 @@ class ML
     toString()
     {
         //Print model to console
-        let output = String(columnInfo) + "\n";
+        let output = String(this.columnInfo) + "\n";
         for (let L=0; L<this.layers.length; L++)
         {
             for (let n=0; n<this.layers[L].length; n++)
@@ -132,6 +132,24 @@ class ML
             }
         }
         return output;
+    }
+    saveToFile(filename='myNNSave.txt')
+    {
+        // Create element with <a> tag
+        const link = document.createElement("a");
+
+        // Create a blog object with the file content which you want to add to the file
+        const file = new Blob([this.toString()], { type: 'text/plain' });
+
+        // Add file content in the object URL
+        link.href = URL.createObjectURL(file);
+
+        // Add file name
+        link.download = filename;
+
+        // Add click event to <a> tag to save file.
+        link.click();
+        URL.revokeObjectURL(link.href);
     }
     getChild(randomModifier = 0.01)
     {
@@ -189,21 +207,22 @@ class ML
     }
     _fx(x)
     {
-        if (x>0) { return 1 + x/10}
-        if (x>-1) { return x;}
-        return -1+x/10;
-        if (x>0) {return x;}
-        return x/100.0;
+        return Math.tanh(x);
+
+        if (x>1) { return 0.9 + x/10; }
+        if (x>-1) { return x; }
+        return -0.9+x/10;
+        // if (x>0) { return 1 + x/10}
+        // if (x>-1) { return x;}
+        // return -1+x/10;
     }
     _fxPrime(x)
     {
-        if (x>1 || x<-1) {return 0.1;}
+        return 1 - Math.pow(Math.tanh(x), 2);
+        if (x>1 || x < -1) { return 0.1; }
         return 1;
-        if (x > 0)
-        {
-            return 1;
-        }
-        return 0.01;
+        // if (x>1 || x<-1) {return 0.1;}
+        // return 1;
     }
     getModelNodeValues(input)
     {
@@ -220,6 +239,7 @@ class ML
     }
     punishResponsibleNeurons(input = [], outputNeuronIndex = 0, punishMultiplier = 0.9)
     {
+        return;
         const nodeValues = this.getModelNodeValues(input);
 
         //Node value is in form: neuron values in columns, 2d array
@@ -367,6 +387,8 @@ class ML
             //Apply gradients array
             let num0 = 0;
             let num = 0;
+            let gradientWasNaN = false;
+            let weightWasNaN = false;
             for (let l in this.layers)
             {
                 for (let n in this.layers[l])
@@ -381,15 +403,23 @@ class ML
                             this.layers[l][n][w] -= v;
                             gradients[l][n][w] = 0;
                         } else {
-                            
-                            console.log("Gradient was NaN");
+                            gradientWasNaN = true;
                         }
                         if (isNaN(this.layers[l][n][w]))
                         {
                             this.layers[l][n][w] = Math.random();
+                            weightWasNaN = true;
                         }
                     }
                 }
+            }
+            if (gradientWasNaN)
+            {
+                console.log("Gradient was NaN");
+            }
+            if (weightWasNaN)
+            {
+                console.log("weight was NaN");
             }
         }
     }
@@ -402,6 +432,7 @@ class Snake
     constructor(startPos = [0,0], ml = null)
     {
         this.positions= [startPos];
+        this.pDirection = [0,0];
         let val = Math.random();
         if (val > 0.75)
         {
@@ -472,6 +503,7 @@ class Snake
                 itr+=1;
             }
         }
+
         //console.log("apple dist: ", nearestAppleDist);
         //console.log("   dir:", nearestAppleDir);
 
@@ -480,25 +512,37 @@ class Snake
         const left = getGridValue(grid, GRID_WIDTH, headX-1, headY, WALL_VALUE);
         const right = getGridValue(grid, GRID_WIDTH, headX+1, headY, WALL_VALUE);
         const appleIsNearby = up == APPLE_VALUE || down == APPLE_VALUE || left == APPLE_VALUE || right == APPLE_VALUE;
+        
+        this.inputs[0] = this.pDirection[0];
+        this.inputs[1] = this.pDirection[1];
+
         const output = SNAKE_ML.compute(this.inputs);
         let ret = maxInList(output);
         if (ret.index == 0)
         {
             //up
             headY += 1;
+            this.pDirection = [0,1];
         } else if (ret.index == 1)
         {
             //down
             headY -= 1;
+            this.pDirection = [0,-1];
         } else if (ret.index == 2)
         {
             //left
             headX -= 1;
+            this.pDirection = [-1,0];
         } else
         {
             //right
             headX += 1;
+            this.pDirection = [1,0];
         }
+        
+
+        const NNL = -1
+        const NNH = 1;
 
 
         if (LEARNING_DATA_INPUTS.length > 1000000)
@@ -510,35 +554,30 @@ class Snake
 
         if (nearestApple != null)
         {
-            if (distBetweenPoints([headX, headY], nearestApple) <= nearestAppleDist)
-            {
-                //Went towards apple   
-            } else {
-                //Went away from nearest apple
-            }
-            let temp = [-10,-10,-10,-10];
+            let temp = [NNL,NNL,NNL,NNL];
+            let val = NNH;//SNAKE_ML.columnInfo[0] / Math.max(nearestAppleDist,1);
             if (nearestAppleDir[0] >= 0)
             {
                 if (nearestAppleDir[1] >= 0)
                 {
                     //up or right
-                    if (up != WALL_VALUE) { temp[0] = 10; }
-                    if (right != WALL_VALUE) { temp[3] = 10; }
+                    if (up != WALL_VALUE) { temp[0] = val; }
+                    if (right != WALL_VALUE) { temp[3] = val; }
                 } else {
                     //down or right
-                    if (down != WALL_VALUE) { temp[1] = 10; }
-                    if (right != WALL_VALUE) { temp[3] = 10; }
+                    if (down != WALL_VALUE) { temp[1] = val; }
+                    if (right != WALL_VALUE) { temp[3] = val; }
                 }
             } else {
                 if (nearestAppleDir[1] >= 0)
                 {
                     //up or left
-                    if (up != WALL_VALUE) { temp[0] = 10; }
-                    if (left != WALL_VALUE) { temp[2] = 10; }
+                    if (up != WALL_VALUE) { temp[0] = val; }
+                    if (left != WALL_VALUE) { temp[2] = val; }
                 } else {
                     //down or left
-                    if (down != WALL_VALUE) { temp[1] = 10; }
-                    if (left != WALL_VALUE) { temp[2] = 10; }
+                    if (down != WALL_VALUE) { temp[1] = val; }
+                    if (left != WALL_VALUE) { temp[2] = val; }
                 }
             }
             LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
@@ -546,42 +585,33 @@ class Snake
         }
 
         const headGridVal = getGridValue(grid, GRID_WIDTH, headX, headY, WALL_VALUE);
-        // if (appleIsNearby)
-        // {
-        //     SNAKE_ML.randomlyModifyWeights(0.001);
-        //     let temp = [0,0,0,0];
-        //     if (up    == APPLE_VALUE) { temp[0]=100;}
-        //     if (down  == APPLE_VALUE) { temp[1]=100;}
-        //     if (left  == APPLE_VALUE) { temp[2]=100;}
-        //     if (right == APPLE_VALUE) { temp[3]=100;}
-        //     this.LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
-        //     this.LEARNING_DATA_OUTPUTS.push( temp );
 
-        //     if (headGridVal != APPLE_VALUE)
-        //     {
-        //         //We didn't go for the apple... punish
-        //         //SNAKE_ML.punishResponsibleNeurons(this.inputs, ret.index, 1 - WEIGHT_MODIFIER/4.0);
-        //     } else {
-        //         //Reward. Got apple!
-        //         //SNAKE_ML.punishResponsibleNeurons(this.inputs, ret.index, 1 + WEIGHT_MODIFIER);
-        //     }
-        // }
-
+        if (up != WALL_VALUE || down != WALL_VALUE || left != WALL_VALUE || right != WALL_VALUE)
+        {
+            SNAKE_ML.randomlyModifyWeights(0.001);
+            let temp = [NNL,NNL,NNL,NNL];
+            if (up    != WALL_VALUE) { temp[0]=NNH;}
+            if (down  != WALL_VALUE) { temp[1]=NNH;}
+            if (left  != WALL_VALUE) { temp[2]=NNH;}
+            if (right != WALL_VALUE) { temp[3]=NNH;}
+            LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
+            LEARNING_DATA_OUTPUTS.push( temp );
+        }
         if (headGridVal == WALL_VALUE)
         {
             //Hit a wall. Punish.
             this.isDead = true;
-            if (up != WALL_VALUE || down != WALL_VALUE || left != WALL_VALUE || right != WALL_VALUE)
-            {
-                SNAKE_ML.randomlyModifyWeights(0.001);
-                let temp = [-10,-10,-10,-10];
-                if (up    != WALL_VALUE) { temp[0]=10;}
-                if (down  != WALL_VALUE) { temp[1]=10;}
-                if (left  != WALL_VALUE) { temp[2]=10;}
-                if (right != WALL_VALUE) { temp[3]=10;}
-                LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
-                LEARNING_DATA_OUTPUTS.push( temp );
-            }
+            // if (up != WALL_VALUE || down != WALL_VALUE || left != WALL_VALUE || right != WALL_VALUE)
+            // {
+            //     SNAKE_ML.randomlyModifyWeights(0.001);
+            //     let temp = [0,0,0,0];
+            //     if (up    != WALL_VALUE) { temp[0]=10;}
+            //     if (down  != WALL_VALUE) { temp[1]=10;}
+            //     if (left  != WALL_VALUE) { temp[2]=10;}
+            //     if (right != WALL_VALUE) { temp[3]=10;}
+            //     LEARNING_DATA_INPUTS.push( copyList(this.inputs) );
+            //     LEARNING_DATA_OUTPUTS.push( temp );
+            // }
             return;
         }
 
@@ -626,6 +656,7 @@ class Snake
     var previousRenderTime = Date.now();
     var renderDelayMs = 50;
     var updateOn = 0;
+    var renderOn = 0;
 
     var UPDATE_INTERVAL; //set in setup()
 
@@ -635,7 +666,7 @@ class Snake
     var NUM_SNAKES = 20;
     var GRID_WIDTH = 32;
 
-    var SNAKE_ML = new ML([49,30,10,4]);
+    var SNAKE_ML = new ML([81,42,8,4]);
 
     var AVERAGE_AGE = 0;
     var AVERAGE_APPLES_CONSUMED = 0;
@@ -682,7 +713,7 @@ class Snake
         document.getElementById("speedSliderText").innerText = val.toPrecision(4) + "ms";
 
         //Weight Modifier
-        WEIGHT_MODIFIER = document.getElementById("weightSlider").value / 10000;
+        WEIGHT_MODIFIER = document.getElementById("weightSlider").value / 1000;
         document.getElementById("weightSliderText").innerText = WEIGHT_MODIFIER.toPrecision(5);
         
         //Grad Desc Itrs
@@ -756,6 +787,23 @@ class Snake
         LEARNING_DATA_INPUTS = [];
         LEARNING_DATA_OUTPUTS = [];
     }
+    function saveNNWeights()
+    {
+        SNAKE_ML.saveToFile();
+    }
+    function loadNNWeights()
+    {
+        const el =  document.getElementById('fileInput');
+        el.addEventListener('click', (event)=>{
+            var fr=new FileReader();
+            fr.onload=function(){
+                console.log(fr.result);
+                SNAKE_ML.load(fr.result);
+            }
+            fr.readAsText(el.files[0]);
+        });
+        el.click();
+    }
 
     function renderSnakeGame()
     {
@@ -808,12 +856,11 @@ class Snake
         p.DrawText(10,45,"Average Apples Consumed: "+AVERAGE_APPLES_CONSUMED.toPrecision(3));
         p.DrawText(10,60,"Num Training Samples: "+LEARNING_DATA_INPUTS.length);
     }
-
     function renderNeuralNetwork()
     {
         //Neural Network
         //p2.Clear("black");
-        p2.ClearTransparent();
+        //p2.ClearTransparent();
         const ml = SNAKE_ML;
         const layers = ml.layers;
 
@@ -861,9 +908,13 @@ class Snake
         let render = false;
         if (Date.now() - renderDelayMs > previousRenderTime)
         {
+            renderOn++;
             render = true;
             previousRenderTime = Date.now();
-            renderNeuralNetwork();
+            if (renderOn % 4 == 0)
+            {
+                renderNeuralNetwork();
+            }   
             renderSnakeGame();
         }
 
