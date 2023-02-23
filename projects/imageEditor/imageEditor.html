@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zack Gunther</title>
+    <link rel="stylesheet" href="../../menu.css">
+    <link rel="stylesheet" href="../../style.css">
+</head>
+
+<body id="Background">
+
+
+    
+    <!-- Menu Goes Here -->
+    <style>
+        .center{
+            display: flex;
+            justify-content: center;
+            margin:1vmin;
+        }
+        #mainCanvas{
+            width:64vmin; 
+            height:64vmin;
+            border-radius: 2vmin;
+        }
+        .channelCanvas {
+            width:20vmin; 
+            height: 20vmin;
+            border-radius: 2vmin;
+        }
+        .channelContainer {
+            border-radius: 2vmin;
+            display:block; 
+            width:fit-content; 
+            height: fit-content; 
+            text-align: center; 
+            margin: 2vmin;
+        }
+    </style>
+    <div class="center">
+        Choose File: <input id="fileInput" type="file" onchange="loadImgUserSelect()">
+    </div>
+    <div class="center">
+        Render BW Convolution: <input id="renderBWConvolitionCheckbox" type="checkbox" onchange="settingsChanged()">
+    </div>
+
+    <div class="center">
+        <canvas id='mainCanvas'></canvas>
+    </div>
+    <div class="center">
+        <div style="background-color: rgba(200,200,200,0.1); width: fit-content; height: fit-content; display: flex; border-radius: 1vmin; margin:1vmin;">
+            <div class="channelContainer" style="background-color: rgba(255,0,0,0.2);">
+                R Channel
+                <br>
+                <canvas id="rChannelCanvas" class="channelCanvas"></canvas>
+            </div>
+            <div class="channelContainer" style="background-color: rgba(0,255,0,0.2);">
+                G Channel
+                <br>
+                <canvas id="gChannelCanvas" class="channelCanvas"></canvas>
+            </div>
+            <div class="channelContainer" style="background-color: rgba(0,0,255,0.2);">
+                B Channel
+                <br>
+                <canvas id="bChannelCanvas" class="channelCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- <div onclick="update()">
+        Update
+    </div> -->
+    <img id="tempHiddenImg">
+</body>
+
+<script src="../../script.js"></script>
+<script src="imageEditor.js"></script>
+
+</html>
