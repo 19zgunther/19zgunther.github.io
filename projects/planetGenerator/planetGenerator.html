@@ -63,18 +63,32 @@
             About this project
         </div>
         <div>
-            I have always been interested in procedurally generated terrain and objects. The idea that I can generate different 3d objects by simply modifying a few input parameters
-            prompted me to build this model.
+            I have always been interested in procedurally generated terrain and objects, but never really knew where to start. While browsing the internet 
+            one day I came across a cartoon-ish rendering of Earth, inspiring me to experiment with planet generation.
             <br> <br>
             For this project I learned WebGL as opposed to basic html contexts for increased performace, as I knew I would likely need to render thousands of triangles each frame (30 times per second).
             WebGL requires all object models to be defined in the vertice-indice model, where vertices are 3d points in space and the indices are triples of vertice indexes defining triangles.
             <br><br>
-            To generate spherical objects (planets and astroids in this project) with varying levels of definition, a simple algorithm is used. 
-            Starting with an octohedron, each triangle side is converted into 4 smaller triangles by bisecting the edges of the original triangle. The new vertices are then 
-            adjusted to be exactly 1 radius away from the origin. By repeating this process a few times, the octoheron can easily be transformed into a rough sphere made from triangles.
-            Next, the vertices can be pushed and pulled randomly towards and away from the origin, to give the object some more interesting detail.
-            For planet generation, randomly generated rays (50-100 rays) are shot outward from the origin, with vertices within a random distance being pushed farther from the origin.
-            This randomly creates patterns that with the addition of height-dependent coloring produces an earth-like planet object.
+            To generate the spherical planet I started with an octohedron, and iteratively subdivided each triangle into four smaller triangles. At the end of each division iteration, 
+            each vertex was normalized to scale it all to a unit sphere.
+            <br><br>
+            Now, to modify the sphere and color it accordingly, I experimented with a few different methods. First, I tried to randomly extend or contract each vertex, and 
+            was left with a fuzzy little sphere which didn't look at all like a planet. Second, I experimented with pushing regions in or out of varying sizes 
+            with the hope of producing mountain ranges and canyons and such. This method did work, but the runtime was too long for my liking (>10 seconds for small planets).
+            Third, I implemented a basic pseudo-random number generator/hasher and with that perlin noise. By layering a multiple differnet frequencies of perlin noise 
+            and offsetting each layer with more random noise, I was able to produce what you now see in the rendering.
+            <br><br>
+            To color the now lumpy sphere I found the minimum and maximum vertex heights and scaled a color gradient to fit within the range. Thus, in two loops I could color
+            each vertex, producing a earth-like model.
+            <br><br>
+            Along with coloring, I also added perlin noise in the fragment shader to each surface to modify the normal vectors and colors. This greatly
+            improved the perceived resolution with minimal computational cost.
+            <br><br>
+            As for the oceans, I decided to split the model and generate a smooth, semi-transparent blue sphere to go over the existing model. This, with the 
+            addition of some elongated noise, produces the appearance of an ocean. Unfortunately, I have not yet implemented depth testing, thus the water is the same 
+            color regardless of depth and viewing angle.
+            <br><br>
+            Overall, I am satisfied with the planet, although in the future I would like to add an atmosphere and a better ocean.
         </div>
         <br>
     </div>
