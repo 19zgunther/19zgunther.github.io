@@ -26,7 +26,7 @@
     <div display='inline-block' style='height:fit-content;'>
         <canvas id='glcanvas' style = 'width:90%; height:90%; padding:0%; margin:0%; z-index: -100'></canvas>
         <div style='position:relative; bottom:0%;padding: 2%;'>
-            <div style='width:fit-content;'>
+            <!-- <div style='width:fit-content;'>
                 <div class = 'defaultButton' onclick = addAstroids()>
                     Add Astroids
                 </div>
@@ -50,7 +50,7 @@
             sunRotationSpeed:
             0<input id = 'zNearSlider' type='range' min=0 max=1 step=0.1 value =0 oninput = setSunRotateSpeed(this)>1
             <br>
-            <br>
+            <br> -->
             <div style = 'font-style: italic;'>
                 Use WASD to move camera origin <br>
                 Left & Right arrows change orbit & rotation speeds
@@ -75,8 +75,8 @@
             Next, the vertices can be pushed and pulled randomly towards and away from the origin, to give the object some more interesting detail.
             For planet generation, randomly generated rays (50-100 rays) are shot outward from the origin, with vertices within a random distance being pushed farther from the origin.
             This randomly creates patterns that with the addition of height-dependent coloring produces an earth-like planet object.
-
         </div>
+        <br>
     </div>
 
     <br><br><br><br><br><br>
@@ -90,6 +90,7 @@
 <script src="../CAD/myMath.js"></script>
 <script src="../easyGL/easyGL.js"></script>
 <script src="gl.js"></script>
-<script src="planetGenerator2.js"></script>
+<!-- <script src="planetGenerator2.js"></script> -->
+<script src="moonGenerator2.js"></script>
 
 </html>
