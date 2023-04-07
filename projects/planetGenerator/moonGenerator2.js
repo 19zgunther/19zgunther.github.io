@@ -41,14 +41,16 @@ for (let i=0; i<10000; i++)
 {
     randomValues.push(Math.random());
 }
+const pseudoRandomInput1 = Math.random();
+const pseudoRandomInput2 = Math.random();
 
 //PERLIN NOISE FUNCTIONS
 function pseudoRandom(vector3 = new vec4()) {
-    const val = Math.sin(vector3.x*13.9898 + vector3.y+78.233 + vector3.z*30.5489) * 43758.5453123;
+    const val = Math.sin(vector3.x*13.9898*pseudoRandomInput1 + vector3.y+78.233 + vector3.z*30.5489) * 43758.5453123*pseudoRandomInput2;
     return val - Math.floor(val);
 }
 function pseudoRandom3(x,y,z) {
-    const val = Math.sin(x*13.9898 + y+78.233 + z*30.5489) * 43758.5453123;
+    const val = Math.sin(x*13.9898*pseudoRandomInput1 + y+78.233 + z*30.5489) * 43758.5453123*pseudoRandomInput2;
     return val - Math.floor(val);
 }
 function perlin(p = new vec4()) {
