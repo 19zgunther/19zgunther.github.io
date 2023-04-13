@@ -8,7 +8,7 @@ window.addEventListener("keydown", eventListener);
 window.addEventListener("keyup", eventListener);
 
 
-let objRenderer = new OBJFileRenderer(canvasElement, objDataText,new vec4(0,0,20), new vec4(0,0,0,1));
+let objRenderer = new OBJFileRenderer(canvasElement, objDataText, new vec4(0,0,30), new vec4(0,0,0,1));
 objRenderer.setObjectRotation(new vec4(0,0,-1.55));
 
 let updateInterval = setInterval(render, 60);
