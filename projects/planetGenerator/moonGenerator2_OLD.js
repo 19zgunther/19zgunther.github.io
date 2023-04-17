@@ -41,16 +41,16 @@ for (let i=0; i<10000; i++)
 {
     randomValues.push(Math.random());
 }
-
-const randomPerlinOffset = Math.random();
+const pseudoRandomInput1 = Math.random();
+const pseudoRandomInput2 = Math.random();
 
 //PERLIN NOISE FUNCTIONS
 function pseudoRandom(vector3 = new vec4()) {
-    const val = Math.sin(vector3.x*13.9898 + vector3.y+78.233 + vector3.z*30.5489) * (43758.5453123 + 10*randomPerlinOffset);
+    const val = Math.sin(vector3.x*13.9898*pseudoRandomInput1 + vector3.y+78.233 + vector3.z*30.5489) * 43758.5453123*pseudoRandomInput2;
     return val - Math.floor(val);
 }
 function pseudoRandom3(x,y,z) {
-    const val = Math.sin(x*13.9898 + y+78.233 + z*30.5489) * (43758.5453123 + 10*randomPerlinOffset);
+    const val = Math.sin(x*13.9898*pseudoRandomInput1 + y+78.233 + z*30.5489) * 43758.5453123*pseudoRandomInput2;
     return val - Math.floor(val);
 }
 function perlin(p = new vec4()) {
@@ -81,7 +81,7 @@ function perlin(p = new vec4()) {
 }
 function perlin3d(p = new vec4())
 {
-    return new vec4(pseudoRandom(p), pseudoRandom(p.add(100.0)), pseudoRandom(p.add(200.0)));
+    return new vec4(noise(p), noise(p.add(100.0)), noise(p.add(200.0)));
 }
 function perlinCombined(p=new vec4(), baseFreq=2.0, freqMultiplier=1.5, iterations=10)
 {
@@ -93,7 +93,6 @@ function perlinCombined(p=new vec4(), baseFreq=2.0, freqMultiplier=1.5, iteratio
     }
     return val/iterations;
 }
-
 
 
 
@@ -270,11 +269,6 @@ function renderDepth(gl, shaderData, projectionMatrix=new mat4(), cameraPosition
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
-
-
-
-
-
 function initShader(gl)//initialize the default shader
 {
     function _loadShader(gl, type, source)//helper function used by _initShader() and _initPickerShader()
@@ -520,8 +514,6 @@ function initShader(gl)//initialize the default shader
 
     uniform sampler2D uSampler;
 
-    uniform float uTimeFloat;
-
 
     `+noiseFunctions+`
 
@@ -530,53 +522,22 @@ function initShader(gl)//initialize the default shader
 
         vec3 normal = surfaceNormal;
         vec3 color = surfaceColor.xyz;
-        float opacity = surfaceColor.a;
-        if (opacity > 1.0) { opacity = 1.0; } else if (opacity < 0.0){ opacity = 0.0;}
 
 
-        if (surfaceMaterial.y > 0.001) // for water
+        if (surfaceMaterial.y > 0.001)
         {
-            normal *= (1.0-surfaceMaterial.y) + surfaceMaterial.y*noise3d( modelPos*100.0 + 200.0*noise(modelPos*2.0) + uTimeFloat);
-            normal *= (1.0-surfaceMaterial.y) + surfaceMaterial.y*noise3d( modelPos*30.0 + noise(modelPos*2.0) + uTimeFloat);
-        } else {
-            //Randomly adjust land texture & color
-            normal += 0.2*noise3d( modelPos*20.0 + 10.0*noise(modelPos*2.0)) + 0.1*noise3d( modelPos*100.0 + 10.0*noise(modelPos*2.0));
-            color *= 0.9 + 0.1*noise(modelPos*100.0);
-            normal = normalize(normal);
+            normal *= (1.0-surfaceMaterial.y) + surfaceMaterial.y*noise3d(modelPos*100.0 + 200.0*noise(modelPos*2.0));
+            normal *= (1.0-surfaceMaterial.y) + surfaceMaterial.y*noise3d(modelPos*30.0 + noise(modelPos*2.0));
         }
 
         normal = normalize(normal);
 
 
-        if (surfaceMaterial.a > 0.001) {
-            float d = dot(normalize(worldPos.xyz - uCameraPositionVector.xyz), normal);
-            if (d < 0.0)
-            {
-                d = -d;
-            }
-            d = sin(d*3.141592)*0.9 + 0.1;
-            if (d > 0.0)
-            {
-                opacity *= d;
-            }
+        // color *= 0.8 + 0.2*noise(modelPos*200.0 + noise(modelPos*10.0));
 
-
-            float n = 0.7*noise(modelPos*2.0 + 0.1*uTimeFloat) 
-                + 0.2*noise(modelPos*5.0 + 0.1*uTimeFloat) 
-                + 0.2*noise(modelPos*10.0 + 3.0*noise(modelPos*10.0) + 0.1*uTimeFloat)
-                + 0.1*noise(modelPos*50.0 + 3.0*noise(modelPos*50.0) + 0.1*uTimeFloat)
-                ;
-            n = n - 0.65;
-            if (n > 0.0)
-            {
-                n *= 5.0;
-                if (n > 1.0) { n=1.0;}
-                opacity += n * surfaceMaterial.z;
-            }
-        }
         
         //Compute fragment illumination
-        float illumination = dot(uLightDirectionVector.xyz, normal) * (1.0-uAmbientLightLevel) + uAmbientLightLevel;
+        float illumination = dot(uLightDirectionVector.xyz, normal) * 0.8 + 0.2;
 
         //Check for specular reflection
         float spec = dot(reflect(normalize(worldPos.xyz - uCameraPositionVector.xyz), normal), -uLightDirectionVector.xyz);
@@ -591,7 +552,7 @@ function initShader(gl)//initialize the default shader
             spec = 0.0;
         }
 
-        gl_FragColor = vec4(color * illumination + spec*vec3(1,1,1), opacity);
+        gl_FragColor = vec4(color * illumination + spec*vec3(1,1,1), surfaceColor.a);
         return;
     }
     `;
@@ -632,8 +593,6 @@ function initShader(gl)//initialize the default shader
             normalNoiseOffsetVector: gl.getUniformLocation(shaderProgram, 'uNormalNoiseOffsetVector'),
 
             textureSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
-
-            timeFloat: gl.getUniformLocation(shaderProgram, 'uTimeFloat')
         },
     };
     return {
@@ -711,7 +670,6 @@ function render(gl, shaderData, projectionMatrix=new mat4(), cameraPosition=new 
         gl.uniform4fv(programInfo.uniformLocations.normalNoiseOffsetVector,   normalNoiseOffsetVector.getFloat32Array());
 
         gl.uniform1i(programInfo.uniformLocations.textureSampler, 0);
-        gl.uniform1f(programInfo.uniformLocations.timeFloat, ((Date.now()) / 1000) % 1000)
 
         //RENDER////////////////////////////////////////////////
         gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
@@ -742,62 +700,6 @@ function clear(gl, clearColor = null) //Clear the screen to default color
     //Set Viewport
     gl.viewport(0, 0, canvasElement.width, canvasElement.height);
 }
-function renderObject(gl, programInfo, projectionMatrix=new mat4(), cameraPosition=new vec4(), cameraRotation=new vec4(),
-    objectPosition=new vec4(), objectRotation=new vec4(), objectScale=new vec4(1,1,1,1), verticesBuffer, normalsBuffer, colorsBuffer, materialsBuffer, indicesBuffer, numIndices=0,
-    lightingDirection=new vec4(0.7,0.7,0.1), ambientLightLevel=0.1
-)
-{
-    if (projectionMatrix== null) {projectionMatrix  =new mat4().makePerspective(1,1,1,1000);}
-    if (cameraPosition  == null) {cameraPosition    =new vec4();}
-    if (cameraRotation  == null) {cameraRotation    =new vec4();}
-    if (objectPosition  == null) {objectPosition    =new vec4(1,1,1,1);}
-    if (objectRotation  == null) {objectRotation    =new vec4(1,1,1,1);}
-    if (objectScale     == null) {objectScale       =new vec4(1,1,1,1);}
-    const objectMatrix = new mat4().makeTranslationRotationScale(objectPosition, objectRotation, objectScale);
-    const objectRotationMatrix = new mat4().makeRotation(objectRotation);
-    const viewMatrix = new mat4().makeTranslationRotationScale(cameraPosition, cameraRotation);
-
-    gl.useProgram(programInfo.program);
-
-    //BIND BUFFERS ///////////////////////////////////////////
-    //Bind Vertices Buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-    gl.vertexAttribPointer(programInfo.attribLocations.vertexLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexLocation);
-
-    //Bind Normals Buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
-    gl.vertexAttribPointer(programInfo.attribLocations.normalLocation, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(programInfo.attribLocations.normalLocation);
-
-    //Bind Colors Buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorsBuffer);
-    gl.vertexAttribPointer(programInfo.attribLocations.colorLocation, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(programInfo.attribLocations.colorLocation);
-
-    //Bind Materials Buffer
-    gl.bindBuffer(gl.ARRAY_BUFFER, materialsBuffer);
-    gl.vertexAttribPointer(programInfo.attribLocations.materialLocation, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(programInfo.attribLocations.materialLocation);
-
-    //Bind Indices
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-    // gl.activeTexture(gl.TEXTURE0);
-    // gl.bindTexture(gl.TEXTURE_2D, depthShaderData.texture);
-
-    //BIND UNIFORMS////////////////////////////////////////
-    gl.uniformMatrix4fv(programInfo.uniformLocations.cameraMatrix,          false, projectionMatrix.mul(viewMatrix).getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.objectMatrix,          false, objectMatrix.getFloat32Array());
-    gl.uniformMatrix4fv(programInfo.uniformLocations.objectRotationMatrix,  false, objectRotationMatrix.getFloat32Array());
-    gl.uniform4fv(programInfo.uniformLocations.lightDirectionVector,    lightingDirection.getFloat32Array());
-    gl.uniform1f(programInfo.uniformLocations.ambientLightLevelFloat,   ambientLightLevel);
-    gl.uniform4fv(programInfo.uniformLocations.cameraPositionVector,    cameraPosition.getFloat32Array());
-    gl.uniform1i(programInfo.uniformLocations.textureSampler, 0); // unused
-    gl.uniform1f(programInfo.uniformLocations.timeFloat, ((Date.now()) / 1000) % 1000)
-
-    //RENDER////////////////////////////////////////////////
-    gl.drawElements(gl.TRIANGLES, numIndices, gl.UNSIGNED_SHORT, 0);
-}
 
 
 
@@ -810,7 +712,7 @@ function initObjectBuffers(gl, vertices_=[], normals_=[], colors_=[], materials_
     let col = [];
     let mat = [];
 
-    if (vertices_.length > 100000)
+    if (indices_.length > 30000)
     {
         let indOffset = 0;
 
@@ -821,7 +723,7 @@ function initObjectBuffers(gl, vertices_=[], normals_=[], colors_=[], materials_
         let tempMaterials = [];
         for (let i=0; i<indices_.length; i+=3)
         {
-            if (tempVertices.length > 100000)
+            if (tempVertices.length > 30000)
             {
                 ind.push(tempIndices);
                 vert.push(tempVertices);
@@ -855,11 +757,7 @@ function initObjectBuffers(gl, vertices_=[], normals_=[], colors_=[], materials_
             tempColors.push(colors_[indices_[i+2]]);
 
             tempIndices.push(indOffset, indOffset+1, indOffset+2);
-            indOffset += 3;
         }
-
-
-
     } else {
         ind.push(indices_);
         vert.push(vertices_);
@@ -868,53 +766,6 @@ function initObjectBuffers(gl, vertices_=[], normals_=[], colors_=[], materials_
         mat.push(materials_);
     }
 
-    if (ind.length > 1)
-    {
-        const buffers = [];
-        for (let i=0; i<ind.length; i++)
-        {
-            const vertices  = vec3ArrayToNumberArray(vert[i]);
-            const normals   = vec3ArrayToNumberArray(nor[i]);
-            const colors    = vec4ArrayToNumberArray(col[i]);
-            const materials = vec4ArrayToNumberArray(mat[i]);
-            const indices   = ind[i];
-
-            const verticesBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
-            const normalsBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-
-            const colorsBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, colorsBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
-            const materialsBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, materialsBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(materials), gl.STATIC_DRAW);
-
-            const indicesBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-            gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-            buffers.push({
-                verticesBuffer: verticesBuffer,
-                normalsBuffer: normalsBuffer,
-                colorsBuffer: colorsBuffer,
-                materialsBuffer: materialsBuffer,
-                indicesBuffer: indicesBuffer,
-        
-                indices: indices,
-                normals: normals,
-                colors: colors,
-                materals: materials,
-                vertices: vertices,
-            });
-        }
-        return buffers;
-    }
 
     const vertices  = vec3ArrayToNumberArray(vertices_);
     const normals   = vec3ArrayToNumberArray(normals_);
@@ -956,55 +807,34 @@ function initObjectBuffers(gl, vertices_=[], normals_=[], colors_=[], materials_
         vertices: vertices,
     }
 }
-function initPlanet(radius = 1, planetSubdivision=7, randomModifier=1, randomModifierAttenuation=1.8)
+function initPlanet(planetSubdivision=5, randomModifier=0.2, randomModifierAttenuation=1.8)
 {
-    const moon      = moonGenerator(radius, planetSubdivision, randomModifier, randomModifierAttenuation);
-    const ocean     = oceanGenerator(3, moon.oceanRadius);
-    const atmosphere= atmosphereGenerator(3, moon.maxRadius*1.1, moon.maxRadius);
-    // const cloud     = cloudGenerator(3, moon.oceanRadius, moon.maxRadius*1.1);
-    // const trees     = treeGenerator(moon.vertices, moon.oceanRadius);
+    const moon = moonGenerator(planetSubdivision, randomModifier, randomModifierAttenuation);
+    const ocean = oceanGenerator(5, moon.minRadius/2 + moon.maxRadius/2);
     
     const moonBuffers = initObjectBuffers(gl, moon.vertices, moon.normals, moon.colors, moon.materials, moon.indices);
     const oceanBuffers = initObjectBuffers(gl, ocean.vertices, ocean.normals, ocean.colors, ocean.materials, ocean.indices);
-    const atmosphereBuffers = initObjectBuffers(gl, atmosphere.vertices, atmosphere.normals, atmosphere.colors, atmosphere.materials, atmosphere.indices);
-    // const cloudBuffers = initObjectBuffers(gl, cloud.vertices, cloud.normals, cloud.colors, cloud.materials, cloud.indices);
-    // const treeBuffers = initObjectBuffers(gl, trees.vertices, trees.normals, trees.colors, trees.materials, trees.indices);
-
-    const retObj = {
+    
+    planetData = {
         position: new vec4(),
         rotation: new vec4(),
 
         buffers: [
+            moonBuffers, oceanBuffers
         ]
     }
-    
-    if (moonBuffers instanceof Array)
-    {
-        for (let i=0; i<moonBuffers.length;i++)
-        {
-            retObj.buffers.push(moonBuffers[i])
-        }
-    } else {
-        retObj.buffers.push(moonBuffers);
-    }
-
-    retObj.buffers.push(
-        oceanBuffers,
-        atmosphereBuffers
-    );
-    console.log(retObj)
-    return retObj;
-
 }
 
 
 
 //Get canvasElement Html object from document, resize accordingly, and get webgl context
+
 const canvasElement = document.getElementById("glcanvas");
 let bb = canvasElement.getBoundingClientRect();
 canvasElement.width  = Math.round(bb.width);
 canvasElement.height = Math.round(bb.height);
 const gl = canvasElement.getContext("webgl");
+
 
 
 //Init ShaderData & Camera
@@ -1016,60 +846,59 @@ const projectionMatrix = new mat4().makePerspective(0.2, canvasElement.width/can
 
 
 //Generate Planet and Init Buffers
-var planetData = initPlanet();
+var planetData = {};
 
 const lightDirection = new vec4(1,1,1).scaleToUnit();
-const ambientLightLevel = 0.001;
-// const colorModifierVector = new vec4(1,0,0.5,0);
-// const normalModifierVector = new vec4(1,0,0.5,0);
-// const normalNoiseOffsetVector = new vec4(0,0,0,0);
-// const colorNoiseOffsetVector = new vec4(0,0,0,0);
-// handleInputs();
-// handleInputs_planetGen();
-// function handleInputs()
-// {
-//     if (document.getElementById("colorModifierCheckbox").checked)
-//     {
-//         colorModifierVector.x = document.getElementById("colorModifierXSlider").value;
-//         colorModifierVector.y = document.getElementById("colorModifierYSlider").value;
-//         colorModifierVector.z = document.getElementById("colorModifierZSlider").value;
-//         colorModifierVector.a = document.getElementById("colorModifierASlider").value;
+const ambientLightLevel = 0.3;
 
-//         colorNoiseOffsetVector.x = document.getElementById("colorRandomOffsetXSlider").value;
-//         colorNoiseOffsetVector.y = document.getElementById("colorRandomOffsetYSlider").value;
-//         colorNoiseOffsetVector.z = document.getElementById("colorRandomOffsetZSlider").value;
-//         colorNoiseOffsetVector.a = document.getElementById("colorRandomOffsetASlider").value;
-//     } else {
-//         colorModifierVector.set(0,0,0,0);
-//     }
+const colorModifierVector = new vec4(1,0,0.5,0);
+const normalModifierVector = new vec4(1,0,0.5,0);
+const normalNoiseOffsetVector = new vec4(0,0,0,0);
+const colorNoiseOffsetVector = new vec4(0,0,0,0);
+handleInputs();
+handleInputs_planetGen();
+function handleInputs()
+{
+    // if (document.getElementById("colorModifierCheckbox").checked)
+    // {
+    //     // colorModifierVector.x = document.getElementById("colorModifierXSlider").value;
+    //     // colorModifierVector.y = document.getElementById("colorModifierYSlider").value;
+    //     // colorModifierVector.z = document.getElementById("colorModifierZSlider").value;
+    //     // colorModifierVector.a = document.getElementById("colorModifierASlider").value;
+
+    //     // colorNoiseOffsetVector.x = document.getElementById("colorRandomOffsetXSlider").value;
+    //     // colorNoiseOffsetVector.y = document.getElementById("colorRandomOffsetYSlider").value;
+    //     // colorNoiseOffsetVector.z = document.getElementById("colorRandomOffsetZSlider").value;
+    //     // colorNoiseOffsetVector.a = document.getElementById("colorRandomOffsetASlider").value;
+    // } else {
+    //     colorModifierVector.set(0,0,0,0);
+    // }
     
-//     if (document.getElementById("normalModifierCheckbox").checked)
-//     {
-//         normalModifierVector.x = document.getElementById("normalModifierXSlider").value;
-//         normalModifierVector.y = document.getElementById("normalModifierYSlider").value;
-//         normalModifierVector.z = document.getElementById("normalModifierZSlider").value;
-//         normalModifierVector.a = document.getElementById("normalModifierASlider").value;
+    // if (document.getElementById("normalModifierCheckbox").checked)
+    // {
+    //     // normalModifierVector.x = document.getElementById("normalModifierXSlider").value;
+    //     // normalModifierVector.y = document.getElementById("normalModifierYSlider").value;
+    //     // normalModifierVector.z = document.getElementById("normalModifierZSlider").value;
+    //     // normalModifierVector.a = document.getElementById("normalModifierASlider").value;
  
-//         normalNoiseOffsetVector.x = document.getElementById("normalRandomOffsetXSlider").value;
-//         normalNoiseOffsetVector.y = document.getElementById("normalRandomOffsetYSlider").value;
-//         normalNoiseOffsetVector.z = document.getElementById("normalRandomOffsetZSlider").value;
-//         normalNoiseOffsetVector.a = document.getElementById("normalRandomOffsetASlider").value;
-//     } else {
-//         normalModifierVector.set(0,0,0,0);
-//     }
-// }
-// function handleInputs_planetGen()
-// {
-//     // setRandomSeed(0);
-//     // initPlanet(document.getElementById("planetGenNumDivisions").value,
-//     //     document.getElementById("planetGenRandomModification").value,
-//     //     document.getElementById("planetGenRandomModificationAttenuation").value);
-// }
+    //     // normalNoiseOffsetVector.x = document.getElementById("normalRandomOffsetXSlider").value;
+    //     // normalNoiseOffsetVector.y = document.getElementById("normalRandomOffsetYSlider").value;
+    //     // normalNoiseOffsetVector.z = document.getElementById("normalRandomOffsetZSlider").value;
+    //     // normalNoiseOffsetVector.a = document.getElementById("normalRandomOffsetASlider").value;
+    // } else {
+    //     normalModifierVector.set(0,0,0,0);
+    // }
+}
+function handleInputs_planetGen()
+{
+    setRandomSeed(0);
+    initPlanet(7,1,1.5);
+}
 
 
-const keys = {};
+var keys = {};
 window.onkeydown = function (e) { keys[e.key.toLowerCase()] = true; }
-window.onkeyup   = function (e) { keys[e.key.toLowerCase()] = false; }
+window.onkeyup = function(e) { keys[e.key.toLowerCase()] = false; }
 
 
 ///Update Function 
@@ -1080,7 +909,6 @@ let reflectance = 0;
 function update()
 {
     t++;
-    // console.log("cameraPos: ",cameraPosition, cameraRotation);
 
     if (keys['w'] == true)
     {
@@ -1115,11 +943,10 @@ function update()
         reflectance -= 0.1;
     }
 
-
-    // lightDirection.x = (Math.cos(t/40));
-    // lightDirection.z = (Math.sin(t/40));
+    lightDirection.x = (Math.cos(t/20));
+    lightDirection.z = (Math.sin(t/20));
     lightDirection.scaleToUnit();
-    planetData.rotation.y = t/400;
+    planetData.rotation.y = t/200;
 
     //Clear canvas and render object
     clear(gl, new vec4(0,0,0,1));
@@ -1127,21 +954,10 @@ function update()
     //renderDepth(gl, depthShaderData, projectionMatrix, cameraPosition, cameraRotation, planetData);
 
     //Render
-    // render(gl, shaderData, projectionMatrix, cameraPosition, cameraRotation, 
-    //     planetData,
-    //     lightDirection.scaleToUnit(), ambientLightLevel,
-    //     colorModifierVector, colorNoiseOffsetVector, normalModifierVector, normalNoiseOffsetVector);
-    for (let i=0; i<planetData.buffers.length; i++)
-    {
-        renderObject(gl, shaderData.programInfo, projectionMatrix, cameraPosition, cameraRotation, 
-            planetData.position, planetData.rotation, null, planetData.buffers[i].verticesBuffer, planetData.buffers[i].normalsBuffer, planetData.buffers[i].colorsBuffer, planetData.buffers[i].materialsBuffer, planetData.buffers[i].indicesBuffer, planetData.buffers[i].indices.length, 
-            lightDirection.scaleToUnit(), ambientLightLevel);
-    }
-    // planetData2.position = new vec4(1,0,0);
-    // render(gl, shaderData, projectionMatrix, cameraPosition, cameraRotation, 
-    //     planetData2,
-    //     lightDirection.scaleToUnit(), ambientLightLevel,
-    //     colorModifierVector, colorNoiseOffsetVector, normalModifierVector, normalNoiseOffsetVector);
+    render(gl, shaderData, projectionMatrix, cameraPosition, cameraRotation, 
+        planetData,
+        lightDirection.scaleToUnit(), ambientLightLevel,
+        colorModifierVector, colorNoiseOffsetVector, normalModifierVector, normalNoiseOffsetVector);
 }
 
 
@@ -1234,8 +1050,10 @@ function generateSphereMesh(numDivisions = 6)
         vertices: vertices,
     }
 }
-function moonGenerator(radius = 1, numDivisionSteps = 5, randomModifier = 0.05, randomModifierAttenuation = 2)
+
+function moonGenerator(numDivisionSteps = 7, randomModifier = 0.05, randomModifierAttenuation = 2)
 {
+
     const oceanPercent = 0.4;
     const sandPercent = 0.45;
     const forestPercent = 0.7;
@@ -1252,15 +1070,11 @@ function moonGenerator(radius = 1, numDivisionSteps = 5, randomModifier = 0.05, 
     //Randomly modify world
     for (let i=0; i<vertices.length; i++)
     {
-        let multiplier = 0;
-        multiplier += randomModifier*0.3*perlin(vertices[i].mul(1.0).add( 4*perlin(vertices[i].mul(2.0))));
-        multiplier += randomModifier*0.1*perlin(vertices[i].mul(10.0).add( 5*perlin(vertices[i].mul(2.0))));
-        multiplier += randomModifier*0.05*perlin(vertices[i].mul(50.0).add( 10*perlin(vertices[i].mul(5.0))));
-        multiplier += randomModifier*0.02*perlin(vertices[i].mul(300.0).add( 10*perlin(vertices[i].mul(5.0))));
-        multiplier *= 1 - 0.5*perlin(vertices[i].mul(2.0)); // To make some regions flat...
-        multiplier += 1.1;
-
-        vertices[i].muli( radius );
+        let multiplier = 1;
+        multiplier += randomModifier*0.3*perlin(vertices[i].mul(1.0).add( 10*perlin(vertices[i].mul(2.0))));
+        multiplier += randomModifier*0.1*perlin(vertices[i].mul(10.0).add( 30*perlin(vertices[i].mul(2.0))));
+        multiplier += randomModifier*0.05*perlin(vertices[i].mul(50.0).add( 100*perlin(vertices[i].mul(5.0))));
+        multiplier += randomModifier*0.03*perlin(vertices[i].mul(300.0).add( 100*perlin(vertices[i].mul(5.0))));
         vertices[i].muli( multiplier );
         
         const r = vertices[i].getLength();
@@ -1309,58 +1123,33 @@ function moonGenerator(radius = 1, numDivisionSteps = 5, randomModifier = 0.05, 
     for (let i=0; i<vertices.length; i++)
     {
         const radius = vertices[i].getLength();
-        let desert = perlin(vertices[i]) - 0.5;
-        // if (desert < 0) { desert = 0; }
+        const desert = perlin(vertices[i]) > 0.7 ? true : false;
         const percentRadius = (radius - minRadius) / (maxRadius - minRadius);
         if (percentRadius < oceanPercent)                    // WATER
         {
             colors[i] = new vec4(0.1,0.1,0.8, 2).mul(percentRadius/oceanPercent);
-            materials[i] = new vec4(0.8,0.8,0,0);
-        } else if (percentRadius < (sandPercent + desert))  // SAND/DESERT
+            materials[i] = new vec4(0.1,0.8,0,0);
+        } else if (percentRadius < sandPercent || desert)  // SAND/DESERT
         {
-            colors[i] = new vec4(0.8, 0.7, 0.4, 3).mul(1 + sandPercent - percentRadius);
-            materials[i] = new vec4(0.1,0,0,0);
+            colors[i] = new vec4(0.9, 0.8, 0.4, 3).mul(1 + sandPercent - percentRadius);
+            materials[i] = new vec4(0.2,0.1,0,0);
         } else if (percentRadius < forestPercent)               // Forest
         {
-            colors[i] = new vec4(0.1,1.0-percentRadius,0.1,3);
-            materials[i] = new vec4(0,0,0,0);
+            colors[i] = new vec4(0.1,0.8,0.1,3).mul((1-percentRadius) / forestPercent);
+            materials[i] = new vec4(0,0.4,0,0);
         } else if (percentRadius < highlandsPercent)               // Mountains
         {
             colors[i] = new vec4(0.6,0.5,0.4,1);
-            materials[i] = new vec4(0.1,0,0,0);
+            materials[i] = new vec4(0.1,0.4,0,0);
         } else {                                      //Snowy peaks
             colors[i] = new vec4(0.8,0.8,0.8,1);
-            materials[i] = new vec4(0.3,0,0,0);
+            materials[i] = new vec4(0.8,0.7,0,0);
         }
     }
 
-
-    // for (let k=0; k<vertices.length; k++)
-    // {
-    //     const radius = vertices[k].getLength();
-    //     if (radius > (maxRadius+minRadius)*0.5 && r() > 0.9)
-    //     {
-    //         const ret = treeGenerator();
-    //         const indOffset = vertices.length;
-    //         for (let i=0; i<ret.vertices.length; i++)
-    //         {
-    //             vertices.push(ret.vertices[i]);
-    //             normals.push(ret.normals[i]);
-    //             colors.push(ret.colors[i]);
-    //             materials.push(ret.materials[i]);
-    //         }
-    //         for (let i=0; i<ret.indices.length; i++)
-    //         {
-    //             indices.push(ret.indices[i] + indOffset);
-    //         }
-    //     }
-    // }
-
-
     console.log("minR: ",minRadius,"\nmaxR: ",maxRadius);
-    console.log("Num Triangles: ", indices.length/3);
 
-    // const oceanRadius = 0.4  * (maxRadius - minRadius) + minR= (radius - minRadius);
+    console.log("Num Triangles: ", indices.length/3);
 
     return {
         vertices: vertices,
@@ -1371,12 +1160,12 @@ function moonGenerator(radius = 1, numDivisionSteps = 5, randomModifier = 0.05, 
         colors: colors,
         minRadius: minRadius,
         maxRadius: maxRadius,
-        oceanRadius: 0.4 * (maxRadius-minRadius) + minRadius
     }
 }
+
 function oceanGenerator(numDivisions, radius)
 {
-    const waterColor = new vec4(0.1,0.1,0.7,0.7);
+    const waterColor = new vec4(0.1,0.1,0.7,0.4);
     const waterMaterial = new vec4(1,0.7,0,0);
 
 
@@ -1410,275 +1199,8 @@ function oceanGenerator(numDivisions, radius)
         colors: colors,
     }
 }
-function atmosphereGenerator(numDivisions, maxRadius, minRadius)
-{
-    const airColor = new vec4(0.7,0.9,0.9,0.04);
-    const airMaterial = new vec4(1,0,0,1);
-
-    let vertices = [];
-    let normals = [];
-    let colors = [];
-    let materials = [];
-    let slopes = [];
-    let indices = [];
-
-    const numSpheres = 10;
-    const numCloudLevels = 2;
-    for (let j=0; j<numSpheres; j++)
-    {
-        // radiusMultiplier = radius * (0.8 + 0.2*j/numSpheres);
-        radiusMultiplier = maxRadius * (j/numSpheres) + minRadius*(1- j/numSpheres);
-        const color = airColor.add(0.5 - 0.5*j/numSpheres, 0, 0, 0);
-        let cloudModifier =  (Math.sin(-0.1 + numCloudLevels*3.14159265*j/numSpheres)) * (1-j/numSpheres);
-        if (cloudModifier < 0) { cloudModifier = 0;}
-        const material = new vec4(airMaterial.x, airMaterial.y, cloudModifier, airMaterial.a);
-        ret = generateSphereMesh(numDivisions);
-        for (let i=0; i<ret.indices.length; i+=3)
-        {
-            const indOffset = vertices.length;
-            const v1 = ret.vertices[ret.indices[i  ]].mul(radiusMultiplier);
-            const v2 = ret.vertices[ret.indices[i+1]].mul(radiusMultiplier);
-            const v3 = ret.vertices[ret.indices[i+2]].mul(radiusMultiplier);
-            vertices.push(v1,v2,v3);
-            indices.push(indOffset, indOffset+1, indOffset+2);
-            normals.push(v1.copy().scaleToUnit(), v2.copy().scaleToUnit(), v3.copy().scaleToUnit());
-            materials.push(material, material, material);
-            colors.push(color, color, color);
-            slopes.push(0,0,0);
-        }
-    }
-    console.log(vertices.length);
-    return {
-        vertices: vertices,
-        indices: indices,
-        normals: normals,
-        slopes: slopes,
-        materials: materials,
-        colors: colors,
-    }
-}
-function cloudGenerator(numDivisions, minRadius, maxRadius) //unused...
-{
-
-    const cloudColor = new vec4(0.9,0.9,0.9,0.8);
-    const cloudMaterial = new vec4(1,0,0,0);
-
-    let vertices = [];
-    let normals = [];
-    let colors = [];
-    let materials = [];
-    let slopes = [];
-    let indices = [];
-
-    const ret = generateSphereMesh(numDivisions);
-    for (let c=0; c<100; c++)
-    {   
-        const percent = r();
-        const vec = new vec4(0.5 - r(), 0.5-r(), 0.5-r()).scaleToUnit().muli(minRadius*percent + maxRadius*(1-percent));
-        const size = perlin(vec.mul(100))*0.3 + 0.01;
-        const tempVertices = [];
-        for (let i=0; i<ret.vertices.length; i++)
-        {
-            const v = ret.vertices[i].copy();
-            let p = perlin(v.add(perlin(v.mul(2.2)))) + 0.3*perlin(v.mul(10)) + 0.1*perlin(v.mul(100));
-            let d = v.copy().scaleToUnit().dot(vec);
-            if (d<0){d=-d;}
-            d = 1 - d*0.7;
-            v.muli(d).muli(size).muli(p).addi(vec);
-            tempVertices.push(v);
-        }
-
-        vertexToIndexMap = new Map()
-        for (let i=0; i<ret.indices.length; i+=3)
-        {    
-            let indOffset = vertices.length;
-            const v1 = tempVertices[ret.indices[i  ]];
-            const v2 = tempVertices[ret.indices[i+1]];
-            const v3 = tempVertices[ret.indices[i+2]];
-
-            let index;
-            index = vertexToIndexMap[v1.getHash()]
-            if (index != null) { indices.push(index); }
-            else { vertexToIndexMap[v1.getHash()] = indOffset; indices.push(indOffset); 
-                vertices.push(v1); 
-                normals.push(v1.copy().scaleToUnit());
-                materials.push(cloudMaterial);
-                indOffset++;}
-            
-            index = vertexToIndexMap[v2.getHash()]
-            if (index != null) { indices.push(index); }
-            else { vertexToIndexMap[v2.getHash()] = indOffset; indices.push(indOffset); 
-                vertices.push(v2); 
-                normals.push(v2.copy().scaleToUnit());
-                materials.push(cloudMaterial);
-                indOffset++;}
-
-            index = vertexToIndexMap[v3.getHash()]
-            if (index != null) { indices.push(index); }
-            else { vertexToIndexMap[v3.getHash()] = indOffset; indices.push(indOffset); 
-                vertices.push(v3); 
-                normals.push(v3.copy().scaleToUnit());
-                materials.push(cloudMaterial);
-                indOffset++;}
-
-            // vertices.push(v1,v2,v3);
-            // indices.push(indOffset, indOffset+1, indOffset+2);
-            // normals.push(v1.copy().scaleToUnit(), v2.copy().scaleToUnit(), v3.copy().scaleToUnit());
-            // materials.push(cloudMaterial, cloudMaterial, cloudMaterial);
-
-            // const c1 = new vec4(cloudColor.x, cloudColor.y, cloudColor.z, cloudColor.a * perlin(v1.mul(30)));
-            // const c2 = new vec4(cloudColor.x, cloudColor.y, cloudColor.z, cloudColor.a * perlin(v2.mul(30)));
-            // const c3 = new vec4(cloudColor.x, cloudColor.y, cloudColor.z, cloudColor.a * perlin(v3.mul(30)));
-            // colors.push(c1,c2,c3);
-            colors.push(cloudColor, cloudColor, cloudColor);
-            slopes.push(0,0,0);
-        }
-    }   
-    console.log("len indices: ", indices.length, "\nlen vertices: ", vertices.length);
-    return {
-        vertices: vertices,
-        indices: indices,
-        normals: normals,
-        slopes: slopes,
-        materials: materials,
-        colors: colors,
-    }
-}
-function treeGenerator(moonVertices, minVerticeRadius)
-{
-
-    let vertices = [];
-    let normals = [];
-    let colors = [];
-    let materials = [];
-    let indices = [];
-
-    // const ret = {
-    //     vertices: [
-    //         new vec4(0,0,0), new vec4(0,.1,0), new vec4(0,0,.1)
-    //     ],
-    //     normals: [
-    //         new vec4(1,1,1), new vec4(1,1,1), new vec4(1,1,1)
-    //     ],
-    //     colors: [
-    //         new vec4(0,1,0,1), new vec4(0,1,0,1), new vec4(0,1,0,1)
-    //     ],
-    //     materials:
-    //     [
-    //         new vec4(), new vec4(), new vec4()
-    //     ],
-    //     indices: [
-    //         0,1,2, 0,2,1
-    //     ]
-    // }
-
-    function pyramid(scale = 0.02)
-    {
-        const s = scale;
-        return {
-            vertices: [
-                new vec4(0,s,0), new vec4(s,0,s), new vec4(s,0,-s), new vec4(-s,0,-s), new vec4(-s,0,s)
-            ],
-            normals: [
-                new vec4(0,1,0), new vec4(1,1,1), new vec4(1,1,1), new vec4(1,1,1), new vec4(1,1,1), new vec4(1,1,1), 
-            ],
-            colors: [
-                new vec4(0,1,0,1), new vec4(0,1,0,1), new vec4(0,1,0,1), new vec4(0,1,0,1),new vec4(0,1,0,1),
-            ],
-            materials:
-            [
-                new vec4(), new vec4(), new vec4(), new vec4(), new vec4()
-            ],
-            indices: [
-                0,1,2, 0,2,1, 0,2,3, 0,3,2, 0,3,4, 0,4,3, 0,4,1, 0,1,4
-            ]
-        }
-    }
 
 
-    function getTree(vec)
-    {
-        let vertices = [];
-        let normals = [];
-        let colors = [];
-        let materials = [];
-        let indices = [];
-
-        return pyramid();
-    }
-    
-
-    for (let k=0; k<moonVertices.length; k++)
-    {
-        if (moonVertices[k].getLength() > minVerticeRadius && r() > 0.9)
-        {
-            const ret = getTree(moonVertices[k].copy());
-            const indOffset = vertices.length;
-            for (let i=0; i<ret.vertices.length; i++)
-            {
-                vertices.push(ret.vertices[i].add(moonVertices[k]));
-                normals.push(ret.normals[i]);
-                colors.push(ret.colors[i]);
-                materials.push(ret.materials[i]);
-            }
-            for (let i=0; i<ret.indices.length; i++)
-            {
-                indices.push(ret.indices[i] + indOffset);
-            }
-        }
-    }
-
-    return {
-        vertices: vertices,
-        indices: indices,
-        normals: normals,
-        materials: materials,
-        colors: colors,
-    }
-}
-function atmosphereGenerator_Rays(numDivisions, radius)
-{
-    const airColor = new vec4(0.5,0.5,1,0.1);
-    const airMaterial = new vec4(1,0.7,0,0);
-
-    let vertices = [];
-    let normals = [];
-    let colors = [];
-    let materials = [];
-    let slopes = [];
-    let indices = [];
-    
-    const numAngles = 100
-    for (let j=0; j<numAngles; j++)
-    {
-        const a = j * Math.PI * 2 / numAngles; //a = angle
-        const a2 = a + Math.PI;
-
-        const v1 = new vec4(Math.sin(a), 1, Math.cos(a)).muli(radius);
-        const v2 = new vec4(Math.sin(a2), 1, Math.cos(a2)).muli(radius);
-        const v3 = new vec4(Math.sin(a), -1, Math.cos(a)).muli(radius);
-        const v4 = new vec4(Math.sin(a2), -1, Math.cos(a2)).muli(radius);
-
-        const indOffset = vertices.length;
-        vertices.push(v1,v2,v3,v4, v1,v4,v3,v2);
-        indices.push(indOffset, indOffset+1, indOffset+2,  indOffset, indOffset+2, indOffset+3,
-            indOffset+4, indOffset+5, indOffset+6,  indOffset+4, indOffset+6, indOffset+7);
-        const n = computeNormal(v1,v2,v3).muli(-1);
-        const nn = n.mul(-1);
-        normals.push(n, n, n, n, nn, nn, nn, nn);
-        materials.push(airMaterial, airMaterial, airMaterial, airMaterial, airMaterial, airMaterial, airMaterial, airMaterial);
-        colors.push(airColor, airColor, airColor, airColor, airColor, airColor, airColor, airColor);
-    }
-    console.log(vertices.length);
-    return {
-        vertices: vertices,
-        indices: indices,
-        normals: normals,
-        slopes: slopes,
-        materials: materials,
-        colors: colors,
-    }
-}
 function computeNormal(v1,v2,v3)
 {
     const a = v2.sub(v1);
