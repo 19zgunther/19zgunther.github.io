@@ -713,7 +713,6 @@ function atmosphereGenerator(numDivisions, maxRadius, minRadius)
     for (let j=0; j<numLayers; j++)
     {
         let z = j/numLayers;
-        console.log(z);
         const indOffset = Math.round(vertices.length/3);
         vertices.push( -scale,scale,z, scale,scale,z, scale,-scale,z, -scale,-scale,z );
         normals.push( 1,1,1, 1,1,1, 1,1,1, 1,1,1);
