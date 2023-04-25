@@ -46,6 +46,9 @@
                 <div class = 'menu_dropdown_child' onclick='buttonClick("web_experiments")'>
                     Web Dev Experiments <br> <div style="font-size:x-small">(perpetually in dev)</div>
                 </div>
+                <div class = 'menu_dropdown_child' onclick='buttonClick("perlin_experiments")'>
+                    Perlin Noise Experiments
+                </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("raytracing")'>
                     Ray Tracing Project <br> <div style="font-size:x-small"></div>
                 </div>
@@ -108,6 +111,7 @@
             case 'raytracing':                  pageString += 'projects/raytracing/raytracing.html'; break;
             case 'planet_generator':            pageString += 'projects/planetGenerator/planetGenerator.html'; break;
             case 'web_experiments':             pageString += 'projects/webExperiments/webExperiments.html'; break;
+            case 'perlin_experiments':          pageString += 'projects/perlinNoise/perlin.html'; break;
             case 'webgl_raytracing':            pageString += 'projects/webglRaytracing/webglRaytracing.html'; break;
             case 'snake_game_neural_network':   pageString += 'projects/snake/snake.html'; break;
             case 'snake_game_neural_network_v2':pageString += 'projects/snake2/snake2.html'; break;

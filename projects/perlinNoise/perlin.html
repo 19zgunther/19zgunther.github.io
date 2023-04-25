@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zack Gunther</title>
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../menu.css">
+</head>
+
+<body id="Background">
+
+    <style>
+        .c{
+            display:flex; 
+            justify-content: center;
+            padding: 0.5rem;
+        }
+        h2 {
+            font-size: x-large;
+        }
+    </style>
+
+    <div class="c">
+        <h1>Perlin Noise Experiments</h1>
+    </div>
+    
+    <div class="c">
+        <div style="background-color: rgba(100,100,100,0.2); border-radius: 1rem; padding: 0.5rem;margin: 1rem;">
+            <div class="c" style="padding: 0.5rem">
+                <h2>RGB Perlin Noise</h2>
+            </div>
+            <div class="c">
+                <canvas id='glcanvas' style = 'width:80vw; height:80vh; border-radius: 1rem;'></canvas>
+            </div>
+            <div class="c">
+                Time Multiplier: <input id="timeMultiplierSlider" type="range" step="0.01" min="0" max="0.4" value="0.05">
+            </div>
+            <div class="c">
+                <div style="margin: auto;">
+                    <div>
+                        Freq 1: <input id="f1" type="range" step="0.01" min="0" max="100" value="5">
+                    </div>
+                    <div>
+                        Freq 2: <input id="f2" type="range" step="0.01" min="0" max="100" value="15">
+                    </div>
+                    <div>
+                        Freq 3: <input id="f3" type="range" step="0.01" min="0" max="100" value="45">
+                    </div>
+                    <div>
+                        Freq 4: <input id="f4" type="range" step="0.01" min="0" max="100" value="70">
+                    </div>
+                </div>
+        
+                <div style="margin: auto;">
+                    <div>
+                        Freq 1 mag: <input id="fm1" type="range" step="0.01" min="0" max="1" value="0.4">
+                    </div>
+                    <div>
+                        Freq 2 mag: <input id="fm2" type="range" step="0.01" min="0" max="1" value="0.3">
+                    </div>
+                    <div>
+                        Freq 3 mag: <input id="fm3" type="range" step="0.01" min="0" max="1" value="0.2">
+                    </div>
+                    <div>
+                        Freq 4 mag: <input id="fm4" type="range" step="0.01" min="0" max="1" value="0.1">
+                    </div>
+                </div>
+        
+                <div style="margin: auto;">
+                    <div>
+                        Freq 1 offset: <input id="fo1" type="range" step="0.01" min="0" max="20" value="1">
+                    </div>
+                    <div>
+                        Freq 2 offset: <input id="fo2" type="range" step="0.01" min="0" max="20" value="2">
+                    </div>
+                    <div>
+                        Freq 3 offset: <input id="fo3" type="range" step="0.01" min="0" max="20" value="3">
+                    </div>
+                    <div>
+                        Freq 4 offset: <input id="fo4" type="range" step="0.01" min="0" max="20" value="4">
+                    </div>
+                </div>
+            </div>
+            <div class="c">
+                <div style="margin: auto;">
+                    <div>
+                        R multiplier: <input id="rm" type="range" step="0.01" min="0" max="1" value="0.2">
+                    </div>
+                    <div>
+                        G multiplier: <input id="gm" type="range" step="0.01" min="0" max="1" value="1">
+                    </div>
+                    <div>
+                        B multiplier: <input id="bm" type="range" step="0.01" min="0" max="1" value="1">
+                    </div>
+                </div>
+        
+                <div style="margin: auto;">
+                    <div>
+                        R offset: <input id="ro" type="range" step="0.01" min="0" max="1" value="0">
+                    </div>
+                    <div>
+                        G offset: <input id="go" type="range" step="0.01" min="0" max="1" value="0">
+                    </div>
+                    <div>
+                        B offset: <input id="bo" type="range" step="0.01" min="0" max="1" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="c">
+        <div style="background-color: rgba(100,100,100,0.2); border-radius: 1rem; padding: 0.5rem;margin: 1rem;">
+            <!-- <div class="c" style="padding: 0.5rem">
+                <h2>RGB Perlin Noise</h2>
+            </div>
+            <div class="c">
+                <canvas id='glcanvas2' style = 'width:80vw; height:80vh; border-radius: 1rem;'></canvas>
+            </div> -->
+
+
+            <!-- <div class="c">
+                Time Multiplier: <input id="timeMultiplierSlider" type="range" step="0.01" min="0" max="0.4" value="0.05">
+            </div>
+            <div class="c">
+                <div style="margin: auto;">
+                    <div>
+                        Freq 1: <input id="f1" type="range" step="0.01" min="0" max="100" value="5">
+                    </div>
+                    <div>
+                        Freq 2: <input id="f2" type="range" step="0.01" min="0" max="100" value="15">
+                    </div>
+                    <div>
+                        Freq 3: <input id="f3" type="range" step="0.01" min="0" max="100" value="45">
+                    </div>
+                    <div>
+                        Freq 4: <input id="f4" type="range" step="0.01" min="0" max="100" value="70">
+                    </div>
+                </div>
+        
+                <div style="margin: auto;">
+                    <div>
+                        Freq 1 mag: <input id="fm1" type="range" step="0.01" min="0" max="1" value="0.4">
+                    </div>
+                    <div>
+                        Freq 2 mag: <input id="fm2" type="range" step="0.01" min="0" max="1" value="0.3">
+                    </div>
+                    <div>
+                        Freq 3 mag: <input id="fm3" type="range" step="0.01" min="0" max="1" value="0.2">
+                    </div>
+                    <div>
+                        Freq 4 mag: <input id="fm4" type="range" step="0.01" min="0" max="1" value="0.1">
+                    </div>
+                </div>
+        
+                <div style="margin: auto;">
+                    <div>
+                        Freq 1 offset: <input id="fo1" type="range" step="0.01" min="0" max="20" value="1">
+                    </div>
+                    <div>
+                        Freq 2 offset: <input id="fo2" type="range" step="0.01" min="0" max="20" value="2">
+                    </div>
+                    <div>
+                        Freq 3 offset: <input id="fo3" type="range" step="0.01" min="0" max="20" value="3">
+                    </div>
+                    <div>
+                        Freq 4 offset: <input id="fo4" type="range" step="0.01" min="0" max="20" value="4">
+                    </div>
+                </div>
+            </div>
+            <div class="c">
+                <div style="margin: auto;">
+                    <div>
+                        R multiplier: <input id="rm" type="range" step="0.01" min="0" max="1" value="0.2">
+                    </div>
+                    <div>
+                        G multiplier: <input id="gm" type="range" step="0.01" min="0" max="1" value="1">
+                    </div>
+                    <div>
+                        B multiplier: <input id="bm" type="range" step="0.01" min="0" max="1" value="1">
+                    </div>
+                </div>
+        
+                <div style="margin: auto;">
+                    <div>
+                        R offset: <input id="ro" type="range" step="0.01" min="0" max="1" value="0">
+                    </div>
+                    <div>
+                        G offset: <input id="go" type="range" step="0.01" min="0" max="1" value="0">
+                    </div>
+                    <div>
+                        B offset: <input id="bo" type="range" step="0.01" min="0" max="1" value="0">
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+
+</body>
+
+<script src="../../script.js"></script>
+<script src="../CAD/myMath.js"></script>
+<script src="perlin.js"></script>
+
+</html>
