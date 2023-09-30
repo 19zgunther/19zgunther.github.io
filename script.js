@@ -40,6 +40,9 @@
                 <div class = 'menu_dropdown_child' onclick='buttonClick("snake_game_neural_network_v2")'>
                     Snake Game Neural Network V2
                 </div>
+                <div class = 'menu_dropdown_child' onclick='buttonClick("tethered_cubes")'>
+                    Tethered Cubes<br> <div style="font-size:x-small">(A cool mistake)</div>
+                </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("easygl")'>
                     EasyGL Library Demo
                 </div>
@@ -117,6 +120,7 @@
             case 'snake_game_neural_network_v2':pageString += 'projects/snake2/snake2.html'; break;
             case 'easygl':                      pageString += 'projects/easyGL/easyGL.html'; break;
             case 'cnc_router':                  pageString += 'projects/cncRouter/cncRouter.html'; break;
+            case 'tethered_cubes':              pageString += 'projects/tetheredCubes/tetheredCubes.html'; break;
         }
         document.location = pageString;    
     }
