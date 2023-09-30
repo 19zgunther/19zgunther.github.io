@@ -13,10 +13,13 @@
     <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
 </head>
 
-<body style = "background-color: rgba(0,0,0,1);">
+<body style = "background-color: rgba(0,0,0,1); display:block;">
     <canvas id='glcanvas' style = 'width:100%; height:100%; position:fixed; top: 0; left: 0; z-index: -100'></canvas>
 
     <!-- Menu Goes Here -->
+
+
+    <!-- Welcome section -->
     <style>
         .phoneScreen {
             display: block;
@@ -99,8 +102,6 @@
             .phoneScreen{display: none;}
         }
     </style>
-
-    <!-- Welcome section -->
     <div class="phoneScreen">
         <div class="flexbox">
             <div id="PwelcomeText">
@@ -303,8 +304,11 @@
     <!--Projects Table-->
     <style>
         #ProjectContainer{
+            display: block;
+            position: relative;
             margin: 10%; 
-            width: 80%; 
+            width: 80vw;
+            /* overflow: hidden;  */
             height:fit-content; 
             border-radius: 1vmax; 
             background-color: rgba(0,0,0,0.6);
@@ -392,8 +396,9 @@
 
         .PParent{
             display:grid; 
+            position: relative;
             width:100%; 
-            max-width: 98vw;
+            max-width: 80vw;
             height:fit-content;
             grid-template-columns: repeat(2, 1fr);
             grid-auto-rows: 1fr;
@@ -402,7 +407,7 @@
             box-sizing: border-box;
         }
         .PCell{
-            padding: 3vmax;
+            /* padding: 3vmax; */
             border-radius: 1vmax;
             box-sizing: border-box;
             color: rgb(255,255,255, 0);
@@ -740,7 +745,7 @@
     </div>
 
     <!--Controls box for background planet-->
-    <div id = 'controls_box'>
+    <!-- <div id = 'controls_box'>
         <br>
         fov:
         <input id = 'fovSlider' type='range' min=0 max=180 step=0.1 value='10' oninput = updateCameraSettings()>
@@ -755,7 +760,7 @@
             Use WASD to move camera origin <br>
             Left & Right arrows change orbit & rotation speeds
         </div>
-    </div>
+    </div> -->
 
 </body>
 

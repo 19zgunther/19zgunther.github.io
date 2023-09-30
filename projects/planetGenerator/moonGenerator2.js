@@ -956,11 +956,11 @@ function initObjectBuffers(gl, vertices_=[], normals_=[], colors_=[], materials_
         vertices: vertices,
     }
 }
-function initPlanet(radius = 1, planetSubdivision=7, randomModifier=1, randomModifierAttenuation=1.8)
+function initPlanet(radius = 1, planetSubdivision=7, randomModifier=1, randomModifierAttenuation=1.8, numAtmosphereLevels=10)
 {
     const moon      = moonGenerator(radius, planetSubdivision, randomModifier, randomModifierAttenuation);
     const ocean     = oceanGenerator(3, moon.oceanRadius);
-    const atmosphere= atmosphereGenerator(3, moon.maxRadius*1.1, moon.maxRadius);
+    const atmosphere= atmosphereGenerator(3, moon.maxRadius*1.1, moon.maxRadius, numAtmosphereLevels);
     // const cloud     = cloudGenerator(3, moon.oceanRadius, moon.maxRadius*1.1);
     // const trees     = treeGenerator(moon.vertices, moon.oceanRadius);
     
@@ -1016,7 +1016,7 @@ const projectionMatrix = new mat4().makePerspective(0.2, canvasElement.width/can
 
 
 //Generate Planet and Init Buffers
-var planetData = initPlanet();
+var planetData = initPlanet(1, 7, 1, 1.8, 10);
 
 const lightDirection = new vec4(1,1,1).scaleToUnit();
 const ambientLightLevel = 0.001;
@@ -1410,7 +1410,7 @@ function oceanGenerator(numDivisions, radius)
         colors: colors,
     }
 }
-function atmosphereGenerator(numDivisions, maxRadius, minRadius)
+function atmosphereGenerator(numDivisions, maxRadius, minRadius, numSpheres=10)
 {
     const airColor = new vec4(0.7,0.9,0.9,0.04);
     const airMaterial = new vec4(1,0,0,1);
@@ -1422,7 +1422,6 @@ function atmosphereGenerator(numDivisions, maxRadius, minRadius)
     let slopes = [];
     let indices = [];
 
-    const numSpheres = 10;
     const numCloudLevels = 2;
     for (let j=0; j<numSpheres; j++)
     {
