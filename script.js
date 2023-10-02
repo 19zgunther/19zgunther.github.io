@@ -1,7 +1,4 @@
 
-
-
-
 {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Menu - Load Project List
@@ -42,6 +39,9 @@
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("tethered_cubes")'>
                     Tethered Cubes<br> <div style="font-size:x-small">(A cool mistake)</div>
+                </div>
+                <div class = 'menu_dropdown_child' onclick='buttonClick("thread_art")'>
+                    Thread Art Generator
                 </div>
                 <div class = 'menu_dropdown_child' onclick='buttonClick("easygl")'>
                     EasyGL Library Demo
@@ -121,6 +121,7 @@
             case 'easygl':                      pageString += 'projects/easyGL/easyGL.html'; break;
             case 'cnc_router':                  pageString += 'projects/cncRouter/cncRouter.html'; break;
             case 'tethered_cubes':              pageString += 'projects/tetheredCubes/tetheredCubes.html'; break;
+            case 'thread_art':                  pageString += 'projects/threadArt/threadArt.html'; break;
         }
         document.location = pageString;    
     }
