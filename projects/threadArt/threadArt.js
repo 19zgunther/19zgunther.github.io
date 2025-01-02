@@ -127,19 +127,25 @@ generatePoints();
 
 var threadPath = [];
 var threadPathRenderPercentInputElement = document.getElementById("threadPathRenderPercentInput");
-var threadPathRenderPercentOutputElement = document.getElementById("threadPathRenderPercentOutput")
+var threadPathRenderPercentOutputElement = document.getElementById("threadPathRenderPercentOutput");
+var threadRenderWeightInputElement = document.getElementById("threadRenderWeightInput");
 threadPathRenderPercentInputElement.oninput = () => {
     let percent = Number(threadPathRenderPercentInputElement.value);
     let numThreads = Math.round(percent * threadPath.length);
     threadPathRenderPercentOutputElement.innerText = `${Math.round(100*percent)}%, ${numThreads} threads`
     renderThreadPath( numThreads )
 }
+threadRenderWeightInputElement.oninput = () => {
+    let percent = Number(threadPathRenderPercentInputElement.value);
+    let numThreads = Math.round(percent * threadPath.length);
+    renderThreadPath( numThreads );
+}
 function renderThreadPath(renderPathUpToIndex = 100000)
 {
     ctx.beginPath();
     ctx.fillStyle='white';
     ctx.fillRect(0,0,threadCanvasElement.width, threadCanvasElement.height);
-    ctx.strokeStyle = "#00000010"
+    ctx.strokeStyle = `#000000${threadRenderWeightInputElement.value}0`
     ctx.moveTo(threadPath[0].x, threadPath[0].y)
     for (let i in threadPath)
     {

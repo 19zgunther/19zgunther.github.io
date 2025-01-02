@@ -23,15 +23,6 @@ function deleteComponent(comp) {
     }
     comp.Delete();
     removeComponentFromList(components, comp);
-    /*
-    for(var i=0; i<components.length; i++)
-    {
-        if (components[i] == comp)
-        {
-            components.splice(i,1);
-            comp.Delete(); //Let's just let the component know it's done. IDK if this will be used. Seems like a good idea though :-D
-        }
-    }*/
 }
 function deleteNode(node) {
     //Remove the comp component from the components list.
@@ -104,26 +95,6 @@ function getNewComponentName(type) { //returns the lowest unused component name.
         }
     }
     return "Could not find name";
-    /*
-    var name = 0;
-    var foundOne = true; //have we found a new name
-    for(var j=0; j<1000; j++) { //lets try this a max of 1000 times.
-        foundOne = true;
-        for(var i=0; i<components.length; i++)
-        {
-            if (components[i].name == name)
-            {
-                name += 1;
-                foundOne = false;
-                break;
-            }
-        }
-        if (foundOne == true)
-        {
-            return name;
-        }
-    }
-    return -2;*/
 }
 function getNewNodeName() { //returns the lowest unused node name.
     var name = 0;

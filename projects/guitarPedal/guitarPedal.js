@@ -2,7 +2,7 @@
 
 
 
-class ObjRenderer
+class OBJFileRenderer
 {
     constructor(canvasElement, objText, camPos = new vec4(0,0,25), clearColor = new vec4(.1,.1,.1,0.5), reflectivity = 0.5)
     {
@@ -14,7 +14,7 @@ class ObjRenderer
         this.canvasElement.width = Math.round(bb.width);
         this.canvasElement.height = Math.round(bb.height);
         this.easyGl = new EasyGL(this.canvasElement, clearColor);
-        this.id = "ID"+String(Math.random());
+        this.id = "OBJ"+String(Math.random());
 
         this.easyGl.setPerspective(null, canvasElement.width/canvasElement.height);
         this.easyGl.enableRenderingReverseFaces(true);
@@ -186,7 +186,7 @@ canvasElement.addEventListener("mousedown", eventListener);
 canvasElement.addEventListener("mouseup", eventListener);
 canvasElement.addEventListener("mousemove", eventListener);
 
-var objRenderer = new ObjRenderer(canvasElement, objDataText, new vec4(0,0,30));
+var objRenderer = new OBJFileRenderer(canvasElement, objDataText, new vec4(0,0,30));
 objRenderer.setObjectRotation(new vec4(0,0,-1.55));
 
 let updateInterval = setInterval(render, 60);
