@@ -1004,67 +1004,28 @@ const canvasElement = document.getElementById("glcanvas");
 let bb = canvasElement.getBoundingClientRect();
 canvasElement.width  = Math.round(bb.width);
 canvasElement.height = Math.round(bb.height);
-const gl = canvasElement.getContext("webgl");
-
+var gl = canvasElement.getContext("webgl");
 
 //Init ShaderData & Camera
-const shaderData = initShader(gl);
-const depthShaderData = initDepthShader(gl);
+var shaderData = initShader(gl);
+var depthShaderData = initDepthShader(gl);
 const cameraPosition = new vec4(0,0,-10);
 const cameraRotation = new vec4(0,0,0);
-const projectionMatrix = new mat4().makePerspective(0.2, canvasElement.width/canvasElement.height, 1, 1000);
+var projectionMatrix = new mat4().makePerspective(0.2, canvasElement.width/canvasElement.height, 1, 1000);
 
+// Handle resize of window
+window.addEventListener('resize', () => {
+    let bb = canvasElement.getBoundingClientRect();
+    canvasElement.width  = Math.round(bb.width);
+    canvasElement.height = Math.round(bb.height);
+    projectionMatrix = new mat4().makePerspective(0.2, canvasElement.width/canvasElement.height, 1, 1000);
+})
 
 //Generate Planet and Init Buffers
 var planetData = initPlanet(1, 7, 1, 1.8, 10);
 
 const lightDirection = new vec4(1,1,1).scaleToUnit();
 const ambientLightLevel = 0.001;
-// const colorModifierVector = new vec4(1,0,0.5,0);
-// const normalModifierVector = new vec4(1,0,0.5,0);
-// const normalNoiseOffsetVector = new vec4(0,0,0,0);
-// const colorNoiseOffsetVector = new vec4(0,0,0,0);
-// handleInputs();
-// handleInputs_planetGen();
-// function handleInputs()
-// {
-//     if (document.getElementById("colorModifierCheckbox").checked)
-//     {
-//         colorModifierVector.x = document.getElementById("colorModifierXSlider").value;
-//         colorModifierVector.y = document.getElementById("colorModifierYSlider").value;
-//         colorModifierVector.z = document.getElementById("colorModifierZSlider").value;
-//         colorModifierVector.a = document.getElementById("colorModifierASlider").value;
-
-//         colorNoiseOffsetVector.x = document.getElementById("colorRandomOffsetXSlider").value;
-//         colorNoiseOffsetVector.y = document.getElementById("colorRandomOffsetYSlider").value;
-//         colorNoiseOffsetVector.z = document.getElementById("colorRandomOffsetZSlider").value;
-//         colorNoiseOffsetVector.a = document.getElementById("colorRandomOffsetASlider").value;
-//     } else {
-//         colorModifierVector.set(0,0,0,0);
-//     }
-    
-//     if (document.getElementById("normalModifierCheckbox").checked)
-//     {
-//         normalModifierVector.x = document.getElementById("normalModifierXSlider").value;
-//         normalModifierVector.y = document.getElementById("normalModifierYSlider").value;
-//         normalModifierVector.z = document.getElementById("normalModifierZSlider").value;
-//         normalModifierVector.a = document.getElementById("normalModifierASlider").value;
- 
-//         normalNoiseOffsetVector.x = document.getElementById("normalRandomOffsetXSlider").value;
-//         normalNoiseOffsetVector.y = document.getElementById("normalRandomOffsetYSlider").value;
-//         normalNoiseOffsetVector.z = document.getElementById("normalRandomOffsetZSlider").value;
-//         normalNoiseOffsetVector.a = document.getElementById("normalRandomOffsetASlider").value;
-//     } else {
-//         normalModifierVector.set(0,0,0,0);
-//     }
-// }
-// function handleInputs_planetGen()
-// {
-//     // setRandomSeed(0);
-//     // initPlanet(document.getElementById("planetGenNumDivisions").value,
-//     //     document.getElementById("planetGenRandomModification").value,
-//     //     document.getElementById("planetGenRandomModificationAttenuation").value);
-// }
 
 
 const keys = {};

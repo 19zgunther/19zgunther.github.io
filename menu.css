@@ -62,12 +62,12 @@
 }
 .menu_dropdown {
     width: 100%;
+    min-height: 100%;
     position: absolute;
     left: 0px;
     max-height: 0px;
     height: fit-content;
-    opacity: 0.5;
-    background-color: var(--background_color);
+    padding-top: 1vmax; /* Push down the top, so it doesn't overlap the button*/
 
     overflow: hidden;
     display:block;
@@ -79,11 +79,8 @@
     transition: all 1s, color 0.2s, background-color 0.2s;
 }
 .menu_dropdown_child {
-
     border-radius: .4vmax;
-
     font-size: 1rem;
-
     opacity: 0;
     margin: 0vmax;
     margin-top: 0.4vmax;

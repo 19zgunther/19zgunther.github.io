@@ -9,31 +9,17 @@
 
 
 
-
-
-
-
-
-
 #welcome_section{
     transition: transform 1s, opacity 5s;
     background-color: rgba(0,0,0,0.6);
     opacity: 0;
 }
-/* @media (max-aspect-ratio: 3/3) {
-    #welcome_section{
-        background-color: red;
-        opacity: 1;
-    }
-}*/
-
 
 body.loaded #welcome_section{
     opacity: 1;
 }
 
 .titleA{
-    /*font-family: 'Abril Fatface', cursive;*/
     text-align: left;
     transition: width 3s, color 1s, transform 3s;
     width: 0%;
@@ -44,7 +30,6 @@ body.loaded #welcome_section{
     -moz-background-clip: text;
     -webkit-background-clip: text;
     background-clip: text;
-    /*transform: rotateX(90deg);*/
     overflow: hidden;
     text-overflow: hidden;
     margin-right: 10%;
@@ -52,7 +37,6 @@ body.loaded #welcome_section{
     cursor: default;
 }
 body.loaded .titleA{
-    /*transform: rotateX(0deg) translateY(100px);*/
     width: 100%;
 }
 .titleA:hover{
